@@ -1,3 +1,4 @@
+export { DailyLogScreen } from "./DailyLog/DailyLogScreen";
 export { ParentHomeScreen } from "./ParentHomeScreen/ParentHomeScreen";
 export { PinGate } from "./PinGate/PinGate";
 export { SettingsScreen } from "./SettingsScreen/SettingsScreen";
