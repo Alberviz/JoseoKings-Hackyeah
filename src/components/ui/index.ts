@@ -7,10 +7,13 @@ export { LinkButton } from "./LinkButton/LinkButton";
 export { OptionButton } from "./OptionButton/OptionButton";
 export { OptionGroup } from "./OptionGroup/OptionGroup";
 export { ProgressBar } from "./ProgressBar/ProgressBar";
+export { RingTimer } from "./RingTimer/RingTimer";
 export { Screen } from "./Screen/Screen";
 export { Stack } from "./Stack/Stack";
 export { Text } from "./Text/Text";
 export { TextField } from "./TextField/TextField";
+
+export type { RingTimerProps } from "./RingTimer/RingTimer";
 
 export type { ButtonVariant } from "./Button/Button.style";
 export type { ChipTone } from "./Chip/Chip.style";
