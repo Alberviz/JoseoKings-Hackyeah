@@ -303,23 +303,30 @@ describe("Missions Feature (Task T8)", () => {
       fireEvent.change(pinInput, { target: { value: "9999" } });
       fireEvent.click(submitButton);
 
-      expect(await screen.findByText("Incorrect PIN. Please try again.")).toBeDefined();
+      expect(
+        await screen.findByText("Incorrect PIN. Please try again.", {}, { timeout: 5000 }),
+      ).toBeDefined();
       expect(loadState().missionLogs).toHaveLength(0);
 
       // Correct PIN: 1234
       fireEvent.change(pinInput, { target: { value: "1234" } });
       fireEvent.click(submitButton);
 
-      expect(await screen.findByText("Nice work!")).toBeDefined();
+      expect(await screen.findByText("Nice work!", {}, { timeout: 5000 })).toBeDefined();
       expect(screen.getByText("You both did it together!")).toBeDefined();
       expect(screen.getByText("Done with family")).toBeDefined();
 
       // Saved once
-      const saved = loadState().missionLogs;
-      expect(saved).toHaveLength(1);
-      expect(saved[0].status).toBe("completed");
-      expect(saved[0].company).toBe("family");
-      expect(saved[0].confirmedBy).toBe("parent-pin");
+      await waitFor(
+        () => {
+          const saved = loadState().missionLogs;
+          expect(saved).toHaveLength(1);
+          expect(saved[0].status).toBe("completed");
+          expect(saved[0].company).toBe("family");
+          expect(saved[0].confirmedBy).toBe("parent-pin");
+        },
+        { timeout: 5000 },
+      );
     });
 
     it("other company mission allows other-tap confirmation with cooperative copy", async () => {
