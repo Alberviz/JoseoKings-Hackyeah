@@ -71,7 +71,7 @@ Rules for the data:
 | `src/app/` (routes)                               | Whoever owns the feature screen       | `page.tsx` renders **one** screen. Routes are predefined below. |
 | `docs/`, `README.md`                              | Claudia (docs), Claude (rules)        | `AGENTS.md`, `PRODUCT.md`, `ARCHITECTURE.md` need Alberto's OK. |
 
-Paused and not linked from the app: `src/app/restroom-map/`, `src/app/menu-reader/`, `src/components/features/restroom-map/`, `src/components/features/menu-reader/`. Do not edit them.
+The restroom map and the menu reader were removed from the tree on 2026-10-03 (paused product). They are in git history if the team ever returns to them.
 
 ## 4. Routes
 

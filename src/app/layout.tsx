@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AppProviders } from "@/components/providers/AppProviders/AppProviders";
 import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
+import { theme } from "@/theme/theme";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#5B3FA8",
+  themeColor: theme.colors.primary,
   width: "device-width",
   initialScale: 1,
 };

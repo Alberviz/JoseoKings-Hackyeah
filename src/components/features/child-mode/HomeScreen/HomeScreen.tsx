@@ -4,7 +4,6 @@ import { Card, Heading, LinkButton, Screen, Stack, Text } from "@/components/ui"
 import { APP_DESCRIPTION, APP_NAME, ROUTES } from "@/config/app";
 
 // Temporary home. Task T6 replaces it with the child home (companion, check-in, missions).
-// The restroom map and the menu reader are paused and are not linked from here.
 export function HomeScreen() {
   return (
     <Screen>

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
+import { theme } from "@/theme/theme";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -8,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: APP_DESCRIPTION,
     start_url: "/",
     display: "standalone",
-    background_color: "#FAF8FF",
-    theme_color: "#5B3FA8",
+    background_color: theme.colors.background,
+    theme_color: theme.colors.primary,
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },

@@ -14,6 +14,7 @@ I am <name> and my task is <T#>. Work only in the folders of that task, on its o
 Follow the component pattern (.tsx + .style.ts), use the theme and src/components/ui.
 Never add medical advice, health data sent to a server, or a dependency that is not listed.
 If something is unclear or needs a file outside my folders, stop and ask me.
+Read docs/COMMS.md and run `scripts/comms.sh open <my name>`: that is how you ask Claude and the other AIs questions.
 ```
 
 `CLAUDE.md` and `GEMINI.md` already import `AGENTS.md`, which points to the other documents, so Claude Code and Gemini load them automatically. Other tools do not: use the prompt above.

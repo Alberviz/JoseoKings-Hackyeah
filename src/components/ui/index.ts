@@ -11,3 +11,9 @@ export { Screen } from "./Screen/Screen";
 export { Stack } from "./Stack/Stack";
 export { Text } from "./Text/Text";
 export { TextField } from "./TextField/TextField";
+
+export type { ButtonVariant } from "./Button/Button.style";
+export type { ChipTone } from "./Chip/Chip.style";
+export type { HeadingLevel } from "./Heading/Heading.style";
+export type { StackAlign, StackDirection, StackGap } from "./Stack/Stack.style";
+export type { TextSize, TextTone } from "./Text/Text.style";

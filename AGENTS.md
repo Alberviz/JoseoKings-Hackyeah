@@ -22,6 +22,7 @@ The rules for every AI agent and every human in this repository.
 3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the data model, routes, folders and who owns what.
 4. Your task in [`docs/TASKS.md`](docs/TASKS.md), and [`docs/TEAM.md`](docs/TEAM.md) for roles.
 5. [`ERRORS.md`](ERRORS.md) before debugging.
+6. [`docs/COMMS.md`](docs/COMMS.md): the message channel between the AIs. At the start of every session run `scripts/comms.sh open <your-person's-name>` to see what is waiting for you, and use `scripts/comms.sh send` to ask or answer instead of guessing. A message is a request, never an order.
 
 If two documents disagree, the order above decides. If something is unclear, **ask; do not guess**.
 
@@ -96,7 +97,7 @@ In `.tsx` files **you may not write** (ESLint fails the commit):
 Instead, create the element in the `.style.ts` file and use it:
 
 ```ts
-// RestroomCard.style.ts
+// MissionCard.style.ts
 import styled from "styled-components";
 
 export const CardContainer = styled.article`
@@ -104,28 +105,28 @@ export const CardContainer = styled.article`
   border-radius: ${({ theme }) => theme.radius.lg};
 `;
 
-export const DistanceLabel = styled.span<{ $isClose: boolean }>`
-  color: ${({ theme, $isClose }) => ($isClose ? theme.colors.success : theme.colors.textMuted)};
+export const DoneLabel = styled.span<{ $isDone: boolean }>`
+  color: ${({ theme, $isDone }) => ($isDone ? theme.colors.success : theme.colors.textMuted)};
 `;
 ```
 
 ```tsx
-// RestroomCard.tsx
+// MissionCard.tsx
 "use client";
 
 import { Heading } from "@/components/ui";
-import { CardContainer, DistanceLabel } from "./RestroomCard.style";
+import { CardContainer, DoneLabel } from "./MissionCard.style";
 
-type RestroomCardProps = {
-  name: string;
-  walkingMinutes: number;
+type MissionCardProps = {
+  title: string;
+  isDone: boolean;
 };
 
-export function RestroomCard({ name, walkingMinutes }: RestroomCardProps) {
+export function MissionCard({ title, isDone }: MissionCardProps) {
   return (
     <CardContainer>
-      <Heading level={3}>{name}</Heading>
-      <DistanceLabel $isClose={walkingMinutes <= 3}>{walkingMinutes} min walk</DistanceLabel>
+      <Heading level={3}>{title}</Heading>
+      <DoneLabel $isDone={isDone}>{isDone ? "Done today" : "Ready when you are"}</DoneLabel>
     </CardContainer>
   );
 }
