@@ -42,7 +42,7 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     localStorage.clear();
   });
 
-  it("redirects to parentSetup when no child is configured", async () => {
+  it("renders main screen directly with dragon without redirecting when no child is configured", async () => {
     renderWithTheme(
       <ProviderWrapper>
         <HomeScreen />
@@ -50,8 +50,10 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     );
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith(ROUTES.parentSetup);
+      expect(screen.getByLabelText("Child Home Screen")).toBeDefined();
+      expect(screen.getByLabelText("Mascot Stage")).toBeDefined();
     });
+    expect(mockReplace).not.toHaveBeenCalledWith(ROUTES.parentSetup);
   });
 
   it("renders top bar with fire bar, coins pill, and parent mode link with required aria labels", async () => {

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, ROUTES } from "@/config/app";
 import { FIRE_MAX } from "@/config/economy";
@@ -61,14 +60,6 @@ export function HomeScreen() {
   const router = useRouter();
   const { state, actions, isReady } = useAppState();
 
-  // If no child is configured, redirect to parent setup ONLY when isReady is true
-  useEffect(() => {
-    if (!isReady) return;
-    if (!state.child) {
-      router.replace(ROUTES.parentSetup);
-    }
-  }, [isReady, state.child, router]);
-
   if (!isReady) {
     return (
       <LoadingContainer>
@@ -77,11 +68,7 @@ export function HomeScreen() {
     );
   }
 
-  if (!state.child) {
-    return null;
-  }
-
-  const companionName = state.companion?.name || "Kraków Dragon";
+  const companionName = state.companion?.name || state.child?.nickname || "Kraków Dragon";
   const equippedItemIds = state.economy?.equippedItemIds ?? [];
 
   const fire = state.economy?.fire ?? 0;
