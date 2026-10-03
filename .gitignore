@@ -44,3 +44,6 @@ next-env.d.ts
 # Local copy of the comms branch (see docs/COMMS.md)
 .comms/
 .comms.lock
+
+# Agent scratchpads and tool metadata
+.claude/
