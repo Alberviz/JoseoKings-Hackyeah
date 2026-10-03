@@ -114,7 +114,7 @@ export const PLAY_GAMES: PlayGame[] = [
         poseKey: "tap-seated",
       },
       {
-        text: "Boop it back up with your right hand before it falls.",
+        text: "Boop it back up with your other hand.",
         durationSeconds: 15,
         poseKey: "tap-seated",
       },
@@ -603,7 +603,7 @@ export const PLAY_GAMES: PlayGame[] = [
         poseKey: "walk",
       },
       {
-        text: "Walk briskly to each target you spot and tag it.",
+        text: "Walk briskly to each target you spot and point at it.",
         durationSeconds: 20,
         poseKey: "walk",
       },
