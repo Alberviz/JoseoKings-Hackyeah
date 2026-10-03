@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
+import { PinGate } from "@/components/features/parent-mode";
 import { Heading, LinkButton, Screen, Text } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { PATTERNS_DISCLAIMER, REPORT_DISCLAIMER } from "@/content";
 import { useAppState } from "@/hooks/useAppState";
+import { useParentSession } from "@/hooks/useParentSession";
 import { addDays, todayKey } from "@/lib/dates";
 import {
   getDaySummaries,
@@ -13,6 +15,7 @@ import {
   hasEnoughData,
   MIN_ANSWERED_DAYS,
 } from "@/lib/patterns";
+import { hasPin } from "@/lib/pin";
 import { ColourCalendar } from "../ColourCalendar/ColourCalendar";
 import { FoodCoOccurrence } from "../FoodCoOccurrence/FoodCoOccurrence";
 import { WeeklyCharts } from "../WeeklyCharts/WeeklyCharts";
@@ -29,6 +32,7 @@ import {
 
 export function PatternsScreen() {
   const { state, isReady } = useAppState();
+  const session = useParentSession();
 
   const today = todayKey();
 
@@ -62,6 +66,30 @@ export function PatternsScreen() {
             <Text tone="muted">Loading patterns data...</Text>
           </ScreenHeader>
         </PatternsLayout>
+      </Screen>
+    );
+  }
+
+  const hasConfiguredPin = hasPin(state.settings);
+
+  if (!state.child || !hasConfiguredPin) {
+    return (
+      <Screen>
+        <PinGate
+          title="Setup needed"
+          description="Parent mode requires a child profile and a 4-digit PIN."
+        />
+      </Screen>
+    );
+  }
+
+  if (!session.isUnlocked) {
+    return (
+      <Screen>
+        <PinGate
+          title="Parent patterns"
+          description="Enter your 4-digit PIN to access patterns and trends."
+        />
       </Screen>
     );
   }
