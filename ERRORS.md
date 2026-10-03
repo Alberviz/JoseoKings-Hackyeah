@@ -86,3 +86,14 @@ Before debugging something, search this file first: it may already be solved.
 - **Cause:** `crypto.subtle` only exists in a secure context (HTTPS or `localhost`). Plain HTTP on the local network is not secure. Unverified on a real device: to confirm.
 - **Fix:** test on phones with the Vercel HTTPS URL (production or preview), or with USB port forwarding (`adb reverse tcp:3000 tcp:3000`, then open `localhost:3000` on the phone). The PIN screens should show a clear message if `crypto.subtle` is missing instead of crashing.
 - **Refs:** E4, T16
+
+### E6 · A4 print media verification and narrow viewport table handling
+
+- **Date:** 2026-10-03 18:20
+- **Who:** Juan (Antigravity)
+- **Task:** T11
+- **Status:** fixed
+- **Symptom:** On narrow mobile viewports (< 400px), tables require horizontal scrolling on screen, which could clip content if printed without `@media print` overrides.
+- **Cause:** Table columns exceed 390px on small screens.
+- **Fix:** `DoctorReportView.style.ts` uses `@media print` with `@page { size: A4 portrait; margin: 10mm; }`, disables container clipping (`overflow-x: visible !important`), hides action buttons via `.no-print`, and adopts `theme.colors.*` design tokens. Tested real printing on desktop Chrome and phone-sized viewport (emulated 390x844; real physical phone test remains for Alberto in T16).
+- **Refs:** T11, T16
