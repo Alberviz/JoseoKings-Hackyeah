@@ -1,0 +1,228 @@
+"use client";
+
+import { useTheme } from "styled-components";
+import { Companion } from "@/components/features/companion";
+import { Heading, LinkButton, Screen, Stack, Text } from "@/components/ui";
+import { ROUTES } from "@/config/app";
+import { SHOP_ITEMS, type ShopItemConfig } from "@/config/economy";
+import { useAppState } from "@/hooks/useAppState";
+import type { ShopItemId } from "@/types";
+import {
+  CustomizeRoot,
+  EmptyStateCard,
+  ItemLabel,
+  Stage,
+  SvgEllipse,
+  SvgPath,
+  SvgRect,
+  SvgTickIcon,
+  SvgWearableIcon,
+  TickBadge,
+  TopBar,
+  WardrobeSection,
+  WearableItemWrapper,
+  WearablesRow,
+  WearableSquareButton,
+} from "./CustomizeScreen.style";
+
+const WEARABLE_NAMES: Record<string, string> = {
+  glasses: "Glasses",
+  "t-shirt": "T-shirt",
+  hat: "Hat",
+};
+
+function WearableIcon({ id }: { id: string }) {
+  const theme = useTheme();
+
+  if (id === "glasses") {
+    return (
+      <SvgWearableIcon viewBox="0 0 32 32" aria-hidden="true">
+        <SvgRect
+          x="4"
+          y="11"
+          width="10"
+          height="9"
+          rx="3"
+          fill={theme.colors.primarySoft}
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+        />
+        <SvgRect
+          x="18"
+          y="11"
+          width="10"
+          height="9"
+          rx="3"
+          fill={theme.colors.primarySoft}
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+        />
+        <SvgPath
+          d="M14 15 Q16 13 18 15"
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+        />
+        <SvgPath
+          d="M4 14 L1 13 M28 14 L31 13"
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </SvgWearableIcon>
+    );
+  }
+
+  if (id === "t-shirt") {
+    return (
+      <SvgWearableIcon viewBox="0 0 32 32" aria-hidden="true">
+        <SvgPath
+          d="M10 8 L5 12 L8 16 L11 14 L11 26 L21 26 L21 14 L24 16 L27 12 L22 8 Q16 11 10 8 Z"
+          fill={theme.colors.lavender}
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <SvgPath
+          d="M12 8 Q16 11 20 8"
+          stroke={theme.colors.ink}
+          strokeWidth="1.5"
+          fill="none"
+          strokeLinecap="round"
+        />
+      </SvgWearableIcon>
+    );
+  }
+
+  // Hat
+  return (
+    <SvgWearableIcon viewBox="0 0 32 32" aria-hidden="true">
+      <SvgPath
+        d="M9 19 C9 11 12 9 16 9 C20 9 23 11 23 19 Z"
+        fill={theme.colors.highlight}
+        stroke={theme.colors.ink}
+        strokeWidth="2"
+      />
+      <SvgPath d="M9 17 Q16 19 23 17 L23 19 Q16 21 9 19 Z" fill={theme.colors.accent} />
+      <SvgEllipse
+        cx="16"
+        cy="20"
+        rx="13"
+        ry="4"
+        fill={theme.colors.highlight}
+        stroke={theme.colors.ink}
+        strokeWidth="2"
+      />
+    </SvgWearableIcon>
+  );
+}
+
+function TickIcon() {
+  const theme = useTheme();
+  return (
+    <SvgTickIcon viewBox="0 0 14 14" aria-hidden="true">
+      <SvgPath
+        d="M3 7 L6 10 L11 4"
+        stroke={theme.colors.onPrimary}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </SvgTickIcon>
+  );
+}
+
+export function CustomizeScreen() {
+  const { state, actions, isReady } = useAppState();
+
+  if (!isReady) {
+    return (
+      <Screen>
+        <Text tone="muted">Loading customize...</Text>
+      </Screen>
+    );
+  }
+
+  const companionName = state.companion?.name || state.child?.nickname || "Companion";
+  const equippedItemIds = state.economy.equippedItemIds;
+  const ownedItemIds = state.economy.ownedItemIds;
+
+  const ownedWearables = SHOP_ITEMS.filter(
+    (item): item is Extract<ShopItemConfig, { kind: "wearable" }> =>
+      item.kind === "wearable" && ownedItemIds.includes(item.id),
+  );
+
+  const handleToggle = (itemId: ShopItemId) => {
+    if (equippedItemIds.includes(itemId)) {
+      actions.unequipShopItem(itemId);
+    } else {
+      actions.equipShopItem(itemId);
+    }
+  };
+
+  return (
+    <Screen>
+      <CustomizeRoot>
+        <TopBar>
+          <LinkButton href={ROUTES.home} variant="secondary">
+            ← Home
+          </LinkButton>
+        </TopBar>
+
+        <Stack gap="xs" align="center">
+          <Heading level={1}>Dress Up {companionName}</Heading>
+          <Text tone="muted">Tap an item to put it on or take it off.</Text>
+        </Stack>
+
+        <Stage aria-label="Companion preview stage">
+          <Companion pose="idle" equippedItemIds={equippedItemIds} name={companionName} size="lg" />
+        </Stage>
+
+        <WardrobeSection aria-label="Your Accessories">
+          <Heading level={2}>Your Accessories</Heading>
+
+          {ownedWearables.length === 0 ? (
+            <EmptyStateCard>
+              <Text tone="muted">
+                You don&apos;t have any accessories yet! Visit the shop to get hats, glasses, and
+                t-shirts for your companion.
+              </Text>
+              <LinkButton href={ROUTES.shop} variant="primary">
+                Visit the shop
+              </LinkButton>
+            </EmptyStateCard>
+          ) : (
+            <WearablesRow role="group" aria-label="Owned accessories">
+              {ownedWearables.map((item) => {
+                const isEquipped = equippedItemIds.includes(item.id);
+                const name = WEARABLE_NAMES[item.id] || item.id;
+
+                return (
+                  <WearableItemWrapper key={item.id}>
+                    <WearableSquareButton
+                      type="button"
+                      $isEquipped={isEquipped}
+                      aria-pressed={isEquipped}
+                      aria-label={`${name}${isEquipped ? " (worn)" : ""}`}
+                      onClick={() => handleToggle(item.id)}
+                    >
+                      <WearableIcon id={item.id} />
+                      {isEquipped && (
+                        <TickBadge aria-hidden="true">
+                          <TickIcon />
+                        </TickBadge>
+                      )}
+                    </WearableSquareButton>
+                    <ItemLabel>{name}</ItemLabel>
+                  </WearableItemWrapper>
+                );
+              })}
+            </WearablesRow>
+          )}
+        </WardrobeSection>
+      </CustomizeRoot>
+    </Screen>
+  );
+}
