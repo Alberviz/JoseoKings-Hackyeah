@@ -61,11 +61,11 @@ describe("rewards do not depend on the answers", () => {
 
     const results = new Set<number>();
     for (const pain of values) {
-      for (const bathroom of values) {
+      for (const playPace of values) {
         for (const energy of values) {
           const answers = {
-            [QUESTION_IDS.bellyPain]: pain,
-            [QUESTION_IDS.bathroom]: bathroom,
+            [QUESTION_IDS.bellyComfort]: pain,
+            [QUESTION_IDS.playPace]: playPace,
             [QUESTION_IDS.energy]: energy,
           };
           results.add(pointsForCheckIn(checkIn("2026-10-01", answers)));
@@ -75,9 +75,9 @@ describe("rewards do not depend on the answers", () => {
     expect(results).toEqual(new Set([CHECK_IN_POINTS]));
   });
 
-  it("pain 4 and pain 0 give exactly the same reward", () => {
-    const worst = checkIn("2026-10-01", { [QUESTION_IDS.bellyPain]: 4 });
-    const best = checkIn("2026-10-01", { [QUESTION_IDS.bellyPain]: 0 });
+  it("the hardest and the easiest answer give exactly the same reward", () => {
+    const worst = checkIn("2026-10-01", { [QUESTION_IDS.bellyComfort]: CORE_QUESTION_SCALE.max });
+    const best = checkIn("2026-10-01", { [QUESTION_IDS.bellyComfort]: 0 });
     expect(pointsForCheckIn(worst)).toBe(pointsForCheckIn(best));
   });
 

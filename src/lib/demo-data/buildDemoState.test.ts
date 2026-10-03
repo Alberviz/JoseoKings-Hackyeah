@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { QUESTION_IDS } from "@/config/content-ids";
+import { CORE_QUESTION_SCALE, DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { addDays, daysBetween, isDateKey } from "@/lib/dates";
 import { buildDemoState, DEMO_DAYS } from "./buildDemoState";
 
@@ -53,14 +53,14 @@ describe("buildDemoState", () => {
   it("contains a flare and a recovery in the child's own answers", () => {
     const pain = (daysAgo: number) =>
       state.checkIns.find((c) => c.date === addDays(TODAY, -daysAgo))?.answers[
-        QUESTION_IDS.bellyPain
+        QUESTION_IDS.bellyComfort
       ];
     const painDuring = [30, 28, 27, 26, 25, 24]
       .map(pain)
       .filter((v): v is number => typeof v === "number");
     const painNow = [3, 2, 1, 0].map(pain).filter((v): v is number => typeof v === "number");
-    expect(Math.max(...painDuring)).toBeGreaterThanOrEqual(3);
-    expect(Math.max(...painNow)).toBeLessThanOrEqual(2);
+    expect(Math.max(...painDuring)).toBe(CORE_QUESTION_SCALE.max);
+    expect(Math.max(...painNow)).toBeLessThan(CORE_QUESTION_SCALE.max);
   });
 
   it("has two consultations in order, the last one inside the flare window", () => {
@@ -96,7 +96,9 @@ describe("buildDemoState", () => {
     for (const entry of state.foodEntries) {
       const checkIn = state.checkIns.find((c) => c.id === entry.relatedCheckInId);
       expect(checkIn?.date).toBe(entry.date);
-      expect(Number(checkIn?.answers[QUESTION_IDS.bellyPain])).toBeGreaterThanOrEqual(3);
+      expect(Number(checkIn?.answers[QUESTION_IDS.bellyComfort])).toBeGreaterThanOrEqual(
+        DISCOMFORT_THRESHOLD,
+      );
     }
   });
 

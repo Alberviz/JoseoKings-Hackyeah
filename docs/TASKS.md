@@ -117,7 +117,7 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 ### T4 · Clinical content (Farouk, with Álvaro)
 
-- `src/content/check-in-questions.ts`: the daily questions as `CheckInQuestion[]`, from real sources, simple words, with the `notToday` path handled by the UI. Suggested 3 to 4 questions covering belly pain, bathroom, energy and one free-choice. Final choice is yours; every question has a source comment.
+- `src/content/check-in-questions.ts`: the daily questions as `CheckInQuestion[]`, from real sources, simple words, with the `notToday` path handled by the UI. The three core questions are already chosen (proposed by Álvaro, ids and scale in `src/config/content-ids.ts`): belly comfort, energy and play pace, each with 3 options where 0 is the easiest day and 2 the hardest. Improve the wording and the sources; if you add or change a question, update the ids in the same PR.
 - `src/content/missions.ts`: 5 to 6 gentle missions as `Mission[]`: breathing, bed stretches, balance (hold a wall), wall sit, and similar. **No impact, no jumping.** Short steps, `poseKey` for the companion, a neutral `parentNote`.
 - `src/content/disclaimers.ts`: the text of `PRODUCT.md` section 6.3, plus a one-line child-facing "what your parents can see" text.
 - Use the ids in `src/config/content-ids.ts` for the three core questions and the missions. If you change or add one, update that file in the same PR and tell Alberto, because the demo data and the screens use it.
@@ -157,7 +157,7 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 ### T9 · Patterns logic (Juan)
 
-- `src/lib/patterns/`: day and week aggregation, colour-calendar data per day (from the child's own answers), weekly series (pain, bathroom, energy, sleep), active days per company label, and food co-occurrence **counts** on discomfort days.
+- `src/lib/patterns/`: day and week aggregation, colour-calendar data per day (from the child's own answers), weekly series (belly comfort, energy, play pace, sleep), active days per company label, and food co-occurrence **counts** on discomfort days.
 - A minimum-data rule: with fewer than N days, return "not enough data" instead of a pattern. Never rank foods as causes, never produce a score.
 
 **Done when:** tests cover empty data, one day, a flare arc and the minimum-data rule.

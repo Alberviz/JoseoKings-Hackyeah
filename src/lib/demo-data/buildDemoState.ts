@@ -1,4 +1,10 @@
-import { CORE_QUESTION_SCALE, ITEM_IDS, MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
+import {
+  CORE_QUESTION_SCALE,
+  DISCOMFORT_THRESHOLD,
+  ITEM_IDS,
+  MISSION_IDS,
+  QUESTION_IDS,
+} from "@/config/content-ids";
 import { addDays, isWeekend, todayKey } from "@/lib/dates";
 import { syncCompanion } from "@/lib/rewards";
 import type {
@@ -81,19 +87,19 @@ const compact = (date: DateKey) => date.replaceAll("-", "");
 function makeCheckIn(date: DateKey, severity: number, rnd: Random): CheckIn {
   const { min, max } = CORE_QUESTION_SCALE;
   const notToday = rnd.chance(severity > 0.8 ? 0.25 : 0.05);
+  // For every core question, 0 is the easiest day and 2 the hardest.
   const level = (extra: number) =>
-    clamp(Math.round(severity * max + rnd.jitter(0.7) + extra), min, max);
+    clamp(Math.round(severity * max + rnd.jitter(0.5) + extra), min, max);
   const answers: CheckIn["answers"] = notToday
     ? {
-        [QUESTION_IDS.bellyPain]: "skipped",
-        [QUESTION_IDS.bathroom]: "skipped",
+        [QUESTION_IDS.bellyComfort]: "skipped",
         [QUESTION_IDS.energy]: "skipped",
+        [QUESTION_IDS.playPace]: "skipped",
       }
     : {
-        [QUESTION_IDS.bellyPain]: level(0),
-        [QUESTION_IDS.bathroom]: level(severity > 0.6 ? 0.5 : 0),
-        // Energy: higher is more energy, so it moves the other way.
-        [QUESTION_IDS.energy]: clamp(max - Math.round(severity * max + rnd.jitter(0.7)), min, max),
+        [QUESTION_IDS.bellyComfort]: level(0),
+        [QUESTION_IDS.energy]: level(0),
+        [QUESTION_IDS.playPace]: level(severity > 0.6 ? 0.3 : 0),
       };
   return {
     id: `demo-checkin-${compact(date)}`,
@@ -197,8 +203,12 @@ export function buildDemoState(options: DemoOptions = {}): AppState {
       const checkIn = makeCheckIn(date, severity, rnd);
       checkIns.push(checkIn);
 
-      const pain = checkIn.answers[QUESTION_IDS.bellyPain];
-      if (typeof pain === "number" && pain >= 3 && rnd.chance(0.7)) {
+      const comfort = checkIn.answers[QUESTION_IDS.bellyComfort];
+      if (
+        typeof comfort === "number" &&
+        comfort >= DISCOMFORT_THRESHOLD &&
+        rnd.chance(comfort >= 2 ? 0.8 : 0.3)
+      ) {
         foodEntries.push({
           id: `demo-food-${compact(date)}`,
           date,
