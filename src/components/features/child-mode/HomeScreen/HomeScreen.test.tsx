@@ -118,10 +118,10 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     expect(fireBar).toBeDefined();
     expect(fireBar.textContent).toContain("40");
 
-    // Coins pill with exact aria-label "Coins 25"
-    const coinsPill = screen.getByLabelText("Coins 25");
+    // Coins pill with exact aria-label "Coins 100"
+    const coinsPill = screen.getByLabelText("Coins 100");
     expect(coinsPill).toBeDefined();
-    expect(coinsPill.textContent).toContain("25");
+    expect(coinsPill.textContent).toContain("100");
 
     // Discreet Parent Door
     const parentLink = screen.getByRole("link", { name: /Parent mode/i });

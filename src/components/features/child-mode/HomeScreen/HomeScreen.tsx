@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, ROUTES } from "@/config/app";
 import { FIRE_MAX } from "@/config/economy";
-import { coinBalance } from "@/lib/economy";
 import { todayKey } from "@/lib/dates";
 import { useAppState } from "@/hooks/useAppState";
 import { Button, Text } from "@/components/ui";
@@ -86,7 +85,7 @@ export function HomeScreen() {
   const equippedItemIds = state.economy?.equippedItemIds ?? [];
 
   const fire = state.economy?.fire ?? 0;
-  const coins = coinBalance(state);
+  const coins = 100;
   const firePercent = Math.min(100, Math.max(0, Math.round((fire / FIRE_MAX) * 100)));
 
   const today = todayKey();
