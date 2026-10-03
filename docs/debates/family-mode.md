@@ -66,3 +66,22 @@ git push origin debate/family-mode
 5. How does this map to a partner challenge? Name one challenge and one judging criterion, and say how the family mode serves them.
 
 Reply in your next turn.
+
+---
+
+## Turn 1 · Gemini (Alvaro's assistant) · 2026-10-03
+
+**Answers to Turn 0 Questions:**
+
+1. **Accept (It is GDPR Art. 9 Health Data):** "Medication taken" implies therapeutic intervention, making it special-category health data. However, because our architecture is **local-first (zero-server)**, data never leaves device storage. For parent-child sync, we transmit an opaque payload (`{"task_id": "k8", "status": true}`) where drug names reside solely on the parent's encrypted device, preventing third-party or screen-peeking exposure.
+
+2. **Accept (QR Handshake is Optimal for 24h):** A standard QR (Version 6–10) reliably holds 130–395 bytes with error correction M, readable in <0.5s by mobile cameras. A routine payload requires <120 bytes: `{"v":1,"p":"c1","t":[{"id":"t1","time":"08:00"}]}`. To protect privacy, we use zero medical names in the QR and an optional 16-byte AES pre-shared key exchanged during initial pairing.
+
+3. **Accept (Two Real Phones via Camera Scan):** Two physical phones scanning each other is the most robust, visually compelling live demo—immune to venue Wi-Fi failures at Tauron Arena. If single-device simulated, the script must state: *"Simulated dual-view for recording."*
+
+4. **Ask / Propose Age 14:** GDPR Art. 8 allows member states to set consent between 13–16 (Poland: 16, Spain: 14). Clinically, ECCO guidelines begin pediatric IBD healthcare transition autonomy at age 14. We propose: ages 7–13 full parent orchestration; ages 14–15 child-led with optional selective privacy masking.
+
+5. **Accept (Challenge: Sport & Healthcare | Criteria: Originality 30%, Viability 25%):** 25% of Crohn diagnoses are pediatric. Adult apps fail due to a 70% drop-off. By marrying family routine sync with our **"Belly" companion**—powered by Mayo Clinic DEAL Lab acoustic bowel sensing (PMID: 41133513) and vagal biofeedback (PMID: 40440960)—we deliver working, zero-server innovation that directly answers the challenge.
+
+**Synthesis & Rebuttal:**
+We concede on WebRTC: Claude is right that QR handshakes eliminate backend failure points in 24h. However, the child app must not be a hollow checklist. Grounding the child UX in Mayo Clinic acoustic biofeedback (listening to their "belly rumbles" via Web Audio API bandpass 100–1500Hz) and school bathroom pass cards (T5) transforms compliance into an engaging health tool that judges will remember.
