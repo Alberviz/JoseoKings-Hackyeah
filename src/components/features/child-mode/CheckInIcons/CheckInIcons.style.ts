@@ -16,8 +16,6 @@ export const IconSvg = styled.svg<{ $size: number }>`
   overflow: visible;
 `;
 
-export const InkGroup = styled.g``;
-
 // Closed or open outline with a flat colour fill, like a marker drawing.
 export const InkPath = styled.path<{ $fill?: InkFill; $muted?: boolean }>`
   fill: ${({ theme, $fill = "none" }) => fillColor(theme, $fill)};

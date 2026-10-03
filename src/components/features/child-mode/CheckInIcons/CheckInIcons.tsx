@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { IconSvg, InkCircle, InkEllipse, InkGroup, InkPath, InkRect } from "./CheckInIcons.style";
+import { IconSvg, InkCircle, InkEllipse, InkPath, InkRect } from "./CheckInIcons.style";
 
 type CheckInIconProps = {
   /** Icon key from `src/content/check-in-questions.ts`. */
@@ -32,59 +32,60 @@ function IconFrame({ size, label, children }: IconFrameProps) {
   );
 }
 
-// Round belly faces: calm smile, little rumble (wavy mouth), sore (soft frown). Faces describe the belly only.
+// Round, friendly belly faces: happy smile, wobbly mouth with a tummy swirl, tired face with a hand on the tummy.
 function BellyFace({ mood }: { mood: "calm" | "rumble" | "sore" }) {
-  const fill = mood === "calm" ? "mint" : mood === "rumble" ? "highlight" : "lavender";
+  const fill = mood === "calm" ? "highlight" : mood === "rumble" ? "primarySoft" : "lavender";
   return (
     <>
-      <InkCircle cx="24" cy="24" r="17" $fill={fill} />
+      <InkCircle cx="24" cy="24" r="18" $fill={fill} />
+      <InkCircle cx="12.5" cy="28" r="2.6" $fill="accent" />
+      <InkCircle cx="35.5" cy="28" r="2.6" $fill="accent" />
       {mood === "calm" ? (
         <>
-          <InkPath d="M16 21 Q18.5 18 21 21" />
-          <InkPath d="M27 21 Q29.5 18 32 21" />
-          <InkPath d="M17 28 Q24 36 31 28" />
-          <InkCircle cx="13.5" cy="27" r="2.4" $fill="accent" />
-          <InkCircle cx="34.5" cy="27" r="2.4" $fill="accent" />
+          <InkCircle cx="17.5" cy="21" r="2" $solid />
+          <InkCircle cx="30.5" cy="21" r="2" $solid />
+          <InkPath d="M16 28 Q24 37 32 28" $fill="surface" />
         </>
       ) : null}
       {mood === "rumble" ? (
         <>
-          <InkCircle cx="18.5" cy="21" r="1.8" $solid />
-          <InkCircle cx="29.5" cy="21" r="1.8" $solid />
-          <InkPath d="M16 31 Q19 27 22 31 T28 31 T32 30" />
-          <InkPath d="M2 22 Q4 19 6 22 T10 22" />
-          <InkPath d="M38 22 Q40 19 42 22 T46 22" />
+          <InkCircle cx="17.5" cy="21" r="2" $solid />
+          <InkCircle cx="30.5" cy="21" r="2" $solid />
+          <InkPath d="M17 32 Q20.5 28 24 32 T31 32" />
+          <InkPath d="M22 41 C18 41 18 46 23 46 C27 46 27 42 24 42" />
         </>
       ) : null}
       {mood === "sore" ? (
         <>
-          <InkCircle cx="18.5" cy="22" r="1.8" $solid />
-          <InkCircle cx="29.5" cy="22" r="1.8" $solid />
-          <InkPath d="M15 17 L21 19" />
-          <InkPath d="M33 17 L27 19" />
-          <InkPath d="M18 33 Q24 28 30 33" />
-          <InkPath d="M40 6 L44 10 M44 6 L40 10" />
+          <InkPath d="M14.5 21 Q17.5 24 20.5 21" />
+          <InkPath d="M27.5 21 Q30.5 24 33.5 21" />
+          <InkPath d="M18 32 Q21 30 24 32 T30 32" />
+          <InkEllipse cx="24" cy="44" rx="9" ry="4.5" $fill="accent" />
         </>
       ) : null}
     </>
   );
 }
 
-// Three flame slots. Lit flames are coral, unlit ones are a quiet outline.
-const FLAME_PATH = "M7 1 C8 6 13 8 13 14 A6 6 0 0 1 1 14 C1 10 4 9 4.5 6 C5.5 7 6.5 6.5 7 1 Z";
-
-function EnergyFlames({ lit }: { lit: 1 | 2 | 3 }) {
+// Friendly batteries: 3, 2 or 1 bars lit. Empty bars stay light.
+function EnergyBattery({ lit }: { lit: 1 | 2 | 3 }) {
+  const barFill = lit === 3 ? "mint" : lit === 2 ? "highlight" : "accent";
   return (
     <>
+      <InkRect x="4" y="9" width="36" height="30" rx="8" $fill="surface" />
+      <InkRect x="40" y="19" width="5" height="10" rx="2" $fill="surface" />
       {[0, 1, 2].map((slot) => (
-        <InkGroup
+        <InkRect
           key={slot}
-          transform={`translate(${3 + slot * 14.5} ${slot === 1 ? 12 : 16}) scale(1.05)`}
-        >
-          <InkPath d={FLAME_PATH} $fill={slot < lit ? "accent" : "none"} $muted={slot >= lit} />
-        </InkGroup>
+          x={8 + slot * 10.5}
+          y="13"
+          width="8"
+          height="12"
+          rx="2.5"
+          $fill={slot < lit ? barFill : "paper"}
+        />
       ))}
-      <InkPath d="M5 40 H43" $muted />
+      <InkPath d="M15 31 Q22 36 29 31" />
     </>
   );
 }
@@ -94,8 +95,9 @@ function PlayFigure({ pace }: { pace: "active" | "breaks" | "resting" }) {
   if (pace === "active") {
     return (
       <>
+        <InkEllipse cx="25" cy="22" rx="4" ry="8" $fill="accent" />
         <InkCircle cx="29" cy="9" r="5" $fill="highlight" />
-        <InkPath d="M27 15 L22 28" />
+        <InkPath d="M27 15 L22 28" $fill="primarySoft" />
         <InkPath d="M26 18 L33 22 L38 19" />
         <InkPath d="M25 19 L18 21 L14 26" />
         <InkPath d="M22 28 L30 33 L28 43" />
@@ -108,11 +110,12 @@ function PlayFigure({ pace }: { pace: "active" | "breaks" | "resting" }) {
     return (
       <>
         <InkCircle cx="19" cy="9" r="5" $fill="highlight" />
+        <InkEllipse cx="19" cy="23" rx="4" ry="8" $fill="mint" />
         <InkPath d="M19 15 L19 29" />
         <InkPath d="M19 18 L13 25 M19 18 L25 24" />
         <InkPath d="M19 29 L14 43 M19 29 L25 43" />
-        <InkRect x="33" y="14" width="4" height="14" rx="1.5" $fill="primarySoft" />
-        <InkRect x="40" y="14" width="4" height="14" rx="1.5" $fill="primarySoft" />
+        <InkRect x="33" y="14" width="4" height="14" rx="1.5" $fill="accent" />
+        <InkRect x="40" y="14" width="4" height="14" rx="1.5" $fill="accent" />
       </>
     );
   }
@@ -132,9 +135,9 @@ const ICON_DRAWINGS: Record<string, ReactNode> = {
   "belly-calm": <BellyFace mood="calm" />,
   "belly-rumble": <BellyFace mood="rumble" />,
   "belly-sore": <BellyFace mood="sore" />,
-  "energy-high": <EnergyFlames lit={3} />,
-  "energy-medium": <EnergyFlames lit={2} />,
-  "energy-low": <EnergyFlames lit={1} />,
+  "energy-high": <EnergyBattery lit={3} />,
+  "energy-medium": <EnergyBattery lit={2} />,
+  "energy-low": <EnergyBattery lit={1} />,
   "play-active": <PlayFigure pace="active" />,
   "play-breaks": <PlayFigure pace="breaks" />,
   "play-resting": <PlayFigure pace="resting" />,

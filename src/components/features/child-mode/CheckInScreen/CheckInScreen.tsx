@@ -12,6 +12,7 @@ import { todayKey } from "@/lib/dates";
 import type { CheckIn, CheckInAnswer, CheckInOption, CheckInQuestion } from "@/types";
 import { CheckInIcon, CheckInStar, CheckInTick } from "../CheckInIcons";
 import {
+  BackArrow,
   BackButton,
   CheckInContainer,
   ChoiceGameButton,
@@ -24,7 +25,6 @@ import {
   LoadingBox,
   ParentReportNotice,
   PetContainer,
-  PetGlow,
   PetNameBadge,
   PetRoom,
   ProgressHeader,
@@ -186,6 +186,7 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
           <ProgressTopRow>
             {currentStep > 0 ? (
               <BackButton type="button" onClick={handleBack}>
+                <BackArrow aria-hidden="true">&#8592;</BackArrow>
                 Previous
               </BackButton>
             ) : (
@@ -203,22 +204,21 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
         </ProgressHeader>
 
         <PetRoom>
-          <PetGlow />
           <PetContainer $cheer={companionPose === "cheer"}>
             <Companion
               pose={companionPose}
-              size="lg"
+              size="sm"
               name={companionName}
               equippedItemIds={state.companion.equippedItemIds}
             />
             <PetNameBadge>{companionName}</PetNameBadge>
           </PetContainer>
-        </PetRoom>
 
-        <SpeechBubble>
-          <SpeechText>{currentQuestion.prompt}</SpeechText>
-          <SpeechHint>Tap one choice. Every choice gives the same reward.</SpeechHint>
-        </SpeechBubble>
+          <SpeechBubble>
+            <SpeechText>{currentQuestion.prompt}</SpeechText>
+            <SpeechHint>Tap one choice. Every choice gives the same reward.</SpeechHint>
+          </SpeechBubble>
+        </PetRoom>
 
         <ChoicesGrid role="radiogroup" aria-label={currentQuestion.prompt}>
           {currentQuestion.options.map((option: CheckInOption) => {

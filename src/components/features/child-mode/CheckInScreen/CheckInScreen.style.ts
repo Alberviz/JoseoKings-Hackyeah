@@ -72,18 +72,18 @@ export const BackButton = styled.button`
   gap: ${({ theme }) => theme.spacing.xs};
   background: transparent;
   border: none;
-  color: ${({ theme }) => theme.colors.textMuted};
-  font-family: ${({ theme }) => theme.fontFamily.body};
-  font-size: ${({ theme }) => theme.fontSize.sm};
-  font-weight: ${({ theme }) => theme.fontWeight.medium};
+  color: ${({ theme }) => theme.colors.ink};
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  font-size: ${({ theme }) => theme.fontSize.md};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
   min-height: ${({ theme }) => theme.touchTarget};
   min-width: ${({ theme }) => theme.touchTarget};
-  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
+  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.md} ${theme.spacing.xs} ${theme.spacing.sm}`};
   cursor: pointer;
-  border-radius: ${({ theme }) => theme.radius.sm};
+  border-radius: ${({ theme }) => theme.radius.pill};
 
   &:hover {
-    color: ${({ theme }) => theme.colors.text};
+    background: ${({ theme }) => theme.colors.primarySoft};
   }
 
   &:focus-visible {
@@ -92,32 +92,21 @@ export const BackButton = styled.button`
   }
 `;
 
-export const PetRoom = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  padding: ${({ theme }) => theme.spacing.xs} 0;
+export const BackArrow = styled.span`
+  font-size: ${({ theme }) => theme.fontSize.xl};
+  line-height: 1;
 `;
 
-export const PetGlow = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 190px;
-  height: 190px;
-  transform: translate(-50%, -50%);
-  background: ${({ theme }) => theme.colors.primarySoft};
-  border: 2px dashed ${({ theme }) => theme.colors.primary};
-  border-radius: 50%;
-  opacity: 0.8;
-  z-index: 0;
+export const PetRoom = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  width: 100%;
 `;
 
 export const PetContainer = styled.div<{ $cheer?: boolean }>`
-  position: relative;
-  z-index: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -143,14 +132,15 @@ export const PetNameBadge = styled.span`
 export const SpeechBubble = styled.div`
   ${inkBorder}
   position: relative;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   box-sizing: border-box;
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  padding: ${({ theme }) => theme.spacing.md};
+  margin-left: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.radius.leaf};
   box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
-  text-align: center;
+  text-align: left;
 
   &::before,
   &::after {
@@ -163,19 +153,21 @@ export const SpeechBubble = styled.div`
     border-color: transparent;
   }
 
-  /* Ink triangle (outline) and surface triangle (fill) pointing up to the companion. */
+  /* Ink triangle (outline) and surface triangle (fill) pointing left to the companion. */
   &::before {
-    top: -16px;
-    transform: translateX(-50%);
-    border-width: 0 12px 14px;
-    border-bottom-color: ${({ theme }) => theme.colors.ink};
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 12px 14px 12px 0;
+    border-right-color: ${({ theme }) => theme.colors.ink};
   }
 
   &::after {
-    top: -11px;
-    transform: translateX(-50%);
-    border-width: 0 9px 11px;
-    border-bottom-color: ${({ theme }) => theme.colors.surface};
+    left: -11px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 9px 11px 9px 0;
+    border-right-color: ${({ theme }) => theme.colors.surface};
   }
 `;
 
