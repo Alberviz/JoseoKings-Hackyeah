@@ -66,12 +66,6 @@ export type AppStateActions = {
   /** Replaces the whole state with an imported backup (already validated). Keeps its isDemo flag. */
   importState: (imported: AppState) => void;
   clearAll: () => void;
-  /** Testing/demo convenience: adds coins by adding completed mission logs. */
-  addCoins: (amount?: number) => void;
-  /** Testing/demo convenience: adds food to inventory. */
-  addFood: (amount?: number) => void;
-  /** Testing/demo convenience: resets fire level to allow feeding again. */
-  resetFire: (amount?: number) => void;
 };
 
 export type AppStateContextValue = {
@@ -400,68 +394,6 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     store.clearAll();
   }, [store]);
 
-  const addCoins = useCallback(
-    (amount = 100) => {
-      const count = Math.max(1, Math.ceil(amount / 12));
-      const today = todayKey();
-      const now = new Date().toISOString();
-      const newLogs: MissionLog[] = Array.from({ length: count }, (_, i) => ({
-        id: `bonus-coins-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
-        date: today,
-        missionId: "breathing-circle",
-        status: "completed",
-        company: "alone",
-        confirmedBy: "child",
-        createdAt: now,
-      }));
-
-      store.updateState((prev) => {
-        const nextMissionLogs = [...prev.missionLogs, ...newLogs];
-        const nextCompanion = syncCompanion({
-          checkIns: prev.checkIns,
-          missionLogs: nextMissionLogs,
-          companion: prev.companion,
-        });
-
-        return {
-          ...prev,
-          missionLogs: nextMissionLogs,
-          companion: nextCompanion,
-        };
-      });
-    },
-    [store],
-  );
-
-  const addFood = useCallback(
-    (amount = 10) => {
-      store.updateState((prev) => ({
-        ...prev,
-        economy: {
-          ...prev.economy,
-          inventory: {
-            ...prev.economy.inventory,
-            food: Math.max(0, prev.economy.inventory.food + amount),
-          },
-        },
-      }));
-    },
-    [store],
-  );
-
-  const resetFire = useCallback(
-    (amount = 40) => {
-      store.updateState((prev) => ({
-        ...prev,
-        economy: {
-          ...prev.economy,
-          fire: Math.max(0, Math.min(100, amount)),
-        },
-      }));
-    },
-    [store],
-  );
-
   const actions = useMemo<AppStateActions>(
     () => ({
       addCheckIn,
@@ -483,9 +415,6 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       loadDemo,
       importState,
       clearAll,
-      addCoins,
-      addFood,
-      resetFire,
     }),
     [
       buyShopItem,
@@ -507,9 +436,6 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       loadDemo,
       importState,
       clearAll,
-      addCoins,
-      addFood,
-      resetFire,
     ],
   );
 

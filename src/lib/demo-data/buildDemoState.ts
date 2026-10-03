@@ -240,9 +240,9 @@ export function buildDemoState(options: DemoOptions = {}): AppState {
     economy: {
       ...createDefaultEconomy(),
       fire: 40,
-      // One hat (10) and plenty of food for testing animations, all bought from demo coins.
+      // One hat (10) and two portions of food (5 each), all bought from demo coins.
       coinsSpent: 20,
-      inventory: { food: 50 },
+      inventory: { food: 2 },
       ownedItemIds: ["hat"],
       equippedItemIds: ["hat"],
     },

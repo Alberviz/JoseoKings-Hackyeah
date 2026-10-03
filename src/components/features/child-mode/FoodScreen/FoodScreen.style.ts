@@ -106,38 +106,3 @@ export const SvgAppleIcon = styled.svg`
 export const SvgPath = styled.path``;
 export const SvgCircle = styled.circle``;
 export const SvgRect = styled.rect``;
-
-export const TestButtonsRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing.xs};
-  align-items: center;
-  justify-content: center;
-  margin-top: ${({ theme }) => theme.spacing.xs};
-`;
-
-export const TestActionButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.xs};
-  padding: 6px ${({ theme }) => theme.spacing.sm};
-  min-height: 36px;
-  background: ${({ theme }) => theme.colors.paper};
-  border: 1.5px dashed ${({ theme }) => theme.colors.ink};
-  border-radius: ${({ theme }) => theme.radius.pill};
-  font-family: ${({ theme }) => theme.fontFamily.heading};
-  font-size: ${({ theme }) => theme.fontSize.sm};
-  font-weight: ${({ theme }) => theme.fontWeight.bold};
-  color: ${({ theme }) => theme.colors.ink};
-  cursor: pointer;
-  box-sizing: border-box;
-  transition: transform 0.1s ease;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.highlight};
-  }
-
-  &:active {
-    transform: translateY(1px);
-  }
-`;

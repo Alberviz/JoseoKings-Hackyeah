@@ -413,60 +413,11 @@
     });
 
     function initDemoAndEnter() {
-      const demoState = {
-        version: 3,
-        child: {
-          nickname: "Kuba",
-          avatarId: "dragon"
-        },
-        settings: {
-          pinHash: "mock_pin_hash",
-          pinSalt: "mock_salt",
-          enabledMissions: ["water_break", "bed_stretch", "mindful_belly"],
-          notificationTimes: []
-        },
-        checkIns: [
-          {
-            date: new Date().toISOString().split('T')[0],
-            mood: 4,
-            bellyPain: 1,
-            energy: 4,
-            timestamp: Date.now()
-          }
-        ],
-        missionLogs: [
-          {
-            id: "m_init",
-            missionId: "mindful_belly",
-            completedAt: Date.now(),
-            stars: 3
-          }
-        ],
-        companion: {
-          name: "Smok Wawelski",
-          points: 120,
-          teamStars: 8,
-          unlockedItemIds: ["color_teal", "cape_star"],
-          equippedItemIds: []
-        },
-        economy: {
-          fire: 85,
-          coins: 240,
-          inventory: ["apple", "potion", "cape_star"],
-          equippedItemIds: []
-        },
-        isDemo: true
-      };
-
-      try {
-        localStorage.setItem('mycrohnie_app_state', JSON.stringify(demoState));
-        toast.classList.add('show');
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 800);
-      } catch (err) {
+      toast.textContent = '¡Entrando a la app!';
+      toast.classList.add('show');
+      setTimeout(() => {
         window.location.href = '/';
-      }
+      }, 500);
     }
   </script>
 </body>

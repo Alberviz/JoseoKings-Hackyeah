@@ -38,34 +38,6 @@ export const StatPill = styled.div`
   box-sizing: border-box;
 `;
 
-export const AddCoinsButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.xs};
-  padding: 6px ${({ theme }) => theme.spacing.sm};
-  min-height: ${({ theme }) => theme.touchTarget};
-  background: ${({ theme }) => theme.colors.highlight};
-  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
-  border-radius: ${({ theme }) => theme.radius.pill};
-  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
-  font-family: ${({ theme }) => theme.fontFamily.heading};
-  font-size: ${({ theme }) => theme.fontSize.sm};
-  font-weight: ${({ theme }) => theme.fontWeight.bold};
-  color: ${({ theme }) => theme.colors.ink};
-  cursor: pointer;
-  box-sizing: border-box;
-  transition: transform 0.1s ease;
-
-  &:hover {
-    filter: brightness(1.05);
-  }
-
-  &:active {
-    transform: translateY(2px);
-    box-shadow: none;
-  }
-`;
-
 export const MessageBanner = styled.div`
   display: flex;
   align-items: center;
