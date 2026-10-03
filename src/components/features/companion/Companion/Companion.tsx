@@ -55,10 +55,18 @@ export function Companion({
   const hasCape = activeItemsBySlot.get("cape") === ITEM_IDS.capeStar;
   const hasGoggles = activeItemsBySlot.get("gadget") === ITEM_IDS.gadgetGoggles;
 
-  // Body colors: if teal is equipped, use closest theme token (success / successSoft)
-  const bodyColor = isTeal ? currentTheme.colors.success : currentTheme.colors.primary;
-  const bodyBorderColor = isTeal ? currentTheme.colors.success : currentTheme.colors.primaryHover;
-  const accentSoft = isTeal ? currentTheme.colors.successSoft : currentTheme.colors.primarySoft;
+  // Official Kraków Dragon color tokens from theme (with fallback support)
+  const colors = currentTheme.colors;
+  const bodyColor = isTeal ? colors.success : colors.dragonBody;
+  const bodyBorderColor = isTeal ? colors.success : colors.dragonBodyBorder;
+  const bellyColor = colors.dragonBelly;
+  const bellyLineColor = colors.dragonBellyLines;
+  const wingColor = colors.dragonWing;
+  const wingStrutColor = colors.dragonWingStrut;
+  const hornColor = colors.dragonHorn;
+  const hornHighlightColor = colors.dragonHornHighlight;
+  const cheekColor = colors.dragonCheek;
+  const eyeColor = colors.dragonEye;
 
   // Choose the outer animation wrapper based on pose
   const PoseAnimationWrapper =
@@ -85,197 +93,404 @@ export function Companion({
       data-testid="companion-svg"
     >
       <PoseAnimationWrapper>
-        {/* --- Back Layer: Cape --- */}
+        {/* --- Back Layer: Cape Item --- */}
         {hasCape && (
           <SvgG data-testid="companion-cape">
-            {/* Flowing cape shape */}
             <SvgPath
               d="M 68 86 C 54 120 46 152 42 168 C 64 162 84 166 100 160 C 116 166 136 162 158 168 C 154 152 146 120 132 86 Z"
-              fill={currentTheme.colors.urgent}
-              stroke={currentTheme.colors.text}
+              fill={colors.urgent}
+              stroke={colors.text}
               strokeWidth="2"
               strokeLinejoin="round"
             />
-            {/* Star emblem on cape */}
             <SvgPolygon
               points="100,122 103,129 111,129 105,133 107,140 100,136 93,140 95,133 89,129 97,129"
-              fill={currentTheme.colors.focus}
-              stroke={currentTheme.colors.text}
+              fill={colors.focus}
+              stroke={colors.text}
               strokeWidth="1"
             />
           </SvgG>
         )}
 
-        {/* --- Legs / Feet --- */}
-        {pose === "balance" ? (
+        {/* --- Dragon Wings --- */}
+        <SvgG id="dragon-wings">
+          {/* Left Wing */}
           <SvgG>
-            {/* Planted right leg */}
-            <SvgRect
-              x="100"
-              y="138"
-              width="14"
-              height="18"
-              rx="6"
-              fill={bodyColor}
+            <SvgPath
+              d="M 72 105 C 50 82 28 88 18 102 C 22 118 32 128 44 138 C 54 128 64 116 72 105 Z"
+              fill={wingColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
+              strokeLinejoin="round"
             />
+            {/* Wing Struts */}
+            <SvgPath
+              d="M 38 94 L 44 136 M 52 98 L 56 126"
+              stroke={wingStrutColor}
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            {/* Wing Upper Frame */}
+            <SvgPath
+              d="M 72 105 C 54 84 32 90 20 101"
+              fill="none"
+              stroke={bodyBorderColor}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+          </SvgG>
+
+          {/* Right Wing */}
+          <SvgG>
+            <SvgPath
+              d="M 128 105 C 150 82 172 88 182 102 C 178 118 168 128 156 138 C 146 128 136 116 128 105 Z"
+              fill={wingColor}
+              stroke={bodyBorderColor}
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            {/* Wing Struts */}
+            <SvgPath
+              d="M 162 94 L 156 136 M 148 98 L 144 126"
+              stroke={wingStrutColor}
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            {/* Wing Upper Frame */}
+            <SvgPath
+              d="M 128 105 C 146 84 168 90 180 101"
+              fill="none"
+              stroke={bodyBorderColor}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+          </SvgG>
+        </SvgG>
+
+        {/* --- Dragon Tail --- */}
+        <SvgG id="dragon-tail">
+          <SvgPath
+            d="M 132 142 C 152 144 168 132 164 118 C 160 114 154 118 152 124 C 148 132 138 138 128 140 Z"
+            fill={bodyColor}
+            stroke={bodyBorderColor}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          {/* Tail dorsal crest */}
+          <SvgPath d="M 158 119 L 162 114 L 165 121 Z" fill={bodyBorderColor} />
+        </SvgG>
+
+        {/* --- Dragon Legs / Feet (Pose Aware) --- */}
+        {pose === "balance" ? (
+          <SvgG id="dragon-feet-balance">
+            {/* Planted Right Foot */}
             <SvgEllipse
-              cx="107"
-              cy="156"
+              cx="116"
+              cy="160"
               rx="15"
               ry="9"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
             />
-            {/* Lifted and tucked left leg (flamingo / tree balance pose) */}
+            {/* Claws on Right Foot */}
+            <SvgEllipse
+              cx="107"
+              cy="164"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+            <SvgEllipse
+              cx="116"
+              cy="166"
+              rx="2.5"
+              ry="3.5"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+            <SvgEllipse
+              cx="125"
+              cy="164"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+
+            {/* Lifted Left Foot (flamingo/balance tuck) */}
             <SvgPath
-              d="M 85 130 C 62 130 56 142 66 148 C 76 150 86 142 96 140"
+              d="M 85 138 C 66 138 60 148 70 154 C 80 156 88 148 94 145"
               fill="none"
               stroke={bodyColor}
-              strokeWidth="10"
+              strokeWidth="9"
               strokeLinecap="round"
             />
             <SvgCircle
-              cx="64"
-              cy="147"
+              cx="68"
+              cy="152"
               r="7"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
             />
+            <SvgCircle cx="64" cy="155" r="2" fill="#FFFFFF" />
+            <SvgCircle cx="69" cy="157" r="2" fill="#FFFFFF" />
           </SvgG>
         ) : pose === "strength" ? (
-          <SvgG>
-            {/* Squat / wall-sit stance: legs bent wide and sturdy */}
-            <SvgPath
-              d="M 76 136 C 58 140 50 152 56 160"
-              fill="none"
-              stroke={bodyColor}
-              strokeWidth="11"
-              strokeLinecap="round"
-            />
+          <SvgG id="dragon-feet-strength">
+            {/* Sturdy Wide Squat Left Foot */}
             <SvgEllipse
-              cx="58"
-              cy="161"
-              rx="14"
-              ry="8"
+              cx="74"
+              cy="162"
+              rx="16"
+              ry="9"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
             />
-            <SvgPath
-              d="M 124 136 C 142 140 150 152 144 160"
-              fill="none"
-              stroke={bodyColor}
-              strokeWidth="11"
-              strokeLinecap="round"
+            <SvgEllipse
+              cx="65"
+              cy="166"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
             />
             <SvgEllipse
-              cx="142"
-              cy="161"
-              rx="14"
-              ry="8"
+              cx="74"
+              cy="168"
+              rx="2.5"
+              ry="3.5"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+            <SvgEllipse
+              cx="83"
+              cy="166"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+
+            {/* Sturdy Wide Squat Right Foot */}
+            <SvgEllipse
+              cx="126"
+              cy="162"
+              rx="16"
+              ry="9"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
+            />
+            <SvgEllipse
+              cx="117"
+              cy="166"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+            <SvgEllipse
+              cx="126"
+              cy="168"
+              rx="2.5"
+              ry="3.5"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+            <SvgEllipse
+              cx="135"
+              cy="166"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
             />
           </SvgG>
         ) : (
-          <SvgG>
-            {/* Standing feet (idle, breathe, stretch, cheer) */}
-            <SvgRect
-              x="72"
-              y="138"
-              width="14"
-              height="18"
-              rx="6"
-              fill={bodyColor}
-              stroke={bodyBorderColor}
-              strokeWidth="2"
-            />
+          <SvgG id="dragon-feet-default">
+            {/* Left Foot */}
             <SvgEllipse
-              cx="79"
-              cy="156"
+              cx="82"
+              cy="158"
               rx="15"
               ry="9"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
             />
-            <SvgRect
-              x="114"
-              y="138"
-              width="14"
-              height="18"
-              rx="6"
-              fill={bodyColor}
+            <SvgEllipse
+              cx="73"
+              cy="162"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1"
             />
             <SvgEllipse
-              cx="121"
-              cy="156"
+              cx="82"
+              cy="164"
+              rx="2.5"
+              ry="3.5"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+            <SvgEllipse
+              cx="91"
+              cy="162"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+
+            {/* Right Foot */}
+            <SvgEllipse
+              cx="118"
+              cy="158"
               rx="15"
               ry="9"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
+            />
+            <SvgEllipse
+              cx="109"
+              cy="162"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+            <SvgEllipse
+              cx="118"
+              cy="164"
+              rx="2.5"
+              ry="3.5"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
+            />
+            <SvgEllipse
+              cx="127"
+              cy="162"
+              rx="2.5"
+              ry="3"
+              fill="#FFFFFF"
+              stroke={bodyBorderColor}
+              strokeWidth="1"
             />
           </SvgG>
         )}
 
-        {/* --- Main Body and Head --- */}
+        {/* --- Dragon Body, Head & Belly --- */}
         <SvgG data-testid="companion-body">
-          {/* Hero crests / ears on head */}
+          {/* Main Torso */}
           <SvgPath
-            d="M 76 66 C 63 46 66 32 78 28 C 84 38 86 52 86 64 Z"
-            fill={bodyColor}
-            stroke={bodyBorderColor}
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-          <SvgPath d="M 77 60 C 69 47 71 38 78 34 C 82 41 83 50 83 58 Z" fill={accentSoft} />
-          <SvgPath
-            d="M 124 66 C 137 46 134 32 122 28 C 116 38 114 52 114 64 Z"
-            fill={bodyColor}
-            stroke={bodyBorderColor}
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-          <SvgPath d="M 123 60 C 131 47 129 38 122 34 C 118 41 117 50 117 58 Z" fill={accentSoft} />
-
-          {/* Rounded hero body */}
-          <SvgPath
-            d="M 100 48 C 134 48 148 70 148 104 C 148 136 132 148 100 148 C 68 148 52 136 52 104 C 52 70 66 48 100 48 Z"
+            d="M 100 78 C 132 78 144 98 144 128 C 144 152 130 158 100 158 C 70 158 56 152 56 128 C 56 98 68 78 100 78 Z"
             fill={bodyColor}
             stroke={bodyBorderColor}
             strokeWidth="2.5"
             strokeLinejoin="round"
           />
 
-          {/* Chest / Belly hero shield accent */}
+          {/* Mint Segmented Belly */}
           <SvgPath
-            d="M 100 84 C 118 84 128 96 128 116 C 128 134 116 142 100 142 C 84 142 72 134 72 116 C 72 96 82 84 100 84 Z"
-            fill={accentSoft}
+            d="M 100 96 C 118 96 128 108 128 128 C 128 146 118 154 100 154 C 82 154 72 146 72 128 C 72 108 82 96 100 96 Z"
+            fill={bellyColor}
+            stroke={bellyLineColor}
+            strokeWidth="1.5"
           />
+          {/* Belly horizontal dividers */}
+          <SvgPath
+            d="M 76 112 C 88 116 112 116 124 112 M 74 126 C 86 130 114 130 126 126 M 78 140 C 88 143 112 143 122 140"
+            stroke={bellyLineColor}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            fill="none"
+          />
+
+          {/* Kraków Dragon Ear Fins */}
+          <SvgPath
+            d="M 64 62 C 50 56 46 68 56 74 C 62 76 66 72 68 68 Z"
+            fill={bodyColor}
+            stroke={bodyBorderColor}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <SvgPath
+            d="M 136 62 C 150 56 154 68 144 74 C 138 76 134 72 132 68 Z"
+            fill={bodyColor}
+            stroke={bodyBorderColor}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+
+          {/* Large Rounded Head */}
+          <SvgPath
+            d="M 100 38 C 128 38 142 52 142 74 C 142 96 128 106 100 106 C 72 106 58 96 58 74 C 58 52 72 38 100 38 Z"
+            fill={bodyColor}
+            stroke={bodyBorderColor}
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+          />
+
+          {/* Central Kraków Horn */}
+          <SvgPath
+            d="M 96 40 C 97 22 100 14 100 14 C 100 14 103 22 104 40 Z"
+            fill={hornColor}
+            stroke={bodyBorderColor}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <SvgPath
+            d="M 98 34 C 99 24 100 16 100 16 C 100 16 101 24 102 34 Z"
+            fill={hornHighlightColor}
+          />
+
+          {/* Broad Dragon Muzzle */}
+          <SvgPath
+            d="M 78 78 C 78 70 86 66 100 66 C 114 66 122 70 122 78 C 122 88 114 94 100 94 C 86 94 78 88 78 78 Z"
+            fill={bodyColor}
+            stroke={bodyBorderColor}
+            strokeWidth="2"
+          />
+
+          {/* Delicate Nostrils */}
+          <SvgEllipse cx="94" cy="74" rx="1.5" ry="2" fill={bodyBorderColor} />
+          <SvgEllipse cx="106" cy="74" rx="1.5" ry="2" fill={bodyBorderColor} />
         </SvgG>
 
-        {/* --- Expressive Face --- */}
-        <SvgG>
-          {/* Eyebrows: confident & positive hero spirit */}
+        {/* --- Expressive Face & Blinking Eyes --- */}
+        <SvgG id="dragon-face">
+          {/* Eyebrows */}
           <SvgPath
-            d="M 74 76 Q 83 73 91 77"
-            stroke={currentTheme.colors.text}
-            strokeWidth="2.2"
+            d="M 78 54 Q 84 51 90 54"
+            stroke={eyeColor}
+            strokeWidth="2"
             strokeLinecap="round"
             fill="none"
           />
           <SvgPath
-            d="M 126 76 Q 117 73 109 77"
-            stroke={currentTheme.colors.text}
-            strokeWidth="2.2"
+            d="M 122 54 Q 116 51 110 54"
+            stroke={eyeColor}
+            strokeWidth="2"
             strokeLinecap="round"
             fill="none"
           />
@@ -283,278 +498,300 @@ export function Companion({
           {/* Eyes with blinking animation */}
           <AnimatedEyesG>
             {/* Left Eye */}
-            <SvgEllipse
-              cx="82"
-              cy="92"
-              rx="11"
-              ry="13"
-              fill={currentTheme.colors.surface}
-              stroke={currentTheme.colors.text}
-              strokeWidth="2"
-            />
-            <SvgCircle cx="84" cy="92" r="6.5" fill={currentTheme.colors.text} />
-            <SvgCircle cx="86" cy="89" r="2.2" fill={currentTheme.colors.surface} />
-            <SvgCircle cx="82" cy="95" r="1.2" fill={currentTheme.colors.surface} />
+            <SvgEllipse cx="84" cy="64" rx="9" ry="11" fill={eyeColor} />
+            {/* Turquoise inner iris glow */}
+            <SvgEllipse cx="84" cy="65" rx="6.5" ry="7.5" fill="#48C9D4" opacity="0.4" />
+            <SvgCircle cx="86.5" cy="61.5" r="3" fill="#FFFFFF" />
+            <SvgCircle cx="82.5" cy="67" r="1.3" fill="#FFFFFF" />
 
             {/* Right Eye */}
-            <SvgEllipse
-              cx="118"
-              cy="92"
-              rx="11"
-              ry="13"
-              fill={currentTheme.colors.surface}
-              stroke={currentTheme.colors.text}
-              strokeWidth="2"
-            />
-            <SvgCircle cx="116" cy="92" r="6.5" fill={currentTheme.colors.text} />
-            <SvgCircle cx="118" cy="89" r="2.2" fill={currentTheme.colors.surface} />
-            <SvgCircle cx="114" cy="95" r="1.2" fill={currentTheme.colors.surface} />
+            <SvgEllipse cx="116" cy="64" rx="9" ry="11" fill={eyeColor} />
+            {/* Turquoise inner iris glow */}
+            <SvgEllipse cx="116" cy="65" rx="6.5" ry="7.5" fill="#48C9D4" opacity="0.4" />
+            <SvgCircle cx="118.5" cy="61.5" r="3" fill="#FFFFFF" />
+            <SvgCircle cx="114.5" cy="67" r="1.3" fill="#FFFFFF" />
           </AnimatedEyesG>
 
-          {/* Friendly warm cheeks */}
-          <SvgEllipse cx="67" cy="104" rx="5.5" ry="3.5" fill={accentSoft} opacity="0.85" />
-          <SvgEllipse cx="133" cy="104" rx="5.5" ry="3.5" fill={accentSoft} opacity="0.85" />
+          {/* Coral Cheeks */}
+          <SvgEllipse cx="72" cy="74" rx="6" ry="4" fill={cheekColor} opacity="0.6" />
+          <SvgEllipse cx="128" cy="74" rx="6" ry="4" fill={cheekColor} opacity="0.6" />
 
-          {/* Positive Smile */}
+          {/* Friendly Smile & Tiny Cute White Fangs */}
           {pose === "cheer" ? (
-            <SvgPath
-              d="M 91 107 Q 100 120 109 107 Z"
-              fill={currentTheme.colors.text}
-              stroke={currentTheme.colors.text}
-              strokeWidth="1.5"
-              strokeLinejoin="round"
-            />
+            <SvgG id="dragon-smile-cheer">
+              <SvgPath
+                d="M 91 80 Q 100 92 109 80 Z"
+                fill={eyeColor}
+                stroke={eyeColor}
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <SvgPolygon points="93,80 96,85 97,80" fill="#FFFFFF" />
+              <SvgPolygon points="103,80 104,85 107,80" fill="#FFFFFF" />
+            </SvgG>
           ) : (
-            <SvgPath
-              d="M 93 108 Q 100 116 107 108"
-              stroke={currentTheme.colors.text}
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              fill="none"
-            />
+            <SvgG id="dragon-smile-friendly">
+              <SvgPath
+                d="M 92 80 Q 100 86 108 80"
+                stroke={eyeColor}
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                fill="none"
+              />
+              {/* Two tiny white fangs */}
+              <SvgPolygon
+                points="94,81 96,86 98,81"
+                fill="#FFFFFF"
+                stroke={bodyBorderColor}
+                strokeWidth="0.8"
+              />
+              <SvgPolygon
+                points="102,81 104,86 106,81"
+                fill="#FFFFFF"
+                stroke={bodyBorderColor}
+                strokeWidth="0.8"
+              />
+            </SvgG>
           )}
         </SvgG>
 
-        {/* --- Arms --- */}
+        {/* --- Dragon Arms (Pose Aware) --- */}
         {pose === "stretch" ? (
-          <SvgG>
-            {/* Arms reaching high to the sky */}
+          <SvgG id="dragon-arms-stretch">
+            {/* Arms reaching high to the sky with claws */}
             <SvgPath
-              d="M 62 94 C 54 75 48 52 50 38 C 54 36 60 40 62 48 C 66 60 70 82 72 92 Z"
+              d="M 66 108 C 54 88 50 64 54 48 C 58 46 64 50 66 58 C 70 72 74 94 76 106 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="51"
-              cy="38"
-              r="6"
+              cx="55"
+              cy="48"
+              r="5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="53" cy="44" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="56" cy="43" r="1.5" fill="#FFFFFF" />
+
             <SvgPath
-              d="M 138 94 C 146 75 152 52 150 38 C 146 36 140 40 138 48 C 134 60 130 82 128 92 Z"
+              d="M 134 108 C 146 88 150 64 146 48 C 142 46 136 50 134 58 C 130 72 126 94 124 106 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="149"
-              cy="38"
-              r="6"
+              cx="145"
+              cy="48"
+              r="5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="144" cy="43" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="147" cy="44" r="1.5" fill="#FFFFFF" />
           </SvgG>
         ) : pose === "cheer" ? (
           <AnimatedCheerArmsG>
-            {/* Arms in victory \o/ gesture */}
+            {/* Arms waving in victory gesture */}
             <SvgPath
-              d="M 64 96 C 50 82 38 64 42 46 C 46 44 52 48 56 56 C 62 68 68 84 72 94 Z"
+              d="M 68 110 C 52 94 42 74 46 56 C 50 54 56 58 60 66 C 66 78 72 96 76 108 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="43"
-              cy="47"
-              r="6"
+              cx="47"
+              cy="57"
+              r="5.5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="44" cy="53" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="48" cy="52" r="1.5" fill="#FFFFFF" />
+
             <SvgPath
-              d="M 136 96 C 150 82 162 64 158 46 C 154 44 148 48 144 56 C 138 68 132 84 128 94 Z"
+              d="M 132 110 C 148 94 158 74 154 56 C 150 54 144 58 140 66 C 134 78 128 96 124 108 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="157"
-              cy="47"
-              r="6"
+              cx="153"
+              cy="57"
+              r="5.5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="152" cy="52" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="156" cy="53" r="1.5" fill="#FFFFFF" />
           </AnimatedCheerArmsG>
         ) : pose === "balance" ? (
-          <SvgG>
-            {/* Wide horizontal arms for balance */}
+          <SvgG id="dragon-arms-balance">
+            {/* Wide horizontal arms */}
             <SvgPath
-              d="M 66 100 C 48 100 36 102 28 105 C 28 111 36 112 48 110 C 58 108 66 106 70 104 Z"
+              d="M 70 114 C 50 112 36 114 26 117 C 26 123 36 124 48 122 C 58 120 68 118 72 116 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="27"
-              cy="107"
-              r="6"
+              cx="26"
+              cy="119"
+              r="5.5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="22" cy="118" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="23" cy="122" r="1.5" fill="#FFFFFF" />
+
             <SvgPath
-              d="M 134 100 C 152 100 164 102 172 105 C 172 111 164 112 152 110 C 142 108 134 106 130 104 Z"
+              d="M 130 114 C 150 112 164 114 174 117 C 174 123 164 124 152 122 C 142 120 132 118 128 116 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="173"
-              cy="107"
-              r="6"
+              cx="174"
+              cy="119"
+              r="5.5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="177" cy="122" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="178" cy="118" r="1.5" fill="#FFFFFF" />
           </SvgG>
         ) : pose === "strength" ? (
-          <SvgG>
-            {/* Power stance: elbows bent firmly at chest */}
+          <SvgG id="dragon-arms-strength">
+            {/* Power stance at chest */}
             <SvgPath
-              d="M 68 102 C 50 108 42 120 54 126 C 62 128 72 118 74 110 Z"
+              d="M 70 116 C 52 120 44 132 56 138 C 64 140 74 130 76 122 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="55"
-              cy="126"
-              r="6"
+              cx="57"
+              cy="138"
+              r="5.5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="54" cy="141" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="59" cy="142" r="1.5" fill="#FFFFFF" />
+
             <SvgPath
-              d="M 132 102 C 150 108 158 120 146 126 C 138 128 128 118 126 110 Z"
+              d="M 130 116 C 148 120 156 132 144 138 C 136 140 126 130 124 122 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="145"
-              cy="126"
-              r="6"
+              cx="143"
+              cy="138"
+              r="5.5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="141" cy="142" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="146" cy="141" r="1.5" fill="#FFFFFF" />
           </SvgG>
         ) : (
-          <SvgG>
-            {/* Resting arms (idle, breathe) */}
+          <SvgG id="dragon-arms-resting">
+            {/* Cute chubby paws resting in front */}
             <SvgPath
-              d="M 58 98 C 46 108 46 122 56 128 C 62 126 64 116 62 106 Z"
+              d="M 68 116 C 60 124 64 138 74 140 C 82 140 84 130 82 120 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="55"
-              cy="127"
-              r="5.5"
+              cx="75"
+              cy="138"
+              r="5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="73" cy="142" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="77" cy="142" r="1.5" fill="#FFFFFF" />
+
             <SvgPath
-              d="M 142 98 C 154 108 154 122 144 128 C 138 126 136 116 138 106 Z"
+              d="M 132 116 C 140 124 136 138 126 140 C 118 140 116 130 118 120 Z"
               fill={bodyColor}
               stroke={bodyBorderColor}
               strokeWidth="2"
               strokeLinejoin="round"
             />
             <SvgCircle
-              cx="145"
-              cy="127"
-              r="5.5"
+              cx="125"
+              cy="138"
+              r="5"
               fill={bodyColor}
               stroke={bodyBorderColor}
-              strokeWidth="2"
+              strokeWidth="1.5"
             />
+            <SvgCircle cx="123" cy="142" r="1.5" fill="#FFFFFF" />
+            <SvgCircle cx="127" cy="142" r="1.5" fill="#FFFFFF" />
           </SvgG>
         )}
 
         {/* --- Forehead Items: Goggles --- */}
         {hasGoggles && (
           <SvgG data-testid="companion-goggles">
-            {/* Strap around head */}
             <SvgPath
-              d="M 52 82 C 70 80 130 80 148 82"
-              stroke={currentTheme.colors.textMuted}
-              strokeWidth="4"
+              d="M 58 64 C 74 62 126 62 142 64"
+              stroke={colors.textMuted}
+              strokeWidth="3.5"
               strokeLinecap="round"
               fill="none"
             />
-            {/* Bridge */}
-            <SvgRect x="96" y="79" width="8" height="4" rx="2" fill={currentTheme.colors.text} />
-            {/* Left lens frame */}
+            <SvgRect x="96" y="62" width="8" height="4" rx="2" fill={colors.text} />
             <SvgCircle
-              cx="82"
-              cy="81"
-              r="12"
-              fill={currentTheme.colors.focus}
-              stroke={currentTheme.colors.text}
+              cx="84"
+              cy="64"
+              r="11"
+              fill={colors.focus}
+              stroke={colors.text}
               strokeWidth="2"
             />
-            {/* Left lens glass */}
-            <SvgCircle cx="82" cy="81" r="8.5" fill={currentTheme.colors.surface} />
-            {/* Left lens glare */}
+            <SvgCircle cx="84" cy="64" r="8" fill={colors.surface} />
             <SvgPath
-              d="M 77 78 L 86 74"
-              stroke={currentTheme.colors.primarySoft}
-              strokeWidth="2"
+              d="M 80 61 L 88 58"
+              stroke={colors.primarySoft}
+              strokeWidth="1.8"
               strokeLinecap="round"
             />
-            {/* Right lens frame */}
             <SvgCircle
-              cx="118"
-              cy="81"
-              r="12"
-              fill={currentTheme.colors.focus}
-              stroke={currentTheme.colors.text}
+              cx="116"
+              cy="64"
+              r="11"
+              fill={colors.focus}
+              stroke={colors.text}
               strokeWidth="2"
             />
-            {/* Right lens glass */}
-            <SvgCircle cx="118" cy="81" r="8.5" fill={currentTheme.colors.surface} />
-            {/* Right lens glare */}
+            <SvgCircle cx="116" cy="64" r="8" fill={colors.surface} />
             <SvgPath
-              d="M 113 78 L 122 74"
-              stroke={currentTheme.colors.primarySoft}
-              strokeWidth="2"
+              d="M 112 61 L 120 58"
+              stroke={colors.primarySoft}
+              strokeWidth="1.8"
               strokeLinecap="round"
             />
           </SvgG>
@@ -563,34 +800,30 @@ export function Companion({
         {/* --- Head Items: Explorer Hat --- */}
         {hasHat && (
           <SvgG data-testid="companion-hat">
-            {/* Explorer crown */}
             <SvgPath
-              d="M 74 54 C 74 30 84 22 100 22 C 116 22 126 30 126 54 Z"
-              fill={currentTheme.colors.focus}
-              stroke={currentTheme.colors.text}
+              d="M 76 46 C 76 24 86 16 100 16 C 114 16 124 24 124 46 Z"
+              fill={colors.focus}
+              stroke={colors.text}
               strokeWidth="2"
               strokeLinejoin="round"
             />
-            {/* Crown center ridge */}
             <SvgPath
-              d="M 100 23 L 100 48"
-              stroke={currentTheme.colors.text}
+              d="M 100 17 L 100 40"
+              stroke={colors.text}
               strokeWidth="1.5"
               strokeLinecap="round"
             />
-            {/* Hat band */}
             <SvgPath
-              d="M 74 48 C 84 51 116 51 126 48 L 126 53 C 116 56 84 56 74 53 Z"
-              fill={currentTheme.colors.primaryHover}
+              d="M 76 40 C 86 43 114 43 124 40 L 124 45 C 114 48 86 48 76 45 Z"
+              fill={colors.primaryHover}
             />
-            {/* Explorer brim */}
             <SvgEllipse
               cx="100"
-              cy="53"
-              rx="40"
-              ry="9"
-              fill={currentTheme.colors.focus}
-              stroke={currentTheme.colors.text}
+              cy="45"
+              rx="38"
+              ry="8"
+              fill={colors.focus}
+              stroke={colors.text}
               strokeWidth="2"
             />
           </SvgG>
