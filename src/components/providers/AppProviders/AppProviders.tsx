@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "@/theme/GlobalStyle.style";
 import { theme } from "@/theme/theme";
+import { AppStateProvider } from "../AppStateProvider";
 import { StyledComponentsRegistry } from "../StyledComponentsRegistry/StyledComponentsRegistry";
 
 type AppProvidersProps = {
@@ -16,7 +17,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <StyledComponentsRegistry>
       <ThemeProvider theme={theme}>
         <GlobalStyle />
-        <SerwistProvider swUrl="/serwist/sw.js">{children}</SerwistProvider>
+        <AppStateProvider>
+          <SerwistProvider swUrl="/serwist/sw.js">{children}</SerwistProvider>
+        </AppStateProvider>
       </ThemeProvider>
     </StyledComponentsRegistry>
   );
