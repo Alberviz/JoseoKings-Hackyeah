@@ -59,7 +59,7 @@ import {
 
 export function HomeScreen() {
   const router = useRouter();
-  const { state, isReady } = useAppState();
+  const { state, actions, isReady } = useAppState();
 
   // If no child is configured, redirect to parent setup ONLY when isReady is true
   useEffect(() => {
@@ -109,7 +109,11 @@ export function HomeScreen() {
         </FireBar>
 
         <TopRightCluster>
-          <CoinsPill aria-label={`Coins ${coins}`}>
+          <CoinsPill
+            aria-label={`Coins ${coins}`}
+            title="Click to add +100 test coins"
+            onClick={() => actions.addCoins(100)}
+          >
             <CoinIconWrapper aria-hidden="true">
               <CoinSvg viewBox="0 0 24 24" fill="currentColor">
                 <SvgCircle cx="12" cy="12" r="10" />

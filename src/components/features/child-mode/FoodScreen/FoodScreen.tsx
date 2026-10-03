@@ -19,6 +19,8 @@ import {
   SvgAppleIcon,
   SvgFireIcon,
   SvgPath,
+  TestActionButton,
+  TestButtonsRow,
   TopBar,
   ValueText,
 } from "./FoodScreen.style";
@@ -170,6 +172,38 @@ export function FoodScreen() {
                 Buy food in the shop
               </LinkButton>
             )}
+
+            <TestButtonsRow>
+              <TestActionButton
+                type="button"
+                onClick={() => {
+                  actions.addFood(5);
+                  setFeedback("Added +5 food portions!");
+                }}
+              >
+                +5 🍏 Food (Test)
+              </TestActionButton>
+              <TestActionButton
+                type="button"
+                onClick={() => {
+                  actions.addCoins(100);
+                  setFeedback("Added +100 coins!");
+                }}
+              >
+                +100 🪙 Coins (Test)
+              </TestActionButton>
+              {isFireFull && (
+                <TestActionButton
+                  type="button"
+                  onClick={() => {
+                    actions.resetFire(40);
+                    setFeedback("Fire reset to 40 so you can feed again!");
+                  }}
+                >
+                  Reset Fire (Test)
+                </TestActionButton>
+              )}
+            </TestButtonsRow>
           </ActionsContainer>
         </StatsCard>
       </FoodRoot>

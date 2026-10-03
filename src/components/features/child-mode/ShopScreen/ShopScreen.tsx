@@ -8,6 +8,7 @@ import { SHOP_ITEMS } from "@/config/economy";
 import { useAppState } from "@/hooks/useAppState";
 import { coinBalance } from "@/lib/economy";
 import {
+  AddCoinsButton,
   ClaimItem,
   ClaimItemText,
   ClaimsList,
@@ -279,6 +280,16 @@ export function ShopScreen() {
               <CoinIcon />
               <ItemNameText>{coins}</ItemNameText>
             </StatPill>
+            <AddCoinsButton
+              type="button"
+              onClick={() => {
+                actions.addCoins(100);
+                setInlineMessage("Added +100 coins for testing!");
+              }}
+              aria-label="Add 100 test coins"
+            >
+              +100 🪙
+            </AddCoinsButton>
           </CountersRow>
         </TopBar>
 
