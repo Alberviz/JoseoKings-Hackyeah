@@ -30,7 +30,7 @@ If two documents disagree, the order above decides. If something is unclear, **a
 
 ## 1. The project
 
-**CrohnCare** (working name) is a Progressive Web App for families with a child aged 8 to 12 who has inflammatory bowel disease (Crohn's disease or ulcerative colitis), built at HackYeah 2026 (Kraków, 3-4 October 2026), category **Sport & Healthcare**. Hacking ends **Sunday 4 October, 11:00**.
+**Mycrohnie** (working name) is a Progressive Web App for families with a child aged 8 to 12 who has inflammatory bowel disease (Crohn's disease or ulcerative colitis), built at HackYeah 2026 (Kraków, 3-4 October 2026), category **Sport & Healthcare**. Hacking ends **Sunday 4 October, 11:00**.
 
 In one sentence: the child plays with a companion and tells how they feel without being questioned; parents and the doctor get that information in an organised, honest form.
 
