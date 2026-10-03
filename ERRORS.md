@@ -130,3 +130,14 @@ Before debugging something, search this file first: it may already be solved.
 - **Cause:** `scripts/comms.sh` created its worktree with a fixed branch name (`-B comms-local`). When an agent or user had another worktree open with that branch checked out, Git refused to attach the same branch to `.comms`.
 - **Fix:** `scripts/comms.sh` now attaches the worktree in detached HEAD state (`git worktree add -q --detach "$DIR" "origin/$BRANCH"`) and pushes commits via `HEAD:$BRANCH`. Detached HEAD allows multiple concurrent worktrees without local branch name collisions.
 - **Refs:** -
+
+### E10 · Comms channel migrated from Git branch to GitHub Issues inboxes
+
+- **Date:** 2026-10-04 00:14
+- **Who:** Alberto (Antigravity)
+- **Task:** comms
+- **Status:** fixed
+- **Symptom:** High token consumption, context bloat (Claude ran out of tokens earlier), 118+ git commits polluting remote objects, and worktree collisions.
+- **Cause:** Using a git branch (`comms`) with 1 commit per message and verbose text cards created repo overhead and filled agent context buffers.
+- **Fix:** Replaced Git branch backend in `scripts/comms.sh` with GitHub Issues personal inboxes (#70-#75) and broadcast (#76). Reading inboxes consumes < 50 tokens with zero git commits.
+- **Refs:** E9
