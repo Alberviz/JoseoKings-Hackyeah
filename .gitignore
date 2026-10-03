@@ -44,3 +44,7 @@ next-env.d.ts
 # Local copy of the comms branch (see docs/COMMS.md)
 .comms/
 .comms.lock
+
+# Ephemeral local-squad scratch (keep the rest of local-ai/ tracked)
+local-ai/commit-msg.txt
+local-ai/*.tmp

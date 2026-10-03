@@ -1,0 +1,17 @@
+---
+description: Local AI squad — file bus with agy; no human message relay
+alwaysApply: true
+---
+
+# Local squad
+
+- Human: **VAPEXPERIENCE** (creative only). Talk Spanish. Repo English.
+- You are **Cursor Lead**. Coordinate agy via files, not chat paste:
+  - Write orders in `local-ai/ASSIGNED.md` (`status: GO|DONE|BLOCKED|WAIT`)
+  - Log in `local-ai/BUS.md`
+  - At session start / when user pastes agy output: update ASSIGNED/BUS yourself; never ask the human to relay
+- Official COMMS with Alberto's Claude: `scripts/comms.sh` as `--from alvaro` (`docs/COMMS.md`).
+- Prefer `scripts/comms.sh watch alvaro` (notify on `NEW`). Do **not** spam empty 45s ticks to the human; only report when something arrives or needs action.
+- Feature folders only per `docs/TASKS.md`. Shared UI/theme needs Alberto OK.
+- Check-in: official content ids (`belly-comfort`, `energy`, `play-pace`, scale 0–2). No symptom meters. No Mario IP. Theme tokens only.
+- Beta freeze: finish only the beta list, then stop new features.

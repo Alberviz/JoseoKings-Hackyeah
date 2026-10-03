@@ -1,0 +1,13 @@
+---
+description: Check-in (T7) content and UX constraints
+globs: src/components/features/child-mode/CheckInScreen/**/*,src/app/check-in/**/*,src/content/check-in-questions.ts
+alwaysApply: false
+---
+
+# Check-in
+
+- Official question ids: `belly-comfort`, `energy`, `play-pace` (scale **0–2**). Source: `src/content/check-in-questions.ts`.
+- Always offer "I don't feel like it today" / `notToday`.
+- Rewards never depend on answers. No symptom meters, no sad companion, no medical claims.
+- Pixel / game HUD OK if generic (no Mario IP); styles in `*.style.ts` with theme tokens only.
+- No raw HTML in `.tsx`. Tests next to the component.
