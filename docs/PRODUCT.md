@@ -10,7 +10,7 @@ Status: agreed by Alberto on 2026-10-03. Items marked **Default** are provisiona
 
 A Progressive Web App for families with a child aged 8 to 12 who has inflammatory bowel disease (Crohn's disease or ulcerative colitis). The child plays with a companion and tells how they feel without being questioned; parents and the doctor get that information in an organised, honest form.
 
-Working name: **CrohnCare**. The name may change; do not hard-code it outside `src/config/app.ts`.
+Working name: **Mycrohnie** (previous name CrohnCare). The name may change; do not hard-code it outside `src/config/app.ts`.
 
 Hackathon category: **Sport & Healthcare** (open task). Rules and judging criteria are in [`HANDOFF.md`](HANDOFF.md), section 3.
 

@@ -97,3 +97,14 @@ Before debugging something, search this file first: it may already be solved.
 - **Cause:** Table columns exceed 390px on small screens.
 - **Fix:** `DoctorReportView.style.ts` uses `@media print` with `@page { size: A4 portrait; margin: 10mm; }`, disables container clipping (`overflow-x: visible !important`), hides action buttons via `.no-print`, and adopts `theme.colors.*` design tokens. Tested real printing on desktop Chrome and phone-sized viewport (emulated 390x844; real physical phone test remains for Alberto in T16).
 - **Refs:** T11, T16
+
+### E7 · Missions test fails at random in CI: "expected [] to have a length of 1"
+
+- **Date:** 2026-10-03 22:40
+- **Who:** Alberto (Claude, fix by a Gemini agent)
+- **Task:** T8
+- **Status:** fixed
+- **Symptom:** `family mission rejects wrong PIN and accepts correct PIN to save log once` passes locally and sometimes fails in GitHub Actions.
+- **Cause:** the mission log is saved in a `useEffect` after the "Nice work!" text appears, and the PIN check (PBKDF2) is slow on CI runners. The test read `localStorage` right after the text appeared, before the effect ran.
+- **Fix:** wait for the saved log with `waitFor` (timeout 5 s) and give the PIN `findByText` calls a 5 s timeout. The test still checks wrong PIN rejected, correct PIN accepted and the log saved exactly once. Rule for new tests: after an async PIN check, never read storage synchronously; wait for it.
+- **Refs:** T8
