@@ -23,6 +23,29 @@ export const MISSION_IDS = {
   rollingWave: "rolling-wave",
 } as const;
 
+// The play games of the v2 Play flow (the team's games table). They live in MISSIONS too, with `mode` and `level`.
+export const GAME_IDS = {
+  featherBreath: "feather-breath",
+  animalStatue: "animal-statue",
+  invisibleBalloon: "invisible-balloon",
+  quickYoga: "quick-yoga",
+  stretchDice: "stretch-dice",
+  bodyTrafficLight: "body-traffic-light",
+  treasureExplorer: "treasure-explorer",
+  ninjaTiptoes: "ninja-tiptoes",
+  danceMinute: "dance-minute",
+  cushionCircuit: "cushion-circuit",
+  marchingClock: "marching-clock",
+  seatedBallPass: "seated-ball-pass",
+  partnerStatues: "partner-statues",
+  followTheBeat: "follow-the-beat",
+  ninjaMirror: "ninja-mirror",
+  countAndWalk: "count-and-walk",
+  miniAdventure: "mini-adventure",
+  energyDelivery: "energy-delivery",
+  outdoorMission: "outdoor-mission",
+} as const;
+
 export const ITEM_IDS = {
   hatExplorer: "hat-explorer",
   colorTeal: "color-teal",
