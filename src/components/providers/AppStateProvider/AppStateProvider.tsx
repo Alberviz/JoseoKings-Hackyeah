@@ -12,6 +12,19 @@ import {
 } from "react";
 import { clearStorage, createEmptyState, loadState, saveState } from "@/lib/storage";
 import {
+  buyItem,
+  equipItem as equipEconomyItem,
+  giveFood,
+  redeemTreat as redeemEconomyTreat,
+  setTreats as setEconomyTreats,
+  unequipItem as unequipEconomyItem,
+  type BuyResult,
+  type GiveFoodResult,
+  type RedeemResult,
+  type SetTreatsResult,
+} from "@/lib/economy";
+import { todayKey } from "@/lib/dates";
+import {
   equipItem as equipCompanionItem,
   syncCompanion,
   unequipItem as unequipCompanionItem,
@@ -25,6 +38,7 @@ import type {
   MissionLog,
   ParentLog,
   ParentSettings,
+  Treat,
 } from "@/types";
 
 export type AppStateActions = {
@@ -35,6 +49,14 @@ export type AppStateActions = {
   addConsultation: (consultation: Consultation) => void;
   equipItem: (itemId: string) => void;
   unequipItem: (itemId: string) => void;
+  /** Spends coins in the shop. The result tells the UI what to say. */
+  buyShopItem: (itemId: string) => BuyResult;
+  giveFood: () => GiveFoodResult;
+  equipShopItem: (itemId: string) => void;
+  unequipShopItem: (itemId: string) => void;
+  /** The only action that lowers fire: the child chooses to spend it. */
+  redeemTreat: (treatId: string) => RedeemResult;
+  setTreats: (treats: Treat[]) => SetTreatsResult;
   setSettings: (settings: ParentSettings) => void;
   setChild: (child: ChildProfile) => void;
   loadDemo: (demoState: AppState) => void;
@@ -262,6 +284,65 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     [store],
   );
 
+  const buyShopItem = useCallback(
+    (itemId: string): BuyResult => {
+      let result: BuyResult = { ok: false, reason: "unknown-item" };
+      store.updateState((prev) => {
+        result = buyItem(prev, itemId);
+        return result.ok ? { ...prev, economy: result.economy } : prev;
+      });
+      return result;
+    },
+    [store],
+  );
+
+  const giveFoodToCompanion = useCallback((): GiveFoodResult => {
+    let result: GiveFoodResult = { ok: false, reason: "no-food" };
+    store.updateState((prev) => {
+      result = giveFood(prev.economy);
+      return result.ok ? { ...prev, economy: result.economy } : prev;
+    });
+    return result;
+  }, [store]);
+
+  const equipShopItem = useCallback(
+    (itemId: string) => {
+      store.updateState((prev) => ({ ...prev, economy: equipEconomyItem(prev.economy, itemId) }));
+    },
+    [store],
+  );
+
+  const unequipShopItem = useCallback(
+    (itemId: string) => {
+      store.updateState((prev) => ({ ...prev, economy: unequipEconomyItem(prev.economy, itemId) }));
+    },
+    [store],
+  );
+
+  const redeemTreat = useCallback(
+    (treatId: string): RedeemResult => {
+      let result: RedeemResult = { ok: false, reason: "unknown-treat" };
+      store.updateState((prev) => {
+        result = redeemEconomyTreat(prev.economy, treatId, todayKey());
+        return result.ok ? { ...prev, economy: result.economy } : prev;
+      });
+      return result;
+    },
+    [store],
+  );
+
+  const setTreats = useCallback(
+    (treats: Treat[]): SetTreatsResult => {
+      let result: SetTreatsResult = { ok: false, reason: "invalid-label" };
+      store.updateState((prev) => {
+        result = setEconomyTreats(prev.economy, treats);
+        return result.ok ? { ...prev, economy: result.economy } : prev;
+      });
+      return result;
+    },
+    [store],
+  );
+
   const setSettings = useCallback(
     (settings: ParentSettings) => {
       store.updateState((prev) => ({
@@ -309,6 +390,12 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       addConsultation,
       equipItem,
       unequipItem,
+      buyShopItem,
+      giveFood: giveFoodToCompanion,
+      equipShopItem,
+      unequipShopItem,
+      redeemTreat,
+      setTreats,
       setSettings,
       setChild,
       loadDemo,
@@ -316,6 +403,12 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       clearAll,
     }),
     [
+      buyShopItem,
+      giveFoodToCompanion,
+      equipShopItem,
+      unequipShopItem,
+      redeemTreat,
+      setTreats,
       addCheckIn,
       addMissionLog,
       saveParentLog,

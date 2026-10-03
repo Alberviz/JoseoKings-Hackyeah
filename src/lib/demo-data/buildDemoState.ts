@@ -6,6 +6,7 @@ import {
   QUESTION_IDS,
 } from "@/config/content-ids";
 import { addDays, isWeekend, todayKey } from "@/lib/dates";
+import { createDefaultEconomy } from "@/lib/economy";
 import { syncCompanion } from "@/lib/rewards";
 import type {
   ActivityLevel,
@@ -236,6 +237,7 @@ export function buildDemoState(options: DemoOptions = {}): AppState {
     child: { nickname: DEMO_CHILD_NICKNAME },
     settings: options.settings ?? DEFAULT_SETTINGS,
     companion: buildCompanion(checkIns, missionLogs),
+    economy: createDefaultEconomy(),
     checkIns,
     missionLogs,
     parentLogs,

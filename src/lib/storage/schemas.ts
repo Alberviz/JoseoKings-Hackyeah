@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { FIRE_MAX, TREAT_COST_MAX, TREAT_COST_MIN, TREAT_LABEL_MAX_LENGTH } from "@/config/economy";
 import { isDateKey } from "@/lib/dates";
+import { createDefaultEconomy } from "@/lib/economy";
 import type {
   ActivityLevel,
   AppState,
@@ -9,6 +11,7 @@ import type {
   CompanionState,
   Consultation,
   DateKey,
+  EconomyState,
   FoodEntry,
   MedicationTaken,
   MissionCompany,
@@ -18,6 +21,8 @@ import type {
   ParentLog,
   ParentSettings,
   SchoolDay,
+  Treat,
+  TreatRedemption,
 } from "@/types";
 
 export const childProfileSchema: z.ZodType<ChildProfile> = z.object({
@@ -120,12 +125,40 @@ export const consultationSchema: z.ZodType<Consultation> = z.object({
   date: dateKeySchema,
 });
 
+export const shopItemIdSchema = z.enum(["food", "glasses", "t-shirt", "hat"]);
+
+export const treatSchema: z.ZodType<Treat> = z.object({
+  id: z.string(),
+  label: z.string().min(1).max(TREAT_LABEL_MAX_LENGTH),
+  fireCost: z.number().int().min(TREAT_COST_MIN).max(TREAT_COST_MAX),
+});
+
+export const treatRedemptionSchema: z.ZodType<TreatRedemption> = z.object({
+  id: z.string(),
+  treatId: z.string(),
+  date: dateKeySchema,
+});
+
+/** Old saves have no economy, and corrupt economy data resets to defaults without touching the rest. */
+export const economyStateSchema: z.ZodType<EconomyState> = z
+  .object({
+    fire: z.number().int().min(0).max(FIRE_MAX),
+    coinsSpent: z.number().int().nonnegative(),
+    inventory: z.object({ food: z.number().int().nonnegative() }),
+    ownedItemIds: z.array(shopItemIdSchema),
+    equippedItemIds: z.array(shopItemIdSchema),
+    treats: z.array(treatSchema),
+    redemptions: z.array(treatRedemptionSchema),
+  })
+  .catch(() => createDefaultEconomy());
+
 export const appStateSchema: z.ZodType<AppState> = z.object({
   schemaVersion: z.literal(1),
   isDemo: z.boolean(),
   child: childProfileSchema.nullable(),
   settings: parentSettingsSchema.nullable(),
   companion: companionStateSchema,
+  economy: economyStateSchema,
   checkIns: z.array(checkInSchema),
   missionLogs: z.array(missionLogSchema),
   parentLogs: z.array(parentLogSchema),
