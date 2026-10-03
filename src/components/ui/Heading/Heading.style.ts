@@ -16,8 +16,9 @@ const levelStyles = {
 
 export const StyledHeading = styled.h1<{ $level: HeadingLevel }>`
   margin: 0;
+  font-family: ${({ theme }) => theme.fontFamily.heading};
   line-height: 1.2;
   font-weight: ${({ theme }) => theme.fontWeight.bold};
-  color: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.ink};
   ${({ $level }) => levelStyles[$level]}
 `;

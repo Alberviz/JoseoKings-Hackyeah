@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui";
+import { APP_NAME } from "@/config/app";
 import type { DoctorReportData } from "@/lib/report/types";
 import {
   ActivityConfidenceCard,
@@ -67,7 +68,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         <ReportHeader>
           <HeaderTopRow>
             <HeaderTitleGroup>
-              <ReportTitle>CrohnCare · Consultation Summary</ReportTitle>
+              <ReportTitle>{APP_NAME} · Consultation Summary</ReportTitle>
               <HeaderMetaRow>
                 <MetaItem>
                   Child: <StrongText>{data.childNickname}</StrongText>
