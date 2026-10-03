@@ -69,7 +69,7 @@ function BellyFace({ mood }: { mood: "calm" | "rumble" | "sore" }) {
 
 // Friendly batteries: 3, 2 or 1 bars lit. Empty bars stay light.
 function EnergyBattery({ lit }: { lit: 1 | 2 | 3 }) {
-  const barFill = lit === 3 ? "mint" : lit === 2 ? "highlight" : "accent";
+  const barFill = lit === 3 ? "success" : lit === 2 ? "highlight" : "accent";
   return (
     <>
       <InkRect x="4" y="9" width="36" height="30" rx="8" $fill="surface" />

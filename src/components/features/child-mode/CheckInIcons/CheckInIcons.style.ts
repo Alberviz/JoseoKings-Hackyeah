@@ -2,7 +2,15 @@ import styled from "styled-components";
 import type { AppTheme } from "@/theme/theme";
 
 export type InkFill =
-  "none" | "paper" | "surface" | "primarySoft" | "mint" | "accent" | "highlight" | "lavender";
+  | "none"
+  | "paper"
+  | "surface"
+  | "primarySoft"
+  | "mint"
+  | "success"
+  | "accent"
+  | "highlight"
+  | "lavender";
 
 function fillColor(theme: AppTheme, fill: InkFill): string {
   return fill === "none" ? "none" : theme.colors[fill];
