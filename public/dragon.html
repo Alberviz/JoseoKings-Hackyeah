@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dragón de Cracovia Oficial - CrohnCare</title>
+  <title>Evolución del Dragón de Cracovia - CrohnCare</title>
   <style>
     :root {
       --bg: #F5F7F8;
@@ -12,6 +12,8 @@
       --accent: #FF7A59;
       --primary: #127782;
       --primary-hover: #0E5E67;
+      --gold: #E5A825;
+      --ink: #1F2F6B;
     }
 
     * {
@@ -29,16 +31,17 @@
       flex-direction: column;
       align-items: center;
       padding: 24px 16px 48px;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.4s ease;
     }
 
     header {
       text-align: center;
       margin-bottom: 16px;
+      max-width: 600px;
     }
 
     h1 {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 800;
       letter-spacing: -0.5px;
       margin-bottom: 6px;
@@ -46,7 +49,7 @@
     }
 
     p.subtitle {
-      font-size: 15px;
+      font-size: 14px;
       color: #486E78;
       font-weight: 500;
     }
@@ -65,16 +68,99 @@
       margin-bottom: 10px;
     }
 
-    /* Mascot Stage */
-    .stage-container {
+    /* Stage Selector Tabs */
+    .evolution-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: 100%;
+      max-width: 520px;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 8px;
+      background: #FFFFFF;
+      border: 2px solid #D2E4E8;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .tab-btn.active {
+      background: #EBF8F9;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(18, 119, 130, 0.2);
+    }
+
+    .tab-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: #0F3B46;
+      margin-bottom: 2px;
+    }
+
+    .tab-threshold {
+      font-size: 11px;
+      color: #FF7A59;
+      font-weight: 700;
+    }
+
+    /* Mascot Stage Card */
+    .stage-card {
       position: relative;
       width: 100%;
       max-width: 440px;
-      aspect-ratio: 1;
+      aspect-ratio: 1.05;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 20px;
+      border-radius: 26px;
+      overflow: hidden;
+      border: 3px solid var(--ink);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16), 0 4px 0 var(--ink);
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.4s ease;
+    }
+
+    .stage-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
+      pointer-events: none;
+    }
+
+    .stage-floating-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border: 1.5px solid var(--ink);
+      border-radius: 9999px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: 0.02em;
     }
 
     .dragon-glow {
@@ -82,19 +168,21 @@
       width: 320px;
       height: 320px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(18, 119, 130, 0.08) 0%, rgba(255,255,255,0) 70%);
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
       pointer-events: none;
     }
 
     .dragon-img {
-      width: 88%;
-      height: 88%;
+      width: 86%;
+      height: 86%;
       object-fit: contain;
-      filter: drop-shadow(0 14px 28px rgba(18, 119, 130, 0.16));
+      filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.35));
       transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       user-select: none;
       -webkit-user-drag: none;
       cursor: pointer;
+      position: relative;
+      z-index: 1;
     }
 
     /* Animations */
@@ -173,59 +261,101 @@
       letter-spacing: 0.5px;
       color: #4A7A85;
       margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .button-group {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
+      gap: 8px;
     }
 
     button {
-      flex: 1;
-      min-width: 110px;
-      padding: 10px 14px;
-      border: 1.5px solid #D0E4E8;
       background: #FFFFFF;
-      color: #153F4B;
+      border: 1.5px solid #CCDCE0;
+      color: #123C46;
+      padding: 9px 15px;
       border-radius: 12px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      font-family: inherit;
     }
 
     button:hover {
-      background: #F0F8FA;
-      border-color: #127782;
-      transform: translateY(-1px);
+      background: #E8F4F6;
+      border-color: var(--primary);
     }
 
     button.active {
-      background: #127782;
+      background: var(--primary);
       color: #FFFFFF;
-      border-color: #127782;
+      border-color: var(--primary);
+      box-shadow: 0 4px 10px rgba(18, 119, 130, 0.3);
+    }
+
+    .fire-slider-container {
+      background: #F7FAFB;
+      border: 1.5px solid #DCE7E9;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .fire-slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .fire-slider-label {
+      font-weight: 700;
+      font-size: 13px;
+      color: #0F3B46;
+    }
+
+    .fire-slider-value {
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--accent);
+    }
+
+    input[type=range] {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #E0ECEE;
+      outline: none;
+      cursor: pointer;
     }
 
     .primary-btn {
-      background: #127782;
+      background: var(--accent);
       color: #FFFFFF;
-      border: none;
+      border: 2px solid var(--ink);
       font-size: 15px;
-      padding: 13px 18px;
-      font-weight: 700;
+      font-weight: 800;
+      padding: 14px;
+      border-radius: 14px;
+      box-shadow: 0 4px 0 var(--ink);
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
 
     .primary-btn:hover {
-      background: #0E5E67;
-      color: #FFFFFF;
+      background: #FF6640;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--ink);
     }
 
-    /* App Links */
+    .primary-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--ink);
+    }
+
     .nav-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -235,18 +365,18 @@
     .app-link {
       display: flex;
       flex-direction: column;
+      background: #FFFFFF;
+      border: 1.5px solid #CCDCE0;
+      border-radius: 12px;
       padding: 12px;
-      background: #F8FBFA;
-      border: 1.5px solid #D7EDE6;
-      border-radius: 14px;
       text-decoration: none;
-      color: #153F4B;
-      transition: all 0.15s ease;
+      color: inherit;
+      transition: all 0.2s ease;
     }
 
     .app-link:hover {
-      background: #E8F7F2;
-      border-color: #20A779;
+      border-color: var(--primary);
+      background: #F4FAFB;
       transform: translateY(-2px);
     }
 
@@ -290,18 +420,35 @@
 <body>
 
   <header>
-    <div class="badge-approved">🛡️ Barriga, Patas y Cejas 100% Sólidas</div>
-    <h1>El Dragón con Fondo Blanco Suave</h1>
-    <p class="subtitle">Fondo sutil (#F5F7F8) sin huecos transparentes en el personaje</p>
+    <div class="badge-approved">🛡️ Dragón de Cracovia • 3 Etapas de Evolución</div>
+    <h1 id="page-title">Bebé Dragón en la Pradera Pastel</h1>
+    <p class="subtitle" id="page-subtitle">0 a 99 🔥: Etapa 1 • Tonos suaves de cuento de hadas</p>
   </header>
 
-  <!-- Mascot Stage -->
-  <div class="stage-container" id="stage">
+  <!-- Evolution Stage Tabs -->
+  <div class="evolution-tabs" role="tablist">
+    <button class="tab-btn active" id="tab-stage1" onclick="selectStage(1)">
+      <span class="tab-title">🌱 Etapa 1: Bebé</span>
+      <span class="tab-threshold">0 - 99 🔥</span>
+    </button>
+    <button class="tab-btn" id="tab-stage2" onclick="selectStage(2)">
+      <span class="tab-title">⚡ Etapa 2: Joven</span>
+      <span class="tab-threshold">100 - 199 🔥</span>
+    </button>
+    <button class="tab-btn" id="tab-stage3" onclick="selectStage(3)">
+      <span class="tab-title">👑 Etapa 3: Heroico</span>
+      <span class="tab-threshold">200+ 🔥</span>
+    </button>
+  </div>
+
+  <!-- Mascot Stage Card -->
+  <div class="stage-card" id="stage-card" style="background-image: url('/bg_stage1_pastel.jpg');">
+    <div class="stage-floating-badge" id="floating-badge">🌱 Bebé Dragón (Fase 1)</div>
     <div class="dragon-glow"></div>
     <img
       id="dragon-image"
-      src="/dragon_offwhite.png"
-      alt="Dragón de Cracovia Oficial con Fondo Blanco Suave"
+      src="/dragon.png"
+      alt="Dragón de Cracovia Oficial"
       class="dragon-img anim-breathe"
       title="¡Tócame para saltar!"
     />
@@ -309,46 +456,65 @@
 
   <!-- Interactive Controls Panel -->
   <div class="panel">
+    <!-- Live Fire Progression Slider -->
+    <div class="fire-slider-container">
+      <div class="fire-slider-header">
+        <span class="fire-slider-label">🔥 Fuego Acumulado (Arrastra para evolucionar)</span>
+        <span class="fire-slider-value" id="fire-display">40 / 200 🔥</span>
+      </div>
+      <input
+        type="range"
+        id="fire-slider"
+        min="0"
+        max="200"
+        value="40"
+        oninput="handleSliderChange(this.value)"
+      />
+    </div>
+
+    <!-- Background Environment Switcher -->
     <div>
-      <div class="section-title">Fondo de Visualización</div>
+      <div class="section-title">Modo de Fondo</div>
       <div class="button-group">
-        <button id="btn-offwhite" class="active" onclick="switchImage('offwhite', '#F5F7F8', this)">⚪ Blanco Suave</button>
-        <button id="btn-trans" onclick="switchImage('trans', '#F5F7F8', this)">✨ Transparente Sólido</button>
-        <button id="btn-cyan" onclick="switchImage('cyan', '#BFEAF3', this)">🌊 Celeste #BFEAF3</button>
-        <button id="btn-dark" onclick="switchImage('trans', '#15242E', this)">🌙 Modo Noche</button>
+        <button id="btn-env" class="active" onclick="setViewMode('env')">🏞️ Fondo del Mundo Épico</button>
+        <button id="btn-offwhite" onclick="setViewMode('offwhite')">⚪ Estudio Blanco Suave (#F5F7F8)</button>
+        <button id="btn-trans" onclick="setViewMode('trans')">✨ Modo Transparente</button>
       </div>
     </div>
 
+    <!-- Live Animation Switcher -->
     <div>
       <div class="section-title">Animaciones en Vivo</div>
       <div class="button-group">
-        <button id="btn-breathe" class="active" onclick="setAnim('breathe')">🌬️ Respiración</button>
-        <button id="btn-bounce" onclick="setAnim('bounce')">🎉 Celebración</button>
-        <button id="btn-wag" onclick="setAnim('wag')">🐾 Bamboleo</button>
+        <button id="btn-breathe" class="active" onclick="setAnim('breathe')">🌬️ Respiración Orgánica</button>
+        <button id="btn-bounce" onclick="setAnim('bounce')">🎉 Salto Celebración</button>
+        <button id="btn-wag" onclick="setAnim('wag')">🐾 Bamboleo Amistoso</button>
       </div>
     </div>
 
+    <!-- Quick Play Button -->
     <div>
-      <div class="section-title">Entrar al Juego con Datos Demo</div>
+      <div class="section-title">Probar en la Aplicación</div>
       <button class="primary-btn" style="width: 100%;" onclick="initDemoAndEnter()">
-        🚀 Iniciar juego con este Dragón
+        🚀 Abrir Pantalla Principal del Juego
       </button>
     </div>
 
+    <!-- Navigation to other screens -->
     <div>
       <div class="section-title">Explorar Pantallas del Juego</div>
       <div class="nav-grid">
         <a href="/" class="app-link">
           <span class="app-link-title">🏠 Pantalla Principal</span>
-          <span class="app-link-desc">Home con el Dragón al centro</span>
-        </a>
-        <a href="/companion" class="app-link">
-          <span class="app-link-title">🏰 Santuario</span>
-          <span class="app-link-desc">Poses, catálogo y logros</span>
+          <span class="app-link-desc">Home con el Dragón y su hábitat</span>
         </a>
         <a href="/food" class="app-link">
-          <span class="app-link-title">🍲 Cocina Mágica</span>
-          <span class="app-link-desc">Alimenta a tu compañero</span>
+          <span class="app-link-title">🍲 Alimentar Dragón</span>
+          <span class="app-link-desc">Dale comida para subir de 0 a 200 fuego</span>
+        </a>
+        <a href="/shop" class="app-link">
+          <span class="app-link-title">🛍️ Tienda</span>
+          <span class="app-link-desc">Compra comida con monedas ganadas</span>
         </a>
         <a href="/customize" class="app-link">
           <span class="app-link-title">✨ Armario</span>
@@ -358,39 +524,116 @@
     </div>
   </div>
 
-  <div id="toast" class="toast">¡Datos demo cargados! Redirigiendo...</div>
+  <div id="toast" class="toast">¡Abriendo pantalla principal!</div>
 
   <script>
+    const STAGES = {
+      1: {
+        title: "Bebé Dragón en la Pradera Pastel",
+        subtitle: "0 a 99 🔥: Etapa 1 • Tonos suaves de cuento de hadas",
+        badge: "🌱 Bebé Dragón (Fase 1)",
+        artwork: "/dragon.png",
+        offwhiteArtwork: "/dragon_offwhite.png",
+        background: "/bg_stage1_pastel.jpg",
+      },
+      2: {
+        title: "Dragón Joven en la Fortaleza Guerrera",
+        subtitle: "100 a 199 🔥: Etapa 2 • Tono guerrero y atardecer dorado",
+        badge: "⚡ Dragón Joven (Fase 2)",
+        artwork: "/dragon_stage2_teen.png",
+        offwhiteArtwork: "/dragon_stage2_offwhite.png",
+        background: "/bg_stage2_warrior.jpg",
+      },
+      3: {
+        title: "Dragón Heroico en la Cúspide de Wawel",
+        subtitle: "200+ 🔥: Etapa 3 • Full guerrero legendario con auroras y ascuas",
+        badge: "👑 Dragón Heroico (Fase 3)",
+        artwork: "/dragon_stage3_heroic.png",
+        offwhiteArtwork: "/dragon_stage3_offwhite.png",
+        background: "/bg_stage3_heroic.jpg",
+      },
+    };
+
+    let currentStage = 1;
+    let currentViewMode = 'env'; // 'env', 'offwhite', 'trans'
+    let currentFire = 40;
+
     const img = document.getElementById('dragon-image');
+    const stageCard = document.getElementById('stage-card');
+    const floatingBadge = document.getElementById('floating-badge');
+    const pageTitle = document.getElementById('page-title');
+    const pageSubtitle = document.getElementById('page-subtitle');
+    const fireSlider = document.getElementById('fire-slider');
+    const fireDisplay = document.getElementById('fire-display');
     const toast = document.getElementById('toast');
 
-    function switchImage(mode, bgColor, btn) {
-      if (mode === 'offwhite') {
-        img.src = '/dragon_offwhite.png';
-      } else if (mode === 'cyan') {
-        img.src = '/dragon_krakow_final.jpg';
+    function updateDisplay() {
+      const info = STAGES[currentStage];
+      pageTitle.textContent = info.title;
+      pageSubtitle.textContent = info.subtitle;
+      floatingBadge.textContent = info.badge;
+
+      if (currentViewMode === 'env') {
+        stageCard.style.backgroundImage = `url('${info.background}')`;
+        stageCard.style.backgroundColor = 'transparent';
+        img.src = info.artwork;
+      } else if (currentViewMode === 'offwhite') {
+        stageCard.style.backgroundImage = 'none';
+        stageCard.style.backgroundColor = '#F5F7F8';
+        img.src = info.offwhiteArtwork;
       } else {
-        img.src = '/dragon.png'; // 100% solid character on transparent background
+        stageCard.style.backgroundImage = 'none';
+        stageCard.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+        img.src = info.artwork;
       }
 
-      document.body.style.backgroundColor = bgColor;
-      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      // Update Tab active states
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx + 1 === currentStage);
+      });
+    }
 
-      if (bgColor === '#15242E') {
-        document.querySelector('h1').style.color = '#FFFFFF';
-        document.querySelector('p.subtitle').style.color = '#A3E3EC';
-      } else {
-        document.querySelector('h1').style.color = '#0F3B46';
-        document.querySelector('p.subtitle').style.color = '#486E78';
+    function selectStage(stageNum) {
+      currentStage = stageNum;
+      if (stageNum === 1 && currentFire >= 100) currentFire = 40;
+      if (stageNum === 2 && (currentFire < 100 || currentFire >= 200)) currentFire = 120;
+      if (stageNum === 3 && currentFire < 200) currentFire = 200;
+
+      fireSlider.value = currentFire;
+      fireDisplay.textContent = `${currentFire} / 200 🔥`;
+      updateDisplay();
+    }
+
+    function handleSliderChange(val) {
+      currentFire = parseInt(val, 10);
+      fireDisplay.textContent = `${currentFire} / 200 🔥`;
+
+      let newStage = 1;
+      if (currentFire >= 200) {
+        newStage = 3;
+      } else if (currentFire >= 100) {
+        newStage = 2;
       }
+
+      if (newStage !== currentStage) {
+        currentStage = newStage;
+      }
+      updateDisplay();
+    }
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      document.querySelectorAll('#btn-env, #btn-offwhite, #btn-trans').forEach(b => b.classList.remove('active'));
+      if (mode === 'env') document.getElementById('btn-env').classList.add('active');
+      if (mode === 'offwhite') document.getElementById('btn-offwhite').classList.add('active');
+      if (mode === 'trans') document.getElementById('btn-trans').classList.add('active');
+      updateDisplay();
     }
 
     function setAnim(name) {
-      const currentSrc = img.src;
       img.className = 'dragon-img';
       document.querySelectorAll('#btn-breathe, #btn-bounce, #btn-wag').forEach(b => b.classList.remove('active'));
-      
+
       if (name === 'breathe') {
         img.classList.add('anim-breathe');
         document.getElementById('btn-breathe').classList.add('active');
@@ -403,7 +646,7 @@
       }
     }
 
-    // Touch or click to tap jump
+    // Tap to celebrate
     img.addEventListener('click', () => {
       const prevClass = img.className;
       img.className = 'dragon-img anim-bounce';
@@ -413,12 +656,29 @@
     });
 
     function initDemoAndEnter() {
-      toast.textContent = '¡Entrando a la app!';
+      // Save fire level into demo state in localStorage so the home screen loads with this stage
+      try {
+        const stored = localStorage.getItem('crohncare_state');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.economy) {
+            parsed.economy.fire = currentFire;
+            localStorage.setItem('crohncare_state', JSON.stringify(parsed));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      toast.textContent = `¡Entrando con ${currentFire} 🔥!`;
       toast.classList.add('show');
       setTimeout(() => {
         window.location.href = '/';
-      }, 500);
+      }, 400);
     }
+
+    // Initialize
+    updateDisplay();
   </script>
 </body>
 </html>

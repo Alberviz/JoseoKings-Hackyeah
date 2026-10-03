@@ -187,6 +187,33 @@ describe("Companion component", () => {
     rerender(<Companion pose="cheer" />);
     expect(container.querySelector("#dragon-smile-cheer")).not.toBeNull();
   });
+
+  it("renders correct dragon artwork according to evolution stage and fire level", () => {
+    const { container, rerender } = renderWithTheme(<Companion pose="idle" stage={1} />);
+    let image = container.querySelector('[data-testid="companion-exact-artwork"]');
+    expect(image?.getAttribute("href")).toBe("/dragon.png");
+
+    rerender(<Companion pose="idle" stage={2} />);
+    image = container.querySelector('[data-testid="companion-exact-artwork"]');
+    expect(image?.getAttribute("href")).toBe("/dragon_stage2_teen.png");
+
+    rerender(<Companion pose="idle" stage={3} />);
+    image = container.querySelector('[data-testid="companion-exact-artwork"]');
+    expect(image?.getAttribute("href")).toBe("/dragon_stage3_heroic.png");
+
+    // Dynamic resolution based on fire amount
+    rerender(<Companion pose="idle" fire={50} />);
+    image = container.querySelector('[data-testid="companion-exact-artwork"]');
+    expect(image?.getAttribute("href")).toBe("/dragon.png");
+
+    rerender(<Companion pose="idle" fire={120} />);
+    image = container.querySelector('[data-testid="companion-exact-artwork"]');
+    expect(image?.getAttribute("href")).toBe("/dragon_stage2_teen.png");
+
+    rerender(<Companion pose="idle" fire={200} />);
+    image = container.querySelector('[data-testid="companion-exact-artwork"]');
+    expect(image?.getAttribute("href")).toBe("/dragon_stage3_heroic.png");
+  });
 });
 
 describe("CompanionGallery component", () => {

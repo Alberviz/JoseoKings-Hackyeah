@@ -4,6 +4,7 @@ import { useContext, useState } from "react";
 import { ThemeContext } from "styled-components";
 import { theme as defaultTheme } from "@/theme/theme";
 import { ITEM_IDS } from "@/config/content-ids";
+import { getDragonEvolution } from "@/config/economy";
 import { COMPANION_ITEMS } from "@/lib/rewards";
 import type { CompanionItemSlot } from "@/types";
 import type { CompanionPose } from "./poses";
@@ -49,6 +50,8 @@ export type CompanionProps = {
   isEating?: boolean;
   showEmbers?: boolean;
   onClick?: () => void;
+  stage?: 1 | 2 | 3;
+  fire?: number;
 };
 
 export function Companion({
@@ -61,9 +64,16 @@ export function Companion({
   isEating = false,
   showEmbers = false,
   onClick,
+  stage,
+  fire,
 }: CompanionProps) {
   const currentTheme = useContext(ThemeContext) || defaultTheme;
   const [isTapped, setIsTapped] = useState(false);
+
+  const evolution = getDragonEvolution(
+    fire !== undefined ? fire : stage === 3 ? 200 : stage === 2 ? 100 : 0,
+  );
+  const dragonArtworkSrc = evolution.artwork;
 
   const handleClick = () => {
     if (interactive && animated) {
@@ -170,7 +180,7 @@ export function Companion({
 
         {/* --- OFFICIAL EXACT KRAKÓW DRAGON ARTWORK (Full fidelity transparent) --- */}
         <SvgImage
-          href="/dragon.png"
+          href={dragonArtworkSrc}
           x="10"
           y="10"
           width="180"

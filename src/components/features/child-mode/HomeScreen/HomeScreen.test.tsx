@@ -4,6 +4,7 @@ import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppStateProvider } from "@/components/providers/AppStateProvider";
 import { ROUTES } from "@/config/app";
+import { FIRE_MAX } from "@/config/economy";
 import { todayKey } from "@/lib/dates";
 import { buildDemoState } from "@/lib/demo-data";
 import { createDefaultEconomy } from "@/lib/economy";
@@ -115,8 +116,8 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
       </ProviderWrapper>,
     );
 
-    // Fire bar with exact aria-label "Fire 40 of 100"
-    const fireBar = await screen.findByLabelText("Fire 40 of 100");
+    // Fire bar with exact aria-label `Fire 40 of ${FIRE_MAX}`
+    const fireBar = await screen.findByLabelText(`Fire 40 of ${FIRE_MAX}`);
     expect(fireBar).toBeDefined();
     expect(fireBar.textContent).toContain("40");
 
@@ -293,5 +294,51 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     const smallLink = screen.getByRole("link", { name: "Parent mode" });
     expect(smallLink).toBeDefined();
     expect(smallLink.getAttribute("href")).toBe(ROUTES.parent);
+  });
+
+  it("updates evolution environment and dragon artwork when reaching 100 and 200 fire", async () => {
+    const today = todayKey();
+    const demo = buildDemoState({ today });
+    const youngState: AppState = {
+      ...demo,
+      economy: {
+        ...demo.economy!,
+        fire: 120,
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(youngState));
+
+    const { rerender } = renderWithTheme(
+      <ProviderWrapper>
+        <HomeScreen />
+      </ProviderWrapper>,
+    );
+
+    expect(await screen.findByText(/Dragón Joven/i)).toBeDefined();
+    expect(screen.getByLabelText(/Habitat: Dragón Joven/i)).toBeDefined();
+    const artwork = screen.getByTestId("companion-exact-artwork");
+    expect(artwork.getAttribute("href")).toBe("/dragon_stage2_teen.png");
+
+    // Heroic dragon state (>= 200 fire)
+    const heroicState: AppState = {
+      ...demo,
+      economy: {
+        ...demo.economy!,
+        fire: 200,
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(heroicState));
+
+    rerender(
+      <ProviderWrapper>
+        <HomeScreen />
+      </ProviderWrapper>,
+    );
+
+    expect(await screen.findByText(/Dragón Heroico/i)).toBeDefined();
+    expect(screen.getByLabelText(/Habitat: Dragón Heroico/i)).toBeDefined();
+    expect(screen.getByTestId("companion-exact-artwork").getAttribute("href")).toBe(
+      "/dragon_stage3_heroic.png",
+    );
   });
 });

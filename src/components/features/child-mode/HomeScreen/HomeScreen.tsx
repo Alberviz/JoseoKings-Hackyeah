@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, ROUTES } from "@/config/app";
-import { FIRE_MAX } from "@/config/economy";
+import { FIRE_MAX, getDragonEvolution } from "@/config/economy";
 import { coinBalance } from "@/lib/economy";
 import { todayKey } from "@/lib/dates";
 import { useAppState } from "@/hooks/useAppState";
@@ -51,6 +51,12 @@ import {
   PlayTriangleSvg,
   ShopSvg,
   SmallParentLink,
+  StageBadge,
+  StageBadgeIcon,
+  StageBadgeText,
+  StageEnvironmentCard,
+  StageNextText,
+  StageTitleText,
   SvgCircle,
   SvgPath,
   SvgPolygon,
@@ -91,6 +97,7 @@ export function HomeScreen() {
   const fire = state.economy?.fire ?? 0;
   const coins = coinBalance(state);
   const firePercent = Math.min(100, Math.max(0, Math.round((fire / FIRE_MAX) * 100)));
+  const evolution = getDragonEvolution(fire);
 
   const today = todayKey();
   const todayCheckIn = state.checkIns.find((item) => item.date === today);
@@ -142,11 +149,37 @@ export function HomeScreen() {
         </TopRightCluster>
       </TopBar>
 
-      {/* 2. Middle: Large Centered Companion Mascot */}
+      {/* 2. Middle: Large Centered Companion Mascot with Evolution Stage Environment */}
       <DragonStage aria-label="Mascot Stage">
-        <DragonWrapper>
-          <Companion pose="idle" equippedItemIds={equippedItemIds} name={companionName} size="lg" />
-        </DragonWrapper>
+        <StageEnvironmentCard
+          $bgImage={evolution.background}
+          aria-label={`Habitat: ${evolution.title}`}
+        >
+          <StageBadge aria-label={`Evolution: ${evolution.title}`}>
+            <StageBadgeIcon aria-hidden="true">
+              {evolution.stage === 1 ? "🌱" : evolution.stage === 2 ? "⚡" : "👑"}
+            </StageBadgeIcon>
+            <StageBadgeText>
+              <StageTitleText>{evolution.title}</StageTitleText>
+              {evolution.nextThreshold ? (
+                <StageNextText>{evolution.nextThreshold - fire} 🔥 para evolucionar</StageNextText>
+              ) : (
+                <StageNextText>¡Nivel Máximo!</StageNextText>
+              )}
+            </StageBadgeText>
+          </StageBadge>
+
+          <DragonWrapper>
+            <Companion
+              pose="idle"
+              equippedItemIds={equippedItemIds}
+              name={companionName}
+              size="lg"
+              stage={evolution.stage}
+              fire={fire}
+            />
+          </DragonWrapper>
+        </StageEnvironmentCard>
       </DragonStage>
 
       {/* 3. Bottom: Check-in (if not done), Play button, and Game Navigation Row */}

@@ -5,6 +5,7 @@ import {
   CHEST_COINS,
   FIRE_MAX,
   FOOD_FIRE,
+  getDragonEvolution,
   REST_COINS,
 } from "@/config/economy";
 import { createEmptyState, loadState, STORAGE_KEY } from "@/lib/storage";
@@ -157,8 +158,12 @@ describe("giveFood", () => {
     expect(result.economy.inventory.food).toBe(1);
   });
 
-  it("caps fire at 100", () => {
-    const result = giveFood({ ...createDefaultEconomy(), fire: 95, inventory: { food: 1 } });
+  it("caps fire at FIRE_MAX", () => {
+    const result = giveFood({
+      ...createDefaultEconomy(),
+      fire: FIRE_MAX - 5,
+      inventory: { food: 1 },
+    });
     expect(result.ok && result.economy.fire).toBe(FIRE_MAX);
   });
 });
@@ -288,7 +293,7 @@ describe("setSpecialRewards", () => {
   });
 
   it("rejects bad costs", () => {
-    for (const fireCost of [0, -5, 101, 2.5, Number.NaN]) {
+    for (const fireCost of [0, -5, FIRE_MAX + 1, 2.5, Number.NaN]) {
       expect(setSpecialRewards(economy, [{ id: "a", name: "Ok", fireCost }])).toEqual({
         ok: false,
         reason: "invalid-cost",
@@ -334,5 +339,42 @@ describe("storage migration", () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...createEmptyState(), economy }));
     expect(loadState().economy).toEqual(economy);
     localStorage.clear();
+  });
+});
+
+describe("dragon evolution system", () => {
+  it("returns baby dragon for fire < 100", () => {
+    const evo0 = getDragonEvolution(0);
+    expect(evo0.stage).toBe(1);
+    expect(evo0.key).toBe("baby");
+    expect(evo0.artwork).toBe("/dragon.png");
+    expect(evo0.background).toBe("/bg_stage1_pastel.jpg");
+    expect(evo0.nextThreshold).toBe(100);
+
+    const evo99 = getDragonEvolution(99);
+    expect(evo99.stage).toBe(1);
+    expect(evo99.key).toBe("baby");
+  });
+
+  it("evolves to young dragon at 100 fire", () => {
+    const evo100 = getDragonEvolution(100);
+    expect(evo100.stage).toBe(2);
+    expect(evo100.key).toBe("young");
+    expect(evo100.artwork).toBe("/dragon_stage2_teen.png");
+    expect(evo100.background).toBe("/bg_stage2_warrior.jpg");
+    expect(evo100.nextThreshold).toBe(200);
+
+    const evo199 = getDragonEvolution(199);
+    expect(evo199.stage).toBe(2);
+    expect(evo199.key).toBe("young");
+  });
+
+  it("evolves to heroic dragon at 200 fire", () => {
+    const evo200 = getDragonEvolution(200);
+    expect(evo200.stage).toBe(3);
+    expect(evo200.key).toBe("heroic");
+    expect(evo200.artwork).toBe("/dragon_stage3_heroic.png");
+    expect(evo200.background).toBe("/bg_stage3_heroic.jpg");
+    expect(evo200.nextThreshold).toBeNull();
   });
 });

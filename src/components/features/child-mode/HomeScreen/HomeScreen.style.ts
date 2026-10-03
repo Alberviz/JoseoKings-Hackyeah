@@ -218,11 +218,91 @@ export const DragonStage = styled.section`
   margin: ${({ theme }) => theme.spacing.xs} 0;
 `;
 
+export const StageEnvironmentCard = styled.div<{ $bgImage: string }>`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1.05;
+  border-radius: 24px;
+  overflow: hidden;
+  background-image: url(${({ $bgImage }) => $bgImage});
+  background-size: cover;
+  background-position: center;
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  box-shadow:
+    0 10px 24px rgba(18, 119, 130, 0.16),
+    ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
+  transition: background-image 400ms ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(0, 0, 0, 0.16) 100%
+    );
+    pointer-events: none;
+  }
+`;
+
+export const StageBadge = styled.div`
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  user-select: none;
+`;
+
+export const StageBadgeIcon = styled.span`
+  font-size: 15px;
+  line-height: 1;
+`;
+
+export const StageBadgeText = styled.span`
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+`;
+
+export const StageTitleText = styled.span`
+  font-size: 11px;
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.ink};
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+`;
+
+export const StageNextText = styled.span`
+  font-size: 9.5px;
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
 export const DragonWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
 `;
 
 export const BottomArea = styled.section`

@@ -4,6 +4,7 @@ import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppStateProvider } from "@/components/providers/AppStateProvider";
 import { ROUTES } from "@/config/app";
+import { FIRE_MAX } from "@/config/economy";
 import { buildDemoState } from "@/lib/demo-data";
 import { STORAGE_KEY } from "@/lib/storage/storage";
 import { renderWithTheme } from "@/test/renderWithTheme";
@@ -51,7 +52,7 @@ describe("FoodScreen (Task V6)", () => {
     const fireBar = screen.getByRole("progressbar", { name: /Dragon fire bar/i });
     expect(fireBar).toBeDefined();
     expect(fireBar.getAttribute("aria-valuenow")).toBe("40");
-    expect(fireBar.getAttribute("aria-valuemax")).toBe("100");
+    expect(fireBar.getAttribute("aria-valuemax")).toBe(String(FIRE_MAX));
 
     // Give food button
     const giveFoodBtn = screen.getByRole("button", { name: /Give food/i });
@@ -80,7 +81,7 @@ describe("FoodScreen (Task V6)", () => {
     fireEvent.click(giveFoodBtn);
 
     // Fire should now be 30
-    expect(await screen.findByText(/30 \/ 100/i)).toBeDefined();
+    expect(await screen.findByText(new RegExp(`30 / ${FIRE_MAX}`, "i"))).toBeDefined();
     // Food count should now be 0
     expect(screen.getByText(/Food: 0/i)).toBeDefined();
 

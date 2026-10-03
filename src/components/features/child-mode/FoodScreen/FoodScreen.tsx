@@ -121,6 +121,7 @@ export function FoodScreen() {
             size="lg"
             isEating={isEating}
             showEmbers={isEating}
+            fire={fire}
           />
         </Stage>
 
