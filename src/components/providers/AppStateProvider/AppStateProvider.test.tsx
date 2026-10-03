@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppStateProvider } from "./AppStateProvider";
 import { useAppState } from "@/hooks/useAppState";
 import { BACKUP_STORAGE_KEY, STORAGE_KEY } from "@/lib/storage";
+import { BADGE_IDS, ITEM_IDS } from "@/config/content-ids";
 import type {
   CheckIn,
   ChildProfile,
@@ -196,29 +197,49 @@ describe("AppStateProvider and useAppState hook", () => {
     expect(result.current.state.foodEntries[0]).toEqual(food);
   });
 
-  it("only equips items that are owned, and unequipItem removes from equipped", async () => {
+  it("only equips items that are owned and cataloged, and unequipItem removes from equipped", async () => {
     const { result } = await renderReadyHook();
 
     // Item not owned: should not equip
     act(() => {
-      result.current.actions.equipItem("unowned-hat");
+      result.current.actions.equipItem(ITEM_IDS.hatExplorer);
     });
-    expect(result.current.state.companion.equippedItemIds).not.toContain("unowned-hat");
+    expect(result.current.state.companion.equippedItemIds).not.toContain(ITEM_IDS.hatExplorer);
 
     // Give owned item via state update simulation
     act(() => {
-      result.current.state.companion.ownedItemIds.push("pirate-hat");
+      result.current.state.companion.ownedItemIds.push(ITEM_IDS.hatExplorer);
     });
 
     act(() => {
-      result.current.actions.equipItem("pirate-hat");
+      result.current.actions.equipItem(ITEM_IDS.hatExplorer);
     });
-    expect(result.current.state.companion.equippedItemIds).toContain("pirate-hat");
+    expect(result.current.state.companion.equippedItemIds).toContain(ITEM_IDS.hatExplorer);
 
     act(() => {
-      result.current.actions.unequipItem("pirate-hat");
+      result.current.actions.unequipItem(ITEM_IDS.hatExplorer);
     });
-    expect(result.current.state.companion.equippedItemIds).not.toContain("pirate-hat");
+    expect(result.current.state.companion.equippedItemIds).not.toContain(ITEM_IDS.hatExplorer);
+  });
+
+  it("syncs companion points and badges on check-in and mission logs", async () => {
+    const { result } = await renderReadyHook();
+    expect(result.current.state.companion.points).toBe(0);
+    expect(result.current.state.companion.badgeIds).toEqual([]);
+
+    act(() => {
+      result.current.actions.addCheckIn({
+        id: "ci-1",
+        date: "2026-10-03",
+        answers: { energy: 3 },
+        notToday: false,
+        createdAt: "2026-10-03T10:00:00.000Z",
+      });
+    });
+
+    // Check-in awards 10 points and first-check-in badge
+    expect(result.current.state.companion.points).toBe(10);
+    expect(result.current.state.companion.badgeIds).toContain(BADGE_IDS.firstCheckIn);
   });
 
   it("clearAll resets state and removes both STORAGE_KEY and BACKUP_STORAGE_KEY", async () => {

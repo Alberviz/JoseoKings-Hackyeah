@@ -11,6 +11,11 @@ import {
   type ReactNode,
 } from "react";
 import { clearStorage, createEmptyState, loadState, saveState } from "@/lib/storage";
+import {
+  equipItem as equipRewardItem,
+  syncCompanion,
+  unequipItem as unequipRewardItem,
+} from "@/lib/rewards";
 import type {
   AppState,
   CheckIn,
@@ -87,18 +92,30 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
           ? prev.checkIns.map((c, i) => (i === existingIndex ? checkIn : c))
           : [...prev.checkIns, checkIn];
 
-      return {
+      const intermediate = {
         ...prev,
         checkIns: nextCheckIns,
+      };
+
+      return {
+        ...intermediate,
+        companion: syncCompanion(intermediate),
       };
     });
   }, []);
 
   const addMissionLog = useCallback((log: MissionLog) => {
-    setState((prev) => ({
-      ...prev,
-      missionLogs: [...prev.missionLogs, log],
-    }));
+    setState((prev) => {
+      const intermediate = {
+        ...prev,
+        missionLogs: [...prev.missionLogs, log],
+      };
+
+      return {
+        ...intermediate,
+        companion: syncCompanion(intermediate),
+      };
+    });
   }, []);
 
   const saveParentLog = useCallback((log: ParentLog) => {
@@ -131,33 +148,16 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
   }, []);
 
   const equipItem = useCallback((itemId: string) => {
-    setState((prev) => {
-      // Must be owned to equip
-      if (!prev.companion.ownedItemIds.includes(itemId)) {
-        return prev;
-      }
-
-      if (prev.companion.equippedItemIds.includes(itemId)) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        companion: {
-          ...prev.companion,
-          equippedItemIds: [...prev.companion.equippedItemIds, itemId],
-        },
-      };
-    });
+    setState((prev) => ({
+      ...prev,
+      companion: equipRewardItem(prev.companion, itemId),
+    }));
   }, []);
 
   const unequipItem = useCallback((itemId: string) => {
     setState((prev) => ({
       ...prev,
-      companion: {
-        ...prev.companion,
-        equippedItemIds: prev.companion.equippedItemIds.filter((id) => id !== itemId),
-      },
+      companion: unequipRewardItem(prev.companion, itemId),
     }));
   }, []);
 
