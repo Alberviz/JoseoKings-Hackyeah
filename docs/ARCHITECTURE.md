@@ -44,7 +44,9 @@ The types are in `src/types/` and are the contract. Summary:
 Rules for the data:
 
 - Dates are **local calendar days** as `"YYYY-MM-DD"` (`DateKey`). Never compare UTC timestamps for "the same day".
-- IDs are `crypto.randomUUID()`.
+- IDs are `crypto.randomUUID()` (demo data uses fixed readable ids).
+- Day arithmetic uses `src/lib/dates` (`todayKey`, `addDays`, `daysBetween`, `weekdayIndex`). Do not write your own date maths.
+- Question, mission, item and badge ids are fixed in `src/config/content-ids.ts`. Content files and the demo data both use them.
 - Never store drug names, doses, surnames, birth dates, addresses or any real identifier.
 - Add a field only by changing `src/types`, bumping `schemaVersion` and adding a migration in `src/lib/storage`. Ask first.
 
