@@ -12,7 +12,7 @@ export const StyledDialog = styled.dialog`
   border-radius: ${({ theme }) => theme.radius.lg};
 
   &::backdrop {
-    background: rgba(29, 27, 34, 0.55);
+    background: ${({ theme }) => theme.colors.overlay};
   }
 `;
 

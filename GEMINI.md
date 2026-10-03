@@ -26,7 +26,7 @@ You implement **one task from `docs/TASKS.md` at a time**, on its own branch, an
 - No medical advice, no predictions, no invented indexes. Use only the wording allowed in `docs/PRODUCT.md` section 6.
 - Rewards never depend on the child's answers or on the mission kind. No punishment mechanics.
 - No health data to any server. No backend, no accounts, no analytics.
-- Do not build the paused restroom map or menu reader.
+- Do not build the removed restroom map or menu reader (they are in git history only).
 - If an older file says something different from `docs/PRODUCT.md`, follow `docs/PRODUCT.md` and tell the human.
 
 ## When you hit an error
@@ -40,7 +40,7 @@ You implement **one task from `docs/TASKS.md` at a time**, on its own branch, an
 - Every component: a folder with `Name.tsx` (only components inside the JSX) and `Name.style.ts` (styled-components). `"use client"` at the top of the `.tsx`. See section 3.2 of `AGENTS.md`.
 - Use `@/components/ui` primitives and `theme` tokens. No hard-coded colors or sizes.
 - Pure logic goes in `src/lib/<topic>/` with a `.test.ts` next to it.
-- Commit in small steps with Conventional Commits: `feat(menu-reader): add photo preview`.
+- Commit in small steps with Conventional Commits: `feat(companion): add cheer animation`.
 - When the pre-commit check fails, read the error and fix the code. **Never** `--no-verify`, `eslint-disable`, `any` or `@ts-ignore`.
 
 ## Hotfixes

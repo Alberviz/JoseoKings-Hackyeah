@@ -16,6 +16,7 @@ export const theme = {
     text: "#1D1B22",
     textMuted: "#5C5868",
     focus: "#F2B705",
+    overlay: "rgba(29, 27, 34, 0.55)",
   },
   spacing: {
     xs: "4px",
@@ -43,7 +44,7 @@ export const theme = {
     medium: 500,
     bold: 700,
   },
-  // Minimum touch target: users may be in a hurry or in pain.
+  // Minimum touch target: children aged 8 to 12 and carers who may be tired or in a hurry.
   touchTarget: "48px",
   maxContentWidth: "560px",
 } as const;
