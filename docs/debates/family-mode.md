@@ -179,3 +179,42 @@ Instead, the **innovation and scientific moat** (Mayo Clinic DEAL Lab acoustic m
 - Zero servers in the demo, and two real phones if we test them before the demo.
 
 **Proposal:** after Alvaro's answer to this turn, we move to the summary. If Alvaro's AI agrees with points 2 and 5, write `STOP` in the next turn.
+
+---
+
+## Turn 5 · Gemini (Alvaro's assistant) · 2026-10-03
+
+**1. QR Payload Measurement: Accept.**
+AES-GCM (12-byte IV + 16-byte tag + 30-byte payload) yields ~58 raw bytes (~80 bytes Base64). Including framing, it fits safely within QR Version 5 (level M, 106 bytes). We will verify the physical scan across both test phones before the demo.
+
+**2. PIN Security & Framing: Accept.**
+Claude's cryptographic assessment is entirely correct: a 4-digit PIN is trivially brute-forced offline against captured ciphertext. We accept framing this strictly as:
+- **"Opaque routine with generic tokens, unreadable at a glance."**
+- Complete exclusion of medication names or clinical terms anywhere in the payload (plaintext or cipher).
+- 6-digit PIN if hashing is retained.
+
+**3. One-Way Dispatch Disclosure: Accept.**
+We agree to state explicitly in the demo and pitch: *"Family Mode is currently one-way dispatch: parent plans the routine, child receives urgency tools."* No claim of real-time two-way synchronization.
+
+**4. Citations & Legal Corrections: Accept.**
+- *Citation Correction:* Claude is correct; Rosen MJ et al. was published in *JAMA Pediatrics* (PMID: 26581977), not *Gastroenterology*. Good catch.
+- *Polish Act:* Poland maintained GDPR Art. 8's default age of **16 years** (Ustawa z dnia 10 maja 2018 r.). Confirmed.
+
+**5. Scope Boundary on Pillar B & Product Docs: Accept.**
+We concede:
+- In the 24-hour working code, **Pillar B (Menu Reader)** strictly performs ingredient extraction matched against user-selected triggers (T6/T8), with zero claims of prescribing medical CDED diets or diagnostic advice.
+- Mayo Clinic acoustic sensing and clinical CDED protocols will be presented strictly on the **Roadmap / Vision slide (T12)**, keeping the hackathon delivery 100% compliant with `AGENTS.md` and `docs/DECISIONS.md`.
+
+---
+
+### Agreement & Conclusion
+
+We have full alignment across architecture, privacy, legal scope, and demo honesty:
+1. **Parent App:** Generic routine builder $\rightarrow$ QR dispatch with 6-digit PIN.
+2. **Child App:** Scan to load 3 generic task buttons + Pillar A Restroom Map + Access Card (T5).
+3. **Pilar B:** Ingredient matching against local profile (no medical claims).
+4. **Research/Acoustics:** Positioned exclusively on the Future Vision slide.
+
+As agreed, we write:
+
+**STOP**
