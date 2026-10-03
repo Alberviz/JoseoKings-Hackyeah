@@ -3,9 +3,12 @@ import { MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
 import {
   CHECK_IN_QUESTIONS,
   CHILD_VISIBILITY_NOTE,
+  GAME_IDS,
+  GAME_MOVE_KEYS,
   MISSION_STOP_MESSAGE,
   MISSIONS,
   PATTERNS_DISCLAIMER,
+  PLAY_GAMES,
   REPORT_DISCLAIMER,
 } from "./index";
 
@@ -128,6 +131,55 @@ describe("Missions", () => {
   });
 });
 
+describe("Play games", () => {
+  it("defines exactly one game for each id in GAME_IDS", () => {
+    const expectedIds = Object.values(GAME_IDS);
+    expect(PLAY_GAMES.map((g) => g.id).sort()).toEqual([...expectedIds].sort());
+  });
+
+  it("has at least two games for every mode and level", () => {
+    for (const mode of ["alone", "family"] as const) {
+      for (const level of [1, 2, 3] as const) {
+        const matching = PLAY_GAMES.filter((g) => g.mode === mode && g.level === level);
+        expect(matching.length, `${mode} level ${level}`).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
+  it("has step counts and durations within the mission ranges", () => {
+    for (const game of PLAY_GAMES) {
+      expect(game.steps.length).toBeGreaterThanOrEqual(3);
+      expect(game.steps.length).toBeLessThanOrEqual(5);
+
+      let totalDuration = 0;
+      for (const step of game.steps) {
+        expect(step.text.trim().length).toBeGreaterThan(0);
+        expect(step.durationSeconds).toBeGreaterThanOrEqual(8);
+        expect(step.durationSeconds).toBeLessThanOrEqual(20);
+        totalDuration += step.durationSeconds;
+      }
+
+      expect(totalDuration, game.id).toBeGreaterThanOrEqual(60);
+      expect(totalDuration, game.id).toBeLessThanOrEqual(120);
+    }
+  });
+
+  it("only uses move keys the exercise figure knows", () => {
+    for (const game of PLAY_GAMES) {
+      for (const step of game.steps) {
+        expect(GAME_MOVE_KEYS).toContain(step.poseKey);
+      }
+    }
+  });
+
+  it("does not reuse a mission id", () => {
+    const missionIds = new Set(MISSIONS.map((m) => m.id));
+    for (const game of PLAY_GAMES) {
+      expect(missionIds.has(game.id)).toBe(false);
+    }
+  });
+});
+
 describe("Disclaimers", () => {
   it("exports REPORT_DISCLAIMER matching docs/PRODUCT.md section 6.3 verbatim", () => {
     const expected =
@@ -158,6 +210,8 @@ describe("Content safety and guidelines", () => {
     ...CHECK_IN_QUESTIONS.flatMap((q) => [q.prompt, ...q.options.map((o) => o.label)]),
     // Mission titles, steps, and parent notes
     ...MISSIONS.flatMap((m) => [m.title, m.parentNote, ...m.steps.map((s) => s.text)]),
+    // Play game titles, steps, and parent notes
+    ...PLAY_GAMES.flatMap((g) => [g.title, g.parentNote, ...g.steps.map((s) => s.text)]),
     // Authored disclaimers
     PATTERNS_DISCLAIMER,
     CHILD_VISIBILITY_NOTE,
