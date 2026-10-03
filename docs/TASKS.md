@@ -95,8 +95,10 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 - `src/lib/storage/`: `createEmptyState()`, `loadState()`, `saveState()`, `migrate()`, `exportBackup()`, `importBackup()`. `zod` schemas that match `src/types/` exactly. Corrupt data falls back to an empty state and keeps the raw value under a backup key.
 - `src/hooks/useAppState.ts` and `src/components/providers/AppStateProvider/` (one new line in `AppProviders` is approved).
+- `addCheckIn` replaces an existing check-in of the same day. After `addCheckIn` and `addMissionLog`, call `syncCompanion` from `src/lib/rewards` (T3) so rewards are derived from the logs.
 - Typed actions: `addCheckIn`, `addMissionLog`, `saveParentLog`, `addFoodEntry`, `addConsultation`, `equipItem`, `setSettings`, `setChild`, `loadDemo`, `clearAll`.
 - Unlock state of parent mode is **not** here (memory only, owned by T10).
+- The context exposes `isReady`: it is `false` until the stored state is loaded after mount. Screens must wait for `isReady` before redirecting (for example to `/parent/setup`), so the server and the first client render match.
 
 **Done when:** unit tests cover load, save, migrate, corrupt data, backup round trip; the hook works in a test with Testing Library; the app does not crash with empty storage or with garbage in storage.
 
@@ -118,6 +120,7 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 - `src/content/check-in-questions.ts`: the daily questions as `CheckInQuestion[]`, from real sources, simple words, with the `notToday` path handled by the UI. Suggested 3 to 4 questions covering belly pain, bathroom, energy and one free-choice. Final choice is yours; every question has a source comment.
 - `src/content/missions.ts`: 5 to 6 gentle missions as `Mission[]`: breathing, bed stretches, balance (hold a wall), wall sit, and similar. **No impact, no jumping.** Short steps, `poseKey` for the companion, a neutral `parentNote`.
 - `src/content/disclaimers.ts`: the text of `PRODUCT.md` section 6.3, plus a one-line child-facing "what your parents can see" text.
+- Use the ids in `src/config/content-ids.ts` for the three core questions and the missions. If you change or add one, update that file in the same PR and tell Alberto, because the demo data and the screens use it.
 - Read `PRODUCT.md` section 5.4 and 6 before writing a word. If a statement needs a source and has none, write `// source: to verify`.
 
 **Done when:** every item typed against `src/types`, every source cited, Farouk and Álvaro both agree on the wording, and no forbidden word from section 6.2 appears.
