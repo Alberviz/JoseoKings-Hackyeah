@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, Heading, Screen, Stack, Text } from "@/components/ui";
-import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
+import { Card, Heading, LinkButton, Screen, Stack, Text } from "@/components/ui";
+import { APP_DESCRIPTION, APP_NAME, ROUTES } from "@/config/app";
 
 // Temporary home. Task T6 replaces it with the child home (companion, check-in, missions).
 export function HomeScreen() {
@@ -13,9 +13,12 @@ export function HomeScreen() {
           <Text tone="muted">{APP_DESCRIPTION}</Text>
         </Stack>
 
-        <Card label="Work in progress">
-          <Heading level={2}>Work in progress</Heading>
-          <Text>The child home, the check-in and the missions are being built.</Text>
+        <Card label="Daily Check-in">
+          <Heading level={2}>Daily Check-in</Heading>
+          <Text>Tell your companion how you are feeling today with a few quick taps.</Text>
+          <LinkButton href={ROUTES.checkIn} variant="primary" fullWidth>
+            Start Check-in
+          </LinkButton>
         </Card>
       </Stack>
     </Screen>
