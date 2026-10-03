@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Evolución del Dragón de Cracovia - CrohnCare</title>
+  <title>Evolución Dinámica del Dragón de Cracovia - CrohnCare</title>
   <style>
     :root {
-      --bg: #F5F7F8;
-      --card-bg: rgba(255, 255, 255, 0.95);
       --text: #153F4B;
       --accent: #FF7A59;
       --primary: #127782;
@@ -24,19 +22,151 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 24px 16px 48px;
-      transition: background-color 0.4s ease;
+      position: relative;
+      overflow-x: hidden;
+      transition: background 0.8s ease;
+    }
+
+    /* Stage Dynamic Sky Backgrounds */
+    body.stage-1 {
+      background: linear-gradient(180deg, #E8F4F8 0%, #EFF7F4 45%, #FCFAF6 85%, #F5EFE6 100%);
+    }
+
+    body.stage-2 {
+      background: linear-gradient(180deg, #FDEDDB 0%, #F8DED2 40%, #FBF3EB 80%, #F4ECE2 100%);
+    }
+
+    body.stage-3 {
+      background: linear-gradient(180deg, #1B1E38 0%, #272145 35%, #332140 70%, #191B2C 100%);
+      color: #E2E8F0;
+    }
+
+    body.stage-3 h1 {
+      color: #FFFFFF;
+    }
+
+    body.stage-3 p.subtitle {
+      color: #A5B4FC;
+    }
+
+    /* Full-screen Dynamic Clouds & Atmosphere */
+    .dynamic-bg-container {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .aurora-layer {
+      position: absolute;
+      top: 0;
+      left: -20%;
+      width: 140%;
+      height: 50%;
+      background: radial-gradient(ellipse 65% 55% at 30% 0%, rgba(54, 197, 212, 0.38) 0%, transparent 70%),
+                  radial-gradient(ellipse 70% 50% at 75% 10%, rgba(198, 181, 232, 0.32) 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 40% at 50% 25%, rgba(255, 122, 89, 0.20) 0%, transparent 70%);
+      animation: auroraWave 10s ease-in-out infinite alternate;
+      filter: blur(28px);
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    body.stage-3 .aurora-layer {
+      opacity: 1;
+    }
+
+    @keyframes auroraWave {
+      0% { transform: scaleY(1) translateY(0); opacity: 0.5; }
+      50% { transform: scaleY(1.25) translateY(14px); opacity: 0.85; }
+      100% { transform: scaleY(0.95) translateY(-8px); opacity: 0.6; }
+    }
+
+    /* Drifting Clouds */
+    .cloud-item {
+      position: absolute;
+      left: 0;
+      transform: translate3d(-200px, 0, 0);
+      animation: floatCloud linear infinite;
+      will-change: transform;
+    }
+
+    @keyframes floatCloud {
+      0% { transform: translate3d(-200px, 0, 0); }
+      100% { transform: translate3d(calc(100vw + 200px), 0, 0); }
+    }
+
+    .cloud-svg {
+      display: block;
+      height: auto;
+      filter: drop-shadow(0 4px 12px rgba(18, 119, 130, 0.08));
+      transition: fill 0.8s ease, filter 0.8s ease;
+    }
+
+    body.stage-1 .cloud-svg path {
+      fill: rgba(255, 255, 255, 0.92);
+    }
+
+    body.stage-2 .cloud-svg path {
+      fill: rgba(255, 246, 238, 0.88);
+    }
+
+    body.stage-3 .cloud-svg path {
+      fill: rgba(48, 42, 78, 0.65);
+    }
+
+    body.stage-3 .cloud-svg {
+      filter: drop-shadow(0 4px 16px rgba(10, 8, 20, 0.45));
+    }
+
+    /* Sparkles & Embers */
+    .sparkle {
+      position: absolute;
+      border-radius: 50%;
+      animation: pulseSparkle ease-in-out infinite;
+    }
+
+    @keyframes pulseSparkle {
+      0%, 100% { opacity: 0.15; transform: scale(0.85); }
+      50% { opacity: 0.85; transform: scale(1.15); }
+    }
+
+    .ember {
+      position: absolute;
+      bottom: 0;
+      border-radius: 50%;
+      background: #FF7A59;
+      box-shadow: 0 0 6px #FF7A59, 0 0 12px #FFE27A;
+      animation: riseEmber ease-out infinite;
+      opacity: 0;
+    }
+
+    @keyframes riseEmber {
+      0% { transform: translate3d(0, 100vh, 0) scale(0.6); opacity: 0; }
+      20% { opacity: 0.85; }
+      80% { opacity: 0.65; }
+      100% { transform: translate3d(25px, -40px, 0) scale(1.2); opacity: 0; }
+    }
+
+    /* Foreground Content */
+    header, .evolution-tabs, .stage-container, .panel {
+      position: relative;
+      z-index: 1;
     }
 
     header {
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       max-width: 600px;
     }
 
@@ -46,12 +176,14 @@
       letter-spacing: -0.5px;
       margin-bottom: 6px;
       color: #0F3B46;
+      transition: color 0.4s ease;
     }
 
     p.subtitle {
       font-size: 14px;
       color: #486E78;
       font-weight: 500;
+      transition: color 0.4s ease;
     }
 
     .badge-approved {
@@ -83,13 +215,14 @@
       flex-direction: column;
       align-items: center;
       padding: 10px 8px;
-      background: #FFFFFF;
+      background: rgba(255, 255, 255, 0.94);
       border: 2px solid #D2E4E8;
       border-radius: 14px;
       cursor: pointer;
       font-family: inherit;
       transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
 
     .tab-btn:hover {
@@ -100,7 +233,7 @@
     .tab-btn.active {
       background: #EBF8F9;
       border-color: var(--primary);
-      box-shadow: 0 4px 14px rgba(18, 119, 130, 0.2);
+      box-shadow: 0 4px 14px rgba(18, 119, 130, 0.22);
     }
 
     .tab-title {
@@ -116,51 +249,32 @@
       font-weight: 700;
     }
 
-    /* Mascot Stage Card */
-    .stage-card {
-      position: relative;
-      width: 100%;
-      max-width: 440px;
-      aspect-ratio: 1.05;
+    /* Open Mascot Stage (No Box!) */
+    .stage-container {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      width: 100%;
+      max-width: 440px;
       margin-bottom: 20px;
-      border-radius: 26px;
-      overflow: hidden;
-      border: 3px solid var(--ink);
-      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16), 0 4px 0 var(--ink);
-      background-size: cover;
-      background-position: center;
-      transition: background-image 0.4s ease;
-    }
-
-    .stage-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
-      pointer-events: none;
     }
 
     .stage-floating-badge {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      z-index: 2;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 14px;
+      padding: 6px 16px;
       background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(8px);
       border: 1.5px solid var(--ink);
       border-radius: 9999px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
-      font-size: 12px;
+      box-shadow: 0 4px 12px rgba(18, 119, 130, 0.14);
+      font-size: 13px;
       font-weight: 800;
       color: var(--ink);
       letter-spacing: 0.02em;
+      margin-bottom: 8px;
     }
 
     .dragon-glow {
@@ -168,21 +282,26 @@
       width: 320px;
       height: 320px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
       pointer-events: none;
     }
 
     .dragon-img {
-      width: 86%;
-      height: 86%;
+      width: 310px;
+      max-width: 85vw;
+      aspect-ratio: 1;
       object-fit: contain;
-      filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.35));
+      filter: drop-shadow(0 14px 28px rgba(18, 119, 130, 0.22));
       transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       user-select: none;
       -webkit-user-drag: none;
       cursor: pointer;
       position: relative;
       z-index: 1;
+    }
+
+    body.stage-3 .dragon-img {
+      filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.5));
     }
 
     /* Animations */
@@ -202,56 +321,37 @@
     }
 
     @keyframes breathe {
-      0%, 100% {
-        transform: translateY(0px) scale(1, 1);
-      }
-      45% {
-        transform: translateY(-8px) scale(0.98, 1.025);
-      }
-      85% {
-        transform: translateY(2px) scale(1.015, 0.99);
-      }
+      0%, 100% { transform: translateY(0px) scale(1, 1); }
+      45% { transform: translateY(-8px) scale(0.98, 1.025); }
+      85% { transform: translateY(2px) scale(1.015, 0.99); }
     }
 
     @keyframes bounce {
-      0%, 100% {
-        transform: scale(1, 1) translateY(0);
-      }
-      30% {
-        transform: scale(1.08, 0.92) translateY(6px);
-      }
-      60% {
-        transform: scale(0.94, 1.08) translateY(-24px);
-      }
-      80% {
-        transform: scale(1.03, 0.97) translateY(2px);
-      }
+      0%, 100% { transform: scale(1, 1) translateY(0); }
+      30% { transform: scale(1.08, 0.92) translateY(6px); }
+      60% { transform: scale(0.94, 1.08) translateY(-24px); }
+      80% { transform: scale(1.03, 0.97) translateY(2px); }
     }
 
     @keyframes wag {
-      0%, 100% {
-        transform: rotate(0deg);
-      }
-      25% {
-        transform: rotate(3deg) translateY(-3px);
-      }
-      75% {
-        transform: rotate(-3deg) translateY(-3px);
-      }
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(3deg) translateY(-3px); }
+      75% { transform: rotate(-3deg) translateY(-3px); }
     }
 
     /* Controls Panel */
     .panel {
       width: 100%;
       max-width: 520px;
-      background: var(--card-bg);
+      background: rgba(255, 255, 255, 0.94);
       border-radius: 20px;
       padding: 20px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
       backdrop-filter: blur(8px);
       display: flex;
       flex-direction: column;
       gap: 16px;
+      border: 1.5px solid #CCDCE0;
     }
 
     .section-title {
@@ -386,6 +486,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      color: #0F3B46;
     }
 
     .app-link-desc {
@@ -417,12 +518,19 @@
     }
   </style>
 </head>
-<body>
+<body class="stage-1">
+
+  <!-- Full-Screen Dynamic Background Elements -->
+  <div class="dynamic-bg-container" aria-hidden="true">
+    <div class="aurora-layer"></div>
+    <div id="clouds-container"></div>
+    <div id="particles-container"></div>
+  </div>
 
   <header>
-    <div class="badge-approved">🛡️ Dragón de Cracovia • 3 Etapas de Evolución</div>
-    <h1 id="page-title">Bebé Dragón en la Pradera Pastel</h1>
-    <p class="subtitle" id="page-subtitle">0 a 99 🔥: Etapa 1 • Tonos suaves de cuento de hadas</p>
+    <div class="badge-approved">🛡️ Fondo Dinámico de Pantalla Completa</div>
+    <h1 id="page-title">Cielo Suave de Nubes en Movimiento</h1>
+    <p class="subtitle" id="page-subtitle">0 a 99 🔥: Etapa 1 • Nubes esponjosas flotando suavemente</p>
   </header>
 
   <!-- Evolution Stage Tabs -->
@@ -441,8 +549,8 @@
     </button>
   </div>
 
-  <!-- Mascot Stage Card -->
-  <div class="stage-card" id="stage-card" style="background-image: url('/bg_stage1_pastel.jpg');">
+  <!-- Open Mascot Stage (No Enclosing Box) -->
+  <div class="stage-container" id="stage-container">
     <div class="stage-floating-badge" id="floating-badge">🌱 Bebé Dragón (Fase 1)</div>
     <div class="dragon-glow"></div>
     <img
@@ -472,16 +580,6 @@
       />
     </div>
 
-    <!-- Background Environment Switcher -->
-    <div>
-      <div class="section-title">Modo de Fondo</div>
-      <div class="button-group">
-        <button id="btn-env" class="active" onclick="setViewMode('env')">🏞️ Fondo del Mundo Épico</button>
-        <button id="btn-offwhite" onclick="setViewMode('offwhite')">⚪ Estudio Blanco Suave (#F5F7F8)</button>
-        <button id="btn-trans" onclick="setViewMode('trans')">✨ Modo Transparente</button>
-      </div>
-    </div>
-
     <!-- Live Animation Switcher -->
     <div>
       <div class="section-title">Animaciones en Vivo</div>
@@ -506,7 +604,7 @@
       <div class="nav-grid">
         <a href="/" class="app-link">
           <span class="app-link-title">🏠 Pantalla Principal</span>
-          <span class="app-link-desc">Home con el Dragón y su hábitat</span>
+          <span class="app-link-desc">Home con cielo y nubes dinámicas</span>
         </a>
         <a href="/food" class="app-link">
           <span class="app-link-title">🍲 Alimentar Dragón</span>
@@ -529,68 +627,147 @@
   <script>
     const STAGES = {
       1: {
-        title: "Bebé Dragón en la Pradera Pastel",
-        subtitle: "0 a 99 🔥: Etapa 1 • Tonos suaves de cuento de hadas",
+        title: "Cielo Suave de Nubes en Movimiento",
+        subtitle: "0 a 99 🔥: Etapa 1 • Nubes esponjosas flotando suavemente en pantalla completa",
         badge: "🌱 Bebé Dragón (Fase 1)",
         artwork: "/dragon.png",
-        offwhiteArtwork: "/dragon_offwhite.png",
-        background: "/bg_stage1_pastel.jpg",
       },
       2: {
-        title: "Dragón Joven en la Fortaleza Guerrera",
-        subtitle: "100 a 199 🔥: Etapa 2 • Tono guerrero y atardecer dorado",
+        title: "Atardecer Cálido con Nubes Doradas",
+        subtitle: "100 a 199 🔥: Etapa 2 • Tono guerrero suave con cielo cálido y brisa",
         badge: "⚡ Dragón Joven (Fase 2)",
         artwork: "/dragon_stage2_teen.png",
-        offwhiteArtwork: "/dragon_stage2_offwhite.png",
-        background: "/bg_stage2_warrior.jpg",
       },
       3: {
-        title: "Dragón Heroico en la Cúspide de Wawel",
-        subtitle: "200+ 🔥: Etapa 3 • Full guerrero legendario con auroras y ascuas",
+        title: "Crepúsculo Épico con Aurora y Ascuas",
+        subtitle: "200+ 🔥: Etapa 3 • Full guerrero legendario con auroras boreales y ascuas flotantes",
         badge: "👑 Dragón Heroico (Fase 3)",
         artwork: "/dragon_stage3_heroic.png",
-        offwhiteArtwork: "/dragon_stage3_offwhite.png",
-        background: "/bg_stage3_heroic.jpg",
       },
     };
 
     let currentStage = 1;
-    let currentViewMode = 'env'; // 'env', 'offwhite', 'trans'
     let currentFire = 40;
 
     const img = document.getElementById('dragon-image');
-    const stageCard = document.getElementById('stage-card');
     const floatingBadge = document.getElementById('floating-badge');
     const pageTitle = document.getElementById('page-title');
     const pageSubtitle = document.getElementById('page-subtitle');
     const fireSlider = document.getElementById('fire-slider');
     const fireDisplay = document.getElementById('fire-display');
     const toast = document.getElementById('toast');
+    const cloudsContainer = document.getElementById('clouds-container');
+    const particlesContainer = document.getElementById('particles-container');
+
+    const CLOUDS = [
+      { top: 6, width: 150, duration: 52, delay: -14, opacity: 0.85 },
+      { top: 18, width: 200, duration: 70, delay: -38, opacity: 0.95 },
+      { top: 32, width: 130, duration: 48, delay: -8, opacity: 0.75 },
+      { top: 52, width: 170, duration: 62, delay: -28, opacity: 0.8 },
+      { top: 70, width: 210, duration: 76, delay: -50, opacity: 0.9 },
+      { top: 84, width: 140, duration: 58, delay: -20, opacity: 0.7 },
+    ];
+
+    function createClouds() {
+      const path = "M 25 55 C 12 55 5 45 8 35 C 10 25 22 22 30 24 C 35 12 52 8 68 15 C 78 5 98 5 110 14 C 122 8 138 12 142 24 C 152 26 158 35 154 44 C 150 54 140 55 130 55 Z";
+      cloudsContainer.innerHTML = '';
+      CLOUDS.forEach((c, idx) => {
+        const div = document.createElement('div');
+        div.className = 'cloud-item';
+        div.style.top = c.top + '%';
+        div.style.opacity = c.opacity;
+        div.style.animationDuration = c.duration + 's';
+        div.style.animationDelay = c.delay + 's';
+        div.innerHTML = `<svg class="cloud-svg" style="width: ${c.width}px;" viewBox="0 0 160 70">
+          <path d="${path}" />
+        </svg>`;
+        cloudsContainer.appendChild(div);
+      });
+    }
+
+    function createParticles() {
+      particlesContainer.innerHTML = '';
+      if (currentStage === 1) {
+        // Pastel soft sparkles
+        const sparkles = [
+          { top: 12, left: 18, size: 5, duration: 3.5, delay: 0, color: 'rgba(180, 235, 245, 0.9)' },
+          { top: 25, left: 82, size: 6, duration: 4.2, delay: 1.2, color: 'rgba(255, 235, 200, 0.9)' },
+          { top: 42, left: 12, size: 4, duration: 3.8, delay: 2.1, color: 'rgba(220, 210, 255, 0.85)' },
+          { top: 65, left: 88, size: 5, duration: 4.5, delay: 0.6, color: 'rgba(186, 252, 225, 0.9)' },
+          { top: 78, left: 24, size: 6, duration: 3.2, delay: 1.8, color: 'rgba(255, 225, 235, 0.85)' },
+        ];
+        sparkles.forEach(s => {
+          const sp = document.createElement('div');
+          sp.className = 'sparkle';
+          sp.style.top = s.top + '%';
+          sp.style.left = s.left + '%';
+          sp.style.width = s.size + 'px';
+          sp.style.height = s.size + 'px';
+          sp.style.background = s.color;
+          sp.style.boxShadow = `0 0 8px ${s.color}`;
+          sp.style.animationDuration = s.duration + 's';
+          sp.style.animationDelay = s.delay + 's';
+          particlesContainer.appendChild(sp);
+        });
+      } else if (currentStage === 2) {
+        // Warm golden adventure sparkles
+        const sparks = [
+          { top: 10, left: 22, size: 6, duration: 3.0, delay: 0, color: 'rgba(255, 215, 120, 0.95)' },
+          { top: 22, left: 78, size: 7, duration: 3.6, delay: 1.0, color: 'rgba(255, 180, 110, 0.9)' },
+          { top: 38, left: 15, size: 5, duration: 4.0, delay: 1.7, color: 'rgba(255, 230, 150, 0.85)' },
+          { top: 60, left: 85, size: 6, duration: 3.2, delay: 0.5, color: 'rgba(255, 170, 90, 0.9)' },
+          { top: 75, left: 30, size: 7, duration: 3.8, delay: 2.2, color: 'rgba(255, 210, 130, 0.9)' },
+        ];
+        sparks.forEach(s => {
+          const sp = document.createElement('div');
+          sp.className = 'sparkle';
+          sp.style.top = s.top + '%';
+          sp.style.left = s.left + '%';
+          sp.style.width = s.size + 'px';
+          sp.style.height = s.size + 'px';
+          sp.style.background = s.color;
+          sp.style.boxShadow = `0 0 10px ${s.color}`;
+          sp.style.animationDuration = s.duration + 's';
+          sp.style.animationDelay = s.delay + 's';
+          particlesContainer.appendChild(sp);
+        });
+      } else if (currentStage === 3) {
+        // Rising fire embers
+        const embers = [
+          { left: 15, size: 5, duration: 11, delay: 0 },
+          { left: 35, size: 7, duration: 14, delay: 2.5 },
+          { left: 55, size: 4, duration: 10, delay: 5.0 },
+          { left: 72, size: 6, duration: 13, delay: 1.8 },
+          { left: 88, size: 5, duration: 12, delay: 7.2 },
+        ];
+        embers.forEach(e => {
+          const em = document.createElement('div');
+          em.className = 'ember';
+          em.style.left = e.left + '%';
+          em.style.width = e.size + 'px';
+          em.style.height = e.size + 'px';
+          em.style.animationDuration = e.duration + 's';
+          em.style.animationDelay = e.delay + 's';
+          particlesContainer.appendChild(em);
+        });
+      }
+    }
 
     function updateDisplay() {
       const info = STAGES[currentStage];
       pageTitle.textContent = info.title;
       pageSubtitle.textContent = info.subtitle;
       floatingBadge.textContent = info.badge;
+      img.src = info.artwork;
 
-      if (currentViewMode === 'env') {
-        stageCard.style.backgroundImage = `url('${info.background}')`;
-        stageCard.style.backgroundColor = 'transparent';
-        img.src = info.artwork;
-      } else if (currentViewMode === 'offwhite') {
-        stageCard.style.backgroundImage = 'none';
-        stageCard.style.backgroundColor = '#F5F7F8';
-        img.src = info.offwhiteArtwork;
-      } else {
-        stageCard.style.backgroundImage = 'none';
-        stageCard.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
-        img.src = info.artwork;
-      }
+      document.body.className = `stage-${currentStage}`;
 
       // Update Tab active states
       document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
         btn.classList.toggle('active', idx + 1 === currentStage);
       });
+
+      createParticles();
     }
 
     function selectStage(stageNum) {
@@ -621,15 +798,6 @@
       updateDisplay();
     }
 
-    function setViewMode(mode) {
-      currentViewMode = mode;
-      document.querySelectorAll('#btn-env, #btn-offwhite, #btn-trans').forEach(b => b.classList.remove('active'));
-      if (mode === 'env') document.getElementById('btn-env').classList.add('active');
-      if (mode === 'offwhite') document.getElementById('btn-offwhite').classList.add('active');
-      if (mode === 'trans') document.getElementById('btn-trans').classList.add('active');
-      updateDisplay();
-    }
-
     function setAnim(name) {
       img.className = 'dragon-img';
       document.querySelectorAll('#btn-breathe, #btn-bounce, #btn-wag').forEach(b => b.classList.remove('active'));
@@ -656,7 +824,6 @@
     });
 
     function initDemoAndEnter() {
-      // Save fire level into demo state in localStorage so the home screen loads with this stage
       try {
         const stored = localStorage.getItem('crohncare_state');
         if (stored) {
@@ -678,6 +845,7 @@
     }
 
     // Initialize
+    createClouds();
     updateDisplay();
   </script>
 </body>

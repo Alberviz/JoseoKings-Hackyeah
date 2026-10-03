@@ -9,6 +9,7 @@ import { todayKey } from "@/lib/dates";
 import { useAppState } from "@/hooks/useAppState";
 import { Button, Text } from "@/components/ui";
 import { Companion } from "@/components/features/companion";
+import { DynamicBackground } from "./DynamicBackground";
 import {
   ActionButtonWrapper,
   ActionBtnContent,
@@ -54,7 +55,6 @@ import {
   StageBadge,
   StageBadgeIcon,
   StageBadgeText,
-  StageEnvironmentCard,
   StageNextText,
   StageTitleText,
   SvgCircle,
@@ -105,6 +105,9 @@ export function HomeScreen() {
 
   return (
     <HomeScreenRoot aria-label="Child Home Screen">
+      {/* Dynamic Full-Screen Background with Drifting Clouds & Ambient Stage Atmosphere */}
+      <DynamicBackground stage={evolution.stage} />
+
       {/* 1. Top bar: Fire bar, Coins pill, and discreet Parent mode link */}
       <TopBar>
         <FireBar aria-label={`Fire ${fire} of ${FIRE_MAX}`}>
@@ -149,37 +152,35 @@ export function HomeScreen() {
         </TopRightCluster>
       </TopBar>
 
-      {/* 2. Middle: Large Centered Companion Mascot with Evolution Stage Environment */}
+      {/* 2. Middle: Large Centered Companion Mascot on open stage */}
       <DragonStage aria-label="Mascot Stage">
-        <StageEnvironmentCard
-          $bgImage={evolution.background}
-          aria-label={`Habitat: ${evolution.title}`}
+        <StageBadge
+          aria-label={`Evolution: ${evolution.title}`}
+          data-testid="evolution-stage-badge"
         >
-          <StageBadge aria-label={`Evolution: ${evolution.title}`}>
-            <StageBadgeIcon aria-hidden="true">
-              {evolution.stage === 1 ? "🌱" : evolution.stage === 2 ? "⚡" : "👑"}
-            </StageBadgeIcon>
-            <StageBadgeText>
-              <StageTitleText>{evolution.title}</StageTitleText>
-              {evolution.nextThreshold ? (
-                <StageNextText>{evolution.nextThreshold - fire} 🔥 para evolucionar</StageNextText>
-              ) : (
-                <StageNextText>¡Nivel Máximo!</StageNextText>
-              )}
-            </StageBadgeText>
-          </StageBadge>
+          <StageBadgeIcon aria-hidden="true">
+            {evolution.stage === 1 ? "🌱" : evolution.stage === 2 ? "⚡" : "👑"}
+          </StageBadgeIcon>
+          <StageBadgeText>
+            <StageTitleText>{evolution.title}</StageTitleText>
+            {evolution.nextThreshold ? (
+              <StageNextText>{evolution.nextThreshold - fire} 🔥 para evolucionar</StageNextText>
+            ) : (
+              <StageNextText>¡Nivel Máximo!</StageNextText>
+            )}
+          </StageBadgeText>
+        </StageBadge>
 
-          <DragonWrapper>
-            <Companion
-              pose="idle"
-              equippedItemIds={equippedItemIds}
-              name={companionName}
-              size="lg"
-              stage={evolution.stage}
-              fire={fire}
-            />
-          </DragonWrapper>
-        </StageEnvironmentCard>
+        <DragonWrapper aria-label={`Habitat: ${evolution.title}`}>
+          <Companion
+            pose="idle"
+            equippedItemIds={equippedItemIds}
+            name={companionName}
+            size="lg"
+            stage={evolution.stage}
+            fire={fire}
+          />
+        </DragonWrapper>
       </DragonStage>
 
       {/* 3. Bottom: Check-in (if not done), Play button, and Game Navigation Row */}
