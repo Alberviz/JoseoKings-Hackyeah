@@ -1,11 +1,6 @@
-import {
-  BADGE_IDS,
-  CORE_QUESTION_SCALE,
-  ITEM_IDS,
-  MISSION_IDS,
-  QUESTION_IDS,
-} from "@/config/content-ids";
+import { CORE_QUESTION_SCALE, ITEM_IDS, MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
 import { addDays, isWeekend, todayKey } from "@/lib/dates";
+import { syncCompanion } from "@/lib/rewards";
 import type {
   ActivityLevel,
   AppState,
@@ -43,9 +38,6 @@ const SEVERITY_CURVE: ReadonlyArray<readonly [number, number]> = [
   [8, 0.3],
   [0, 0.12],
 ];
-
-// Mirrors docs/ARCHITECTURE.md section 7. Replace with src/lib/rewards when task T3 lands.
-const POINTS = { checkIn: 10, notToday: 6, missionCompleted: 10, missionRest: 6 } as const;
 
 const MISSION_ID_LIST = Object.values(MISSION_IDS);
 
@@ -155,22 +147,20 @@ function makeParentLog(date: DateKey, daysAgo: number, severity: number, rnd: Ra
   return { date, sleepHours, activity, school, medicationTaken, ...(note ? { note } : {}) };
 }
 
-function computeCompanion(checkIns: CheckIn[], missionLogs: MissionLog[]): AppState["companion"] {
-  const points =
-    checkIns.reduce((sum, c) => sum + (c.notToday ? POINTS.notToday : POINTS.checkIn), 0) +
-    missionLogs.reduce(
-      (sum, m) => sum + (m.status === "completed" ? POINTS.missionCompleted : POINTS.missionRest),
-      0,
-    );
-  const teamStars = missionLogs.filter((m) => m.company !== "alone").length;
-  return {
-    name: DEMO_COMPANION_NAME,
-    points,
-    teamStars,
-    ownedItemIds: [ITEM_IDS.hatExplorer, ITEM_IDS.colorTeal, ITEM_IDS.capeStar],
-    equippedItemIds: [ITEM_IDS.hatExplorer, ITEM_IDS.colorTeal],
-    badgeIds: [BADGE_IDS.firstCheckIn, BADGE_IDS.careDays30, BADGE_IDS.teamUp],
-  };
+function buildCompanion(checkIns: CheckIn[], missionLogs: MissionLog[]): AppState["companion"] {
+  // Points, stars, items and badges come from the same rules as the real app.
+  return syncCompanion({
+    checkIns,
+    missionLogs,
+    companion: {
+      name: DEMO_COMPANION_NAME,
+      points: 0,
+      teamStars: 0,
+      ownedItemIds: [],
+      equippedItemIds: [ITEM_IDS.hatExplorer, ITEM_IDS.colorTeal],
+      badgeIds: [],
+    },
+  });
 }
 
 export type DemoOptions = {
@@ -235,7 +225,7 @@ export function buildDemoState(options: DemoOptions = {}): AppState {
     isDemo: true,
     child: { nickname: DEMO_CHILD_NICKNAME },
     settings: options.settings ?? DEFAULT_SETTINGS,
-    companion: computeCompanion(checkIns, missionLogs),
+    companion: buildCompanion(checkIns, missionLogs),
     checkIns,
     missionLogs,
     parentLogs,
