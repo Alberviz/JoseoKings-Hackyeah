@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dragón de Cracovia Oficial - CrohnCare</title>
+  <style>
+    :root {
+      --bg: #BFEAF3;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --text: #153F4B;
+      --accent: #FF7A59;
+      --primary: #127782;
+      --primary-hover: #0E5E67;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      transition: background-color 0.3s ease;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      color: #0F3B46;
+    }
+
+    p.subtitle {
+      font-size: 15px;
+      color: #386875;
+      font-weight: 500;
+    }
+
+    .badge-approved {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #D4F4EA;
+      color: #0B6B52;
+      border: 1.5px solid #20A779;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    /* Mascot Stage */
+    .stage-container {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .dragon-glow {
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 70%);
+      pointer-events: none;
+    }
+
+    .dragon-img {
+      width: 85%;
+      height: 85%;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 24px rgba(18, 119, 130, 0.25));
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      user-select: none;
+      -webkit-user-drag: none;
+      cursor: pointer;
+    }
+
+    /* Animations */
+    .anim-breathe {
+      animation: breathe 3.6s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    .anim-bounce {
+      animation: bounce 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+      transform-origin: center bottom;
+    }
+
+    .anim-wag {
+      animation: wag 2s ease-in-out infinite;
+      transform-origin: center center;
+    }
+
+    @keyframes breathe {
+      0%, 100% {
+        transform: translateY(0px) scale(1, 1);
+      }
+      45% {
+        transform: translateY(-8px) scale(0.98, 1.025);
+      }
+      85% {
+        transform: translateY(2px) scale(1.015, 0.99);
+      }
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: scale(1, 1) translateY(0);
+      }
+      30% {
+        transform: scale(1.08, 0.92) translateY(6px);
+      }
+      60% {
+        transform: scale(0.94, 1.08) translateY(-24px);
+      }
+      80% {
+        transform: scale(1.03, 0.97) translateY(2px);
+      }
+    }
+
+    @keyframes wag {
+      0%, 100% {
+        transform: rotate(0deg);
+      }
+      25% {
+        transform: rotate(3deg) translateY(-3px);
+      }
+      75% {
+        transform: rotate(-3deg) translateY(-3px);
+      }
+    }
+
+    /* Controls Panel */
+    .panel {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #4A7A85;
+      margin-bottom: 8px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex: 1;
+      min-width: 110px;
+      padding: 10px 14px;
+      border: 1.5px solid #BDDDE2;
+      background: #FFFFFF;
+      color: #153F4B;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      background: #E8F7FA;
+      border-color: #127782;
+      transform: translateY(-1px);
+    }
+
+    button.active {
+      background: #127782;
+      color: #FFFFFF;
+      border-color: #127782;
+    }
+
+    .primary-btn {
+      background: #127782;
+      color: #FFFFFF;
+      border: none;
+      font-size: 15px;
+      padding: 12px 18px;
+    }
+
+    .primary-btn:hover {
+      background: #0E5E67;
+      color: #FFFFFF;
+    }
+
+    /* App Links */
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .app-link {
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      background: #F4FAF8;
+      border: 1.5px solid #CDECE3;
+      border-radius: 14px;
+      text-decoration: none;
+      color: #153F4B;
+      transition: all 0.15s ease;
+    }
+
+    .app-link:hover {
+      background: #E4F7F2;
+      border-color: #20A779;
+      transform: translateY(-2px);
+    }
+
+    .app-link-title {
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .app-link-desc {
+      font-size: 12px;
+      color: #52818A;
+      margin-top: 3px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      background: #153F4B;
+      color: #FFFFFF;
+      padding: 12px 20px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge-approved">✨ Dragón Oficial Aprobado</div>
+    <h1>El Dragón de Cracovia en la Web</h1>
+    <p class="subtitle">Modelo final verificado con anatomía tradicional de Wawel</p>
+  </header>
+
+  <!-- Mascot Stage -->
+  <div class="stage-container" id="stage">
+    <div class="dragon-glow"></div>
+    <img
+      id="dragon-image"
+      src="/dragon.png"
+      alt="Dragón de Cracovia Oficial"
+      class="dragon-img anim-breathe"
+      title="¡Tócame para saltar!"
+    />
+  </div>
+
+  <!-- Interactive Controls Panel -->
+  <div class="panel">
+    <div>
+      <div class="section-title">Animaciones en Vivo</div>
+      <div class="button-group">
+        <button id="btn-breathe" class="active" onclick="setAnim('breathe')">🌬️ Respiración</button>
+        <button id="btn-bounce" onclick="setAnim('bounce')">🎉 Celebración</button>
+        <button id="btn-wag" onclick="setAnim('wag')">🐾 Bamboleo</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Fondo de Visualización</div>
+      <div class="button-group">
+        <button class="active" onclick="setBg('#BFEAF3', this)">Celeste #BFEAF3</button>
+        <button onclick="setBg('#FFFFFF', this)">Blanco Puro</button>
+        <button onclick="setBg('#E8F5F1', this)">Verde Menta</button>
+        <button onclick="setBg('#15242E', this)">Modo Noche</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Entrar al Juego con Datos Demo</div>
+      <button class="primary-btn" style="width: 100%;" onclick="initDemoAndEnter()">
+        🚀 Iniciar juego con este Dragón
+      </button>
+    </div>
+
+    <div>
+      <div class="section-title">Explorar Pantallas del Juego</div>
+      <div class="nav-grid">
+        <a href="/" class="app-link">
+          <span class="app-link-title">🏠 Pantalla Principal</span>
+          <span class="app-link-desc">Home con el Dragón al centro</span>
+        </a>
+        <a href="/companion" class="app-link">
+          <span class="app-link-title">🏰 Santuario</span>
+          <span class="app-link-desc">Poses, catálogo y logros</span>
+        </a>
+        <a href="/food" class="app-link">
+          <span class="app-link-title">🍲 Cocina Mágica</span>
+          <span class="app-link-desc">Alimenta a tu compañero</span>
+        </a>
+        <a href="/customize" class="app-link">
+          <span class="app-link-title">✨ Armario</span>
+          <span class="app-link-desc">Personaliza sus accesorios</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">¡Datos demo cargados! Redirigiendo...</div>
+
+  <script>
+    const img = document.getElementById('dragon-image');
+    const toast = document.getElementById('toast');
+
+    function setAnim(name) {
+      img.className = 'dragon-img';
+      document.querySelectorAll('#btn-breathe, #btn-bounce, #btn-wag').forEach(b => b.classList.remove('active'));
+      
+      if (name === 'breathe') {
+        img.classList.add('anim-breathe');
+        document.getElementById('btn-breathe').classList.add('active');
+      } else if (name === 'bounce') {
+        img.classList.add('anim-bounce');
+        document.getElementById('btn-bounce').classList.add('active');
+      } else if (name === 'wag') {
+        img.classList.add('anim-wag');
+        document.getElementById('btn-wag').classList.add('active');
+      }
+    }
+
+    function setBg(color, btn) {
+      document.body.style.backgroundColor = color;
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      if (color === '#15242E') {
+        document.querySelector('h1').style.color = '#FFFFFF';
+        document.querySelector('p.subtitle').style.color = '#8EDAE5';
+      } else {
+        document.querySelector('h1').style.color = '#0F3B46';
+        document.querySelector('p.subtitle').style.color = '#386875';
+      }
+    }
+
+    // Touch or click to tap jump
+    img.addEventListener('click', () => {
+      const prevClass = img.className;
+      img.className = 'dragon-img anim-bounce';
+      setTimeout(() => {
+        img.className = prevClass;
+      }, 900);
+    });
+
+    function initDemoAndEnter() {
+      // Build sample child & companion state in localStorage
+      const demoState = {
+        version: 3,
+        child: {
+          nickname: "Kuba",
+          avatarId: "dragon"
+        },
+        settings: {
+          pinHash: "mock_pin_hash",
+          pinSalt: "mock_salt",
+          enabledMissions: ["water_break", "bed_stretch", "mindful_belly"],
+          notificationTimes: []
+        },
+        checkIns: [
+          {
+            date: new Date().toISOString().split('T')[0],
+            mood: 4,
+            bellyPain: 1,
+            energy: 4,
+            timestamp: Date.now()
+          }
+        ],
+        missionLogs: [
+          {
+            id: "m_init",
+            missionId: "mindful_belly",
+            completedAt: Date.now(),
+            stars: 3
+          }
+        ],
+        companion: {
+          name: "Smok Wawelski",
+          points: 120,
+          teamStars: 8,
+          unlockedItemIds: ["color_teal", "cape_star"],
+          equippedItemIds: []
+        },
+        economy: {
+          fire: 85,
+          coins: 240,
+          inventory: ["apple", "potion", "cape_star"],
+          equippedItemIds: []
+        },
+        isDemo: true
+      };
+
+      try {
+        localStorage.setItem('mycrohnie_app_state', JSON.stringify(demoState));
+        toast.classList.add('show');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 800);
+      } catch (err) {
+        window.location.href = '/';
+      }
+    }
+  </script>
+</body>
+</html>
