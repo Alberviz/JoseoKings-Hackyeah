@@ -62,6 +62,9 @@ export type MissionStatus =
   /** The child pressed "stop" early. Logged as rest, never as a failure. */
   | "rest";
 
+export type MissionMoodBefore = "calm" | "strong" | "amazing";
+export type MissionMoodAfter = "exhausted" | "chill" | "great";
+
 export type MissionLog = {
   id: string;
   date: DateKey;
@@ -70,4 +73,6 @@ export type MissionLog = {
   company: MissionCompany;
   confirmedBy: MissionConfirmation;
   createdAt: string;
+  moodBefore?: MissionMoodBefore;
+  moodAfter?: MissionMoodAfter;
 };

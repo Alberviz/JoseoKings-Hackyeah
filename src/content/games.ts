@@ -1,5 +1,5 @@
 import { GAME_IDS } from "@/config/content-ids";
-import type { Mission, MoveKey } from "@/types";
+import type { Mission, MoveKey, PlayLevel, PlayMode } from "@/types";
 
 // The play games from the team's games table (Farouk), for the v2 Play flow in Juan's sketch:
 // "Game mode: Alone / Family" is `mode`, and the feeling chip (1, 2 or 3 dots) is `level`.
@@ -25,10 +25,12 @@ export const GAME_MOVE_KEYS = [
   "carry",
 ] as const satisfies readonly MoveKey[];
 
-type PlayGameStep = Mission["steps"][number] & { poseKey: MoveKey };
+export type PlayGameStep = Mission["steps"][number] & { poseKey: MoveKey };
 
-type PlayGame = Omit<Mission, "steps"> &
+export type PlayGame = Omit<Mission, "steps"> &
   Required<Pick<Mission, "mode" | "level">> & { steps: PlayGameStep[] };
+
+export type { PlayLevel, PlayMode };
 
 export const PLAY_GAMES: PlayGame[] = [
   // --- Alone, level 1 ---

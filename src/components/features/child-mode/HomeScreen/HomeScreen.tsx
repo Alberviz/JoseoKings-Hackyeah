@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, ROUTES } from "@/config/app";
 import { FIRE_MAX } from "@/config/economy";
@@ -49,6 +50,7 @@ import {
   PlayLabel,
   PlayTriangleSvg,
   ShopSvg,
+  SmallParentLink,
   SvgCircle,
   SvgPath,
   SvgPolygon,
@@ -58,7 +60,15 @@ import {
 
 export function HomeScreen() {
   const router = useRouter();
-  const { state, actions, isReady } = useAppState();
+  const { state, isReady } = useAppState();
+
+  // If device is parent-only, redirect straight to parent mode.
+  useEffect(() => {
+    if (!isReady) return;
+    if (state.settings?.deviceRole === "parent") {
+      router.replace(ROUTES.parent);
+    }
+  }, [isReady, state.settings?.deviceRole, router]);
 
   if (!isReady) {
     return (
@@ -67,6 +77,13 @@ export function HomeScreen() {
       </LoadingContainer>
     );
   }
+
+  if (state.settings?.deviceRole === "parent") {
+    return null;
+  }
+
+  const deviceRole = state.settings?.deviceRole ?? "both";
+  const isChildOnly = deviceRole === "child";
 
   const companionName = state.companion?.name || state.child?.nickname || "Kraków Dragon";
   const equippedItemIds = state.economy?.equippedItemIds ?? [];
@@ -96,11 +113,7 @@ export function HomeScreen() {
         </FireBar>
 
         <TopRightCluster>
-          <CoinsPill
-            aria-label={`Coins ${coins}`}
-            title="Click to add +100 test coins"
-            onClick={() => actions.addCoins(100)}
-          >
+          <CoinsPill aria-label={`Coins ${coins}`}>
             <CoinIconWrapper aria-hidden="true">
               <CoinSvg viewBox="0 0 24 24" fill="currentColor">
                 <SvgCircle cx="12" cy="12" r="10" />
@@ -116,14 +129,16 @@ export function HomeScreen() {
             <CoinsValue>{coins}</CoinsValue>
           </CoinsPill>
 
-          <ParentDoorLink href={ROUTES.parent} aria-label="Parent mode">
-            <ParentIconWrapper aria-hidden="true">
-              <NavSvg viewBox="0 0 24 24" fill="currentColor">
-                <SvgPath d="M12 2C9.24 2 7 4.24 7 7V9H6C4.9 9 4 9.9 4 11V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V11C20 9.9 19.1 9 18 9H17V7C17 4.24 14.76 2 12 2ZM9 7C9 5.34 10.34 4 12 4C13.66 4 15 5.34 15 7V9H9V7ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17Z" />
-              </NavSvg>
-            </ParentIconWrapper>
-            <ParentLabel>Parents</ParentLabel>
-          </ParentDoorLink>
+          {!isChildOnly && (
+            <ParentDoorLink href={ROUTES.parent} aria-label="Parent mode">
+              <ParentIconWrapper aria-hidden="true">
+                <NavSvg viewBox="0 0 24 24" fill="currentColor">
+                  <SvgPath d="M12 2C9.24 2 7 4.24 7 7V9H6C4.9 9 4 9.9 4 11V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V11C20 9.9 19.1 9 18 9H17V7C17 4.24 14.76 2 12 2ZM9 7C9 5.34 10.34 4 12 4C13.66 4 15 5.34 15 7V9H9V7ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17Z" />
+                </NavSvg>
+              </ParentIconWrapper>
+              <ParentLabel>Parents</ParentLabel>
+            </ParentDoorLink>
+          )}
         </TopRightCluster>
       </TopBar>
 
@@ -246,6 +261,12 @@ export function HomeScreen() {
           </ActionButtonWrapper>
         </ActionsNav>
       </BottomArea>
+
+      {isChildOnly && (
+        <SmallParentLink href={ROUTES.parent} aria-label="Parent mode">
+          Parent mode
+        </SmallParentLink>
+      )}
     </HomeScreenRoot>
   );
 }

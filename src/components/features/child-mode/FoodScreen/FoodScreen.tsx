@@ -183,15 +183,6 @@ export function FoodScreen() {
               >
                 +5 🍏 Food (Test)
               </TestActionButton>
-              <TestActionButton
-                type="button"
-                onClick={() => {
-                  actions.addCoins(100);
-                  setFeedback("Added +100 coins!");
-                }}
-              >
-                +100 🪙 Coins (Test)
-              </TestActionButton>
               {isFireFull && (
                 <TestActionButton
                   type="button"
