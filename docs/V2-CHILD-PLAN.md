@@ -6,7 +6,7 @@ Status: **draft for Alberto's OK** (2026-10-03). Owner: Claude (lead) with Fable
 
 Build the whole child interface drawn by Juan (sketch + document) as a real, polished, installable PWA: Home with fire and coins, the Play flow, Shop, Food, Customize and the chest. Backend comes later; this plan is full frontend, local data only.
 
-Sources of truth, in order: `docs/PRODUCT.md` section 5 (rules) > Alberto's decisions below > Juan's sketch and document > Baitiare's notes > the mockups (visual reference only).
+Sources of truth, in order: `docs/PRODUCT.md` section 5 (rules) > Alberto's decisions below > Juan's sketches (`docs/design/juan-child-sketch.png`, `docs/design/juan-parent-sketch.png`) and document > Baitiare's notes > the mockups (visual reference only).
 
 ## 2. Decisions already taken
 
@@ -18,6 +18,17 @@ Sources of truth, in order: `docs/PRODUCT.md` section 5 (rules) > Alberto's deci
 - Shop (prices in the sketch): Food 5, Glasses 7, T-shirt 10, Hat 10 coins. **Choose dinner** costs 50 fire and is a real-life treat that the parents define.
 - Customize shows owned items, a tick on the ones worn.
 - The dragon is never sad, sick or angry. No streaks.
+
+## 2b. Parent version (Juan's second sketch)
+
+Juan keeps the current parent mode and asks for these changes:
+
+- Palette change only for the existing parts. In the first setup, the field "Nickname" becomes "Name".
+- Parent home: a card "Today's performance" (shows "No info yet" when empty) and four sections: Daily log, Today's diet, Special rewards, Generate resume, plus "Back to <name>'s mode".
+- Daily log: date, sleep hours, physical activity (None / Light / Moderate / High), school (Went / Left early / Missed / No school), med taken (Yes / No / Partly / N/A), extra notes (optional), Save, Back to parent mode. This already exists; align the labels.
+- Today's diet: "What did <name> eat on <date>?" with Breakfast, Lunch, Snack and Dinner, each a text field or a "Nothing" toggle, extra notes, Save. Leaving without saving asks for confirmation.
+- Special rewards: list of rewards the parents create (examples: Choose today's dinner, Kart's day, 30 more phone minutes, Board games marathon). Edit and Delete are disabled until a reward is selected. "Create new reward" opens a dialog with Name and Price (in fire); Create stays disabled until both are filled, so empty rewards are impossible.
+- Generate resume: From and To dates and "Download PDF" (the existing doctor report, printed for that range).
 
 ## 3. Open decisions (block the visual work, not the logic)
 
@@ -37,17 +48,17 @@ Sources of truth, in order: `docs/PRODUCT.md` section 5 (rules) > Alberto's deci
 
 ## 5. Tasks
 
-| ID  | Task                                                         | Owner (AI)              | Depends on     |
-| :-- | :----------------------------------------------------------- | :---------------------- | :------------- |
-| V1  | Economy types, migration, `lib/economy` and tests            | Claude                  | none           |
-| V2  | Theme tokens as roles + restyled primitives                  | Claude                  | style, palette |
-| V3  | `useCountdown` hook and `RingTimer`                          | Gemini agent (agy)      | none           |
-| V4  | Home v2 (fire, coins, Play, Shop/Food/Customize)             | Fable                   | V1, V2         |
-| V5  | Play flow: who plays, feeling, exercise, after, chest        | Fable + Gemini          | V1, V3         |
-| V6  | Shop, Food and Customize screens                             | Gemini agents, reviewed | V1, V2         |
-| V7  | Parent side: define "Choose dinner" treats in settings       | Fable                   | V1             |
-| V8  | Dragon art component v2 with colour variants and accessories | decided by Alberto      | dragon art     |
-| V9  | Tests, accessibility, 360 px, offline, PWA install, deploy   | Claude + Álvaro         | all            |
+| ID  | Task                                                                  | Owner (AI)              | Depends on     |
+| :-- | :-------------------------------------------------------------------- | :---------------------- | :------------- |
+| V1  | Economy types, migration, `lib/economy` and tests                     | Claude                  | none           |
+| V2  | Theme tokens as roles + restyled primitives                           | Claude                  | style, palette |
+| V3  | `useCountdown` hook and `RingTimer`                                   | Gemini agent (agy)      | none           |
+| V4  | Home v2 (fire, coins, Play, Shop/Food/Customize)                      | Fable                   | V1, V2         |
+| V5  | Play flow: who plays, feeling, exercise, after, chest                 | Fable + Gemini          | V1, V3         |
+| V6  | Shop, Food and Customize screens                                      | Gemini agents, reviewed | V1, V2         |
+| V7  | Parent v2: home sections, Today's diet, Special rewards, resume range | Fable                   | V1             |
+| V8  | Dragon art component v2 with colour variants and accessories          | decided by Alberto      | dragon art     |
+| V9  | Tests, accessibility, 360 px, offline, PWA install, deploy            | Claude + Álvaro         | all            |
 
 Humans can do in parallel: choose style and palette (Alberto), re-deploy after merges (Álvaro), verify the printed report on a real phone (Juan), keep the pitch and docs in sync (Claudia).
 
