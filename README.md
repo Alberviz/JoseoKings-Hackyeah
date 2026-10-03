@@ -19,5 +19,6 @@ Open http://localhost:3000.
 - Decisions: [`docs/DECISIONS.md`](docs/DECISIONS.md)
 - Known errors and fixes: [`ERRORS.md`](ERRORS.md)
 - Gemini / Antigravity notes: [`GEMINI.md`](GEMINI.md) · Claude Code notes: [`CLAUDE.md`](CLAUDE.md)
+- Pediatric companion spec (Farouk): [`docs/FAROUK.md`](docs/FAROUK.md)
 
 Run `pnpm check` before every push.
