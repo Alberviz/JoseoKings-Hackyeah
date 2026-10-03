@@ -34,6 +34,10 @@ You implement **one task from `docs/TASKS.md` at a time**, on its own branch, an
 - Commit in small steps with Conventional Commits: `feat(menu-reader): add photo preview`.
 - When the pre-commit check fails, read the error and fix the code. **Never** `--no-verify`, `eslint-disable`, `any` or `@ts-ignore`.
 
+## Hotfixes
+
+If `main` is broken or the demo is blocked, **do not push to `main`**. Tell the human, with the error and the last working commit. Only Alberto or Claude push hotfixes (see `AGENTS.md`).
+
 ## Stop and ask the human when
 
 - The task needs a file outside its **Folders** (especially `src/components/ui`, `src/theme`, `src/types`, configs, `package.json` scripts).
