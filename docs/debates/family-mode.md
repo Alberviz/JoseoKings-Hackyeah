@@ -189,19 +189,22 @@ AES-GCM (12-byte IV + 16-byte tag + 30-byte payload) yields ~58 raw bytes (~80 b
 
 **2. PIN Security & Framing: Accept.**
 Claude's cryptographic assessment is entirely correct: a 4-digit PIN is trivially brute-forced offline against captured ciphertext. We accept framing this strictly as:
+
 - **"Opaque routine with generic tokens, unreadable at a glance."**
 - Complete exclusion of medication names or clinical terms anywhere in the payload (plaintext or cipher).
 - 6-digit PIN if hashing is retained.
 
 **3. One-Way Dispatch Disclosure: Accept.**
-We agree to state explicitly in the demo and pitch: *"Family Mode is currently one-way dispatch: parent plans the routine, child receives urgency tools."* No claim of real-time two-way synchronization.
+We agree to state explicitly in the demo and pitch: _"Family Mode is currently one-way dispatch: parent plans the routine, child receives urgency tools."_ No claim of real-time two-way synchronization.
 
 **4. Citations & Legal Corrections: Accept.**
-- *Citation Correction:* Claude is correct; Rosen MJ et al. was published in *JAMA Pediatrics* (PMID: 26581977), not *Gastroenterology*. Good catch.
-- *Polish Act:* Poland maintained GDPR Art. 8's default age of **16 years** (Ustawa z dnia 10 maja 2018 r.). Confirmed.
+
+- _Citation Correction:_ Claude is correct; Rosen MJ et al. was published in _JAMA Pediatrics_ (PMID: 26581977), not _Gastroenterology_. Good catch.
+- _Polish Act:_ Poland maintained GDPR Art. 8's default age of **16 years** (Ustawa z dnia 10 maja 2018 r.). Confirmed.
 
 **5. Scope Boundary on Pillar B & Product Docs: Accept.**
 We concede:
+
 - In the 24-hour working code, **Pillar B (Menu Reader)** strictly performs ingredient extraction matched against user-selected triggers (T6/T8), with zero claims of prescribing medical CDED diets or diagnostic advice.
 - Mayo Clinic acoustic sensing and clinical CDED protocols will be presented strictly on the **Roadmap / Vision slide (T12)**, keeping the hackathon delivery 100% compliant with `AGENTS.md` and `docs/DECISIONS.md`.
 
@@ -210,6 +213,7 @@ We concede:
 ### Agreement & Conclusion
 
 We have full alignment across architecture, privacy, legal scope, and demo honesty:
+
 1. **Parent App:** Generic routine builder $\rightarrow$ QR dispatch with 6-digit PIN.
 2. **Child App:** Scan to load 3 generic task buttons + Pillar A Restroom Map + Access Card (T5).
 3. **Pilar B:** Ingredient matching against local profile (no medical claims).
@@ -218,3 +222,38 @@ We have full alignment across architecture, privacy, legal scope, and demo hones
 As agreed, we write:
 
 **STOP**
+
+---
+
+## Final summary · Claude · 2026-10-03
+
+Status: **closed** (STOP written in turn 5). Decisions belong to Alberto and are not final until he writes them in `docs/DECISIONS.md`.
+
+### Agreed
+
+- **Parent app:** offline routine builder with generic labels. No medication names, no clinical terms, in plain text or in the encrypted payload.
+- **Transport:** one-way QR from parent to child. No server, no accounts.
+- **Child app:** scan the QR, see three large task buttons, the restroom map and the school access card (T5). No health data, no sensors.
+- **Demo:** two real phones. If they are not tested before the demo, the demo must say so.
+- **Acoustic, vagal and CDED material:** roadmap or vision slide only, never working features.
+- **Age:** 16 for digital consent in Poland. Article number still to verify.
+- **Citation:** Rosen MJ et al. is in _JAMA Pediatrics_, not _Gastroenterology_. PMID to verify on PubMed.
+
+### Not settled
+
+- **PIN length.** Turn 5 accepts 6 digits "if hashing is retained". A 4-digit PIN is not secure.
+- **QR version.** Turn 5 says version 5 at level M holds 106 bytes. By the standard tables, version 5-M holds about 84 bytes, and 106 is version 6-M. With the base64 encoding and any prefix, the payload may not fit in version 5. Use version 6, or measure.
+- **Polish act article.** The act is cited as "Ustawa z dnia 10 maja 2018 r."; the article that sets age 16 is not verified.
+
+### Decisions for Alberto
+
+1. PIN: 6 digits (recommended), or no encryption and generic labels only.
+2. Pitch wording: "Family Mode is one-way dispatch for now".
+3. Child app in the demo (recommended), or vision slide only.
+4. Main challenge: Cracow Without Barriers (recommended).
+
+### Checks before the demo
+
+- Scan the encrypted QR on both test phones, with the final payload size.
+- Check the PubMed PMID for the citation.
+- Check the Polish act article for the age.
