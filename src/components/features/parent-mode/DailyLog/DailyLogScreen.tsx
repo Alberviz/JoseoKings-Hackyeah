@@ -260,7 +260,7 @@ export function DailyLogScreen() {
     );
   }
 
-  const childName = state.child.nickname;
+  const childName = state.child.nickname.trim();
   const today = todayKey();
   const canGoNext = selectedDate < today;
 
@@ -295,7 +295,7 @@ export function DailyLogScreen() {
         <Stack gap="lg">
           <Stack gap="xs">
             <Heading level={1}>Daily log</Heading>
-            <Text tone="muted">Facts for {childName}. No drug names or doses.</Text>
+            <Text tone="muted">{`Facts for ${childName}. No drug names or doses.`}</Text>
           </Stack>
 
           <Card label="Day">
