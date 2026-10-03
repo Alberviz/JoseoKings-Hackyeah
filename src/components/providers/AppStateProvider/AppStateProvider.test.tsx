@@ -348,6 +348,31 @@ describe("AppStateProvider and useAppState hook", () => {
     expect(result.current.state.companion.ownedItemIds).toContain(ITEM_IDS.hatExplorer);
   });
 
+  it("importState replaces the whole state, keeps isDemo and saves it", () => {
+    const { result } = renderHook(() => useAppState(), { wrapper });
+    const imported = createEmptyState();
+    imported.child = { nickname: "Imported" };
+    imported.checkIns = [
+      {
+        id: "c1",
+        date: "2026-10-01",
+        answers: {},
+        notToday: true,
+        createdAt: "2026-10-01T17:00:00.000Z",
+      },
+    ];
+
+    act(() => {
+      result.current.actions.importState(imported);
+    });
+
+    expect(result.current.state.child?.nickname).toBe("Imported");
+    expect(result.current.state.checkIns).toHaveLength(1);
+    expect(result.current.state.isDemo).toBe(false);
+    expect(result.current.state.companion.points).toBeGreaterThan(0);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}").child.nickname).toBe("Imported");
+  });
+
   it("clearAll removes both keys and resets state", () => {
     const { result } = renderHook(() => useAppState(), { wrapper });
 
