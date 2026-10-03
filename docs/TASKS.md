@@ -199,6 +199,8 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 - `/companion`: accessories and colours on the main track, badges, the team track. Equip and unequip. Keep the room for last.
 
+Note: wearables are now bought with coins in the shop (V6 of `docs/V2-CHILD-PLAN.md`); `/companion` keeps badges and the team track.
+
 **Done when:** items unlock from `points` and `teamStars` using T3; nothing is ever locked again after unlocking; no "sad" state anywhere.
 
 ### T16 · PWA offline, deploy and device QA (Alberto)
@@ -229,6 +231,12 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 ---
 
+## V-tasks and L-tasks (child interface v2 and family link)
+
+Decided on 2026-10-03 (see `docs/DECISIONS.md`). The V-tasks (V1 to V9: economy lib, theme, timer, home, play flow, shop, parent v2, dragon art, QA) are in `docs/V2-CHILD-PLAN.md` section 5. The L-tasks, owned by Álvaro's AI, are: **L1** link lib (`src/lib/link/`, with tests), **L3** link UI (`src/components/features/link/`, routes `/share` and `/parent/link`), **L5** parent v2 (parent home sections, diet, rewards from home, resume range). The old tasks above are not rewritten.
+
+---
+
 ## Out of scope (roadmap slide only)
 
-Restroom map, menu reader, smartwatch and health platform integration, motion detection and camera pose estimation, push notifications, accounts and sync, QR from child to parent device (stretch), online play, impact exercise, predictions and invented indexes, adolescent privacy, other languages. See [`PRODUCT.md`](PRODUCT.md) section 8.
+Restroom map, menu reader, smartwatch and health platform integration, motion detection and camera pose estimation, push notifications, accounts and sync, family QR link (now in scope, see L-tasks), online play, impact exercise, predictions and invented indexes, adolescent privacy, other languages. See [`PRODUCT.md`](PRODUCT.md) section 8.

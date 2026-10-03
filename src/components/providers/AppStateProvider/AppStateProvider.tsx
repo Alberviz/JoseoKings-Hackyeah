@@ -12,6 +12,20 @@ import {
 } from "react";
 import { clearStorage, createEmptyState, loadState, saveState } from "@/lib/storage";
 import {
+  buyItem,
+  equipItem as equipEconomyItem,
+  giveFood,
+  claimReward as claimEconomyReward,
+  markClaimDone as markEconomyClaimDone,
+  setSpecialRewards as setEconomySpecialRewards,
+  unequipItem as unequipEconomyItem,
+  type BuyResult,
+  type GiveFoodResult,
+  type ClaimResult,
+  type SetSpecialRewardsResult,
+} from "@/lib/economy";
+import { todayKey } from "@/lib/dates";
+import {
   equipItem as equipCompanionItem,
   syncCompanion,
   unequipItem as unequipCompanionItem,
@@ -25,6 +39,7 @@ import type {
   MissionLog,
   ParentLog,
   ParentSettings,
+  SpecialReward,
 } from "@/types";
 
 export type AppStateActions = {
@@ -35,6 +50,16 @@ export type AppStateActions = {
   addConsultation: (consultation: Consultation) => void;
   equipItem: (itemId: string) => void;
   unequipItem: (itemId: string) => void;
+  /** Spends coins in the shop. The result tells the UI what to say. */
+  buyShopItem: (itemId: string) => BuyResult;
+  giveFood: () => GiveFoodResult;
+  equipShopItem: (itemId: string) => void;
+  unequipShopItem: (itemId: string) => void;
+  /** The only action that lowers fire: the child chooses to spend it on a special reward. */
+  claimReward: (rewardId: string) => ClaimResult;
+  /** A parent confirms the reward was given. Fire does not change. */
+  markClaimDone: (claimId: string) => void;
+  setSpecialRewards: (rewards: SpecialReward[]) => SetSpecialRewardsResult;
   setSettings: (settings: ParentSettings) => void;
   setChild: (child: ChildProfile) => void;
   loadDemo: (demoState: AppState) => void;
@@ -262,6 +287,75 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     [store],
   );
 
+  const buyShopItem = useCallback(
+    (itemId: string): BuyResult => {
+      let result: BuyResult = { ok: false, reason: "unknown-item" };
+      store.updateState((prev) => {
+        result = buyItem(prev, itemId);
+        return result.ok ? { ...prev, economy: result.economy } : prev;
+      });
+      return result;
+    },
+    [store],
+  );
+
+  const giveFoodToCompanion = useCallback((): GiveFoodResult => {
+    let result: GiveFoodResult = { ok: false, reason: "no-food" };
+    store.updateState((prev) => {
+      result = giveFood(prev.economy);
+      return result.ok ? { ...prev, economy: result.economy } : prev;
+    });
+    return result;
+  }, [store]);
+
+  const equipShopItem = useCallback(
+    (itemId: string) => {
+      store.updateState((prev) => ({ ...prev, economy: equipEconomyItem(prev.economy, itemId) }));
+    },
+    [store],
+  );
+
+  const unequipShopItem = useCallback(
+    (itemId: string) => {
+      store.updateState((prev) => ({ ...prev, economy: unequipEconomyItem(prev.economy, itemId) }));
+    },
+    [store],
+  );
+
+  const claimReward = useCallback(
+    (rewardId: string): ClaimResult => {
+      let result: ClaimResult = { ok: false, reason: "unknown-reward" };
+      store.updateState((prev) => {
+        result = claimEconomyReward(prev.economy, rewardId, todayKey());
+        return result.ok ? { ...prev, economy: result.economy } : prev;
+      });
+      return result;
+    },
+    [store],
+  );
+
+  const markClaimDone = useCallback(
+    (claimId: string) => {
+      store.updateState((prev) => ({
+        ...prev,
+        economy: markEconomyClaimDone(prev.economy, claimId, todayKey()),
+      }));
+    },
+    [store],
+  );
+
+  const setSpecialRewards = useCallback(
+    (rewards: SpecialReward[]): SetSpecialRewardsResult => {
+      let result: SetSpecialRewardsResult = { ok: false, reason: "invalid-name" };
+      store.updateState((prev) => {
+        result = setEconomySpecialRewards(prev.economy, rewards);
+        return result.ok ? { ...prev, economy: result.economy } : prev;
+      });
+      return result;
+    },
+    [store],
+  );
+
   const setSettings = useCallback(
     (settings: ParentSettings) => {
       store.updateState((prev) => ({
@@ -309,6 +403,13 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       addConsultation,
       equipItem,
       unequipItem,
+      buyShopItem,
+      giveFood: giveFoodToCompanion,
+      equipShopItem,
+      unequipShopItem,
+      claimReward,
+      markClaimDone,
+      setSpecialRewards,
       setSettings,
       setChild,
       loadDemo,
@@ -316,6 +417,13 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       clearAll,
     }),
     [
+      buyShopItem,
+      giveFoodToCompanion,
+      equipShopItem,
+      unequipShopItem,
+      claimReward,
+      markClaimDone,
+      setSpecialRewards,
       addCheckIn,
       addMissionLog,
       saveParentLog,

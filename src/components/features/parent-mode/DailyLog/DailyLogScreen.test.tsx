@@ -6,6 +6,7 @@ import { AppStateProvider } from "@/components/providers/AppStateProvider";
 import { MISSION_IDS } from "@/config/content-ids";
 import { sessionStore } from "@/hooks/useParentSession";
 import { todayKey } from "@/lib/dates";
+import { createDefaultEconomy } from "@/lib/economy";
 import { createPinRecord } from "@/lib/pin";
 import { saveState, STORAGE_KEY } from "@/lib/storage";
 import { renderWithTheme } from "@/test/renderWithTheme";
@@ -50,6 +51,7 @@ async function seedReadyState(): Promise<AppState> {
       equippedItemIds: [],
       badgeIds: [],
     },
+    economy: createDefaultEconomy(),
     checkIns: [],
     missionLogs: [],
     parentLogs: [],

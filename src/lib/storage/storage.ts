@@ -1,3 +1,4 @@
+import { createDefaultEconomy } from "@/lib/economy";
 import { syncCompanion } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { appStateSchema } from "./schemas";
@@ -19,6 +20,7 @@ export function createEmptyState(): AppState {
       equippedItemIds: [],
       badgeIds: [],
     },
+    economy: createDefaultEconomy(),
     checkIns: [],
     missionLogs: [],
     parentLogs: [],
