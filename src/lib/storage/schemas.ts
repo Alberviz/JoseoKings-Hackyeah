@@ -22,6 +22,8 @@ import type {
   MissionCompany,
   MissionConfirmation,
   MissionLog,
+  MissionMoodAfter,
+  MissionMoodBefore,
   MissionStatus,
   ParentLog,
   ParentSettings,
@@ -77,6 +79,18 @@ export const missionConfirmationSchema: z.ZodType<MissionConfirmation> = z.enum(
   "other-tap",
 ]);
 
+export const missionMoodBeforeSchema: z.ZodType<MissionMoodBefore> = z.enum([
+  "calm",
+  "strong",
+  "amazing",
+]);
+
+export const missionMoodAfterSchema: z.ZodType<MissionMoodAfter> = z.enum([
+  "exhausted",
+  "chill",
+  "great",
+]);
+
 export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   id: z.string(),
   date: dateKeySchema,
@@ -85,6 +99,8 @@ export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   company: missionCompanySchema,
   confirmedBy: missionConfirmationSchema,
   createdAt: z.string(),
+  moodBefore: missionMoodBeforeSchema.optional(),
+  moodAfter: missionMoodAfterSchema.optional(),
 });
 
 export const activityLevelSchema: z.ZodType<ActivityLevel> = z.enum([
