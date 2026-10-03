@@ -65,44 +65,8 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
         fire: 40,
         coinsSpent: 0,
       },
-      // 5 check-ins = 25 coins
-      checkIns: [
-        {
-          id: "c1",
-          date: "2026-09-01",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-01T10:00:00Z",
-        },
-        {
-          id: "c2",
-          date: "2026-09-02",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-02T10:00:00Z",
-        },
-        {
-          id: "c3",
-          date: "2026-09-03",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-03T10:00:00Z",
-        },
-        {
-          id: "c4",
-          date: "2026-09-04",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-04T10:00:00Z",
-        },
-        {
-          id: "c5",
-          date: "2026-09-05",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-05T10:00:00Z",
-        },
-      ],
+      // Initial coins = 100
+      checkIns: [],
       missionLogs: [],
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(customState));
