@@ -136,7 +136,7 @@ Rules that go with it:
 - **`"use client"` at the top of every `.tsx` component** that renders styled components (styled-components needs the browser runtime). Pages in `src/app` stay server components and just render one feature screen.
 - **Use the theme**, never hard-coded colors, sizes or spacing: `theme.colors.*`, `theme.spacing.*`, `theme.radius.*`, `theme.fontSize.*`.
 - **Props that only drive styles start with `$`** (`$variant`, `$isClose`) so they do not reach the DOM.
-- **Reuse the primitives** in `src/components/ui` (`Screen`, `Stack`, `Heading`, `Text`, `Button`, `LinkButton`, `Card`) before creating a new styled element. Import them from `@/components/ui`.
+- **Reuse the primitives** in `src/components/ui` (`Screen`, `Stack`, `Heading`, `Text`, `Button`, `LinkButton`, `Card`, `OptionButton`, `OptionGroup`, `TextField`, `Dialog`, `ProgressBar`, `Chip`) before creating a new styled element. Import them from `@/components/ui`.
 - Use semantic elements in `.style.ts`: `styled.button` for actions, `styled.nav`, `styled.article`, `styled.ul`... not `styled.div` everywhere.
 - One component per file, named export, PascalCase file name equal to the component name.
 - Only `src/app/layout.tsx` may contain `<html>` and `<body>`.

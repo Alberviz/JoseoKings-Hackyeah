@@ -4,10 +4,12 @@ export const theme = {
     // Purple is the IBD awareness color.
     primary: "#5B3FA8",
     primaryHover: "#4A3289",
+    primarySoft: "#EDE8FA",
     onPrimary: "#FFFFFF",
     urgent: "#B3261E",
     onUrgent: "#FFFFFF",
     success: "#1E7A46",
+    successSoft: "#E3F3EA",
     background: "#FAF8FF",
     surface: "#FFFFFF",
     border: "#D9D3E8",
