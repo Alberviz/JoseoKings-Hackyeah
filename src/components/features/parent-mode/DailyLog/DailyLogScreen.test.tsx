@@ -97,6 +97,7 @@ describe("DailyLogScreen (T12)", () => {
     );
 
     await screen.findByRole("heading", { name: "Daily log" });
+    expect(screen.getByText("Facts for Lucas. No drug names or doses.")).toBeTruthy();
 
     fireEvent.change(screen.getByLabelText("Sleep hours"), { target: { value: "9" } });
     fireEvent.click(screen.getByRole("button", { name: "Light" }));
