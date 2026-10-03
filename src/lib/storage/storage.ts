@@ -48,7 +48,13 @@ export function loadState(): AppState {
     return createEmptyState();
   }
 
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  let raw: string | null = null;
+  try {
+    raw = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return createEmptyState();
+  }
+
   if (!raw) {
     return createEmptyState();
   }
@@ -63,25 +69,55 @@ export function loadState(): AppState {
     }
 
     // Validation failed: save raw to backup and fall back to empty state
-    window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+    try {
+      window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+    } catch {
+      // Ignore quota/private browsing write errors
+    }
     return createEmptyState();
   } catch {
     // Malformed JSON: save raw to backup and fall back to empty state
-    window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+    try {
+      window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+    } catch {
+      // Ignore quota/private browsing write errors
+    }
     return createEmptyState();
   }
 }
 
 /**
  * Saves the application state to localStorage after schema validation.
+ * Wrapped in try/catch to protect against storage quota and private mode errors.
  */
-export function saveState(state: AppState): void {
+export function saveState(state: AppState): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return false;
+  }
+
+  try {
+    const validated = appStateSchema.parse(state);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Removes both the main state and any backup copy from localStorage.
+ */
+export function clearStorage(): void {
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
 
-  const validated = appStateSchema.parse(state);
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 /**

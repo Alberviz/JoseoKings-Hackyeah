@@ -1,7 +1,16 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { STORAGE_KEY, createEmptyState, loadState, saveState } from "@/lib/storage";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { clearStorage, createEmptyState, loadState, saveState } from "@/lib/storage";
 import type {
   AppState,
   CheckIn,
@@ -20,6 +29,7 @@ export type AppStateActions = {
   addFoodEntry: (entry: FoodEntry) => void;
   addConsultation: (consultation: Consultation) => void;
   equipItem: (itemId: string) => void;
+  unequipItem: (itemId: string) => void;
   setSettings: (settings: ParentSettings) => void;
   setChild: (child: ChildProfile) => void;
   loadDemo: (demoState: AppState) => void;
@@ -29,6 +39,7 @@ export type AppStateActions = {
 export type AppStateContextValue = {
   state: AppState;
   actions: AppStateActions;
+  isReady: boolean;
 };
 
 export const AppStateContext = createContext<AppStateContextValue | null>(null);
@@ -38,135 +49,142 @@ type AppStateProviderProps = {
 };
 
 export function AppStateProvider({ children }: AppStateProviderProps) {
-  const [state, setState] = useState<AppState>(() => loadState());
+  // Start with empty state to prevent SSR/client hydration mismatch
+  const [state, setState] = useState<AppState>(createEmptyState);
+  const [isReady, setIsReady] = useState(false);
+  const isClearingRef = useRef(false);
 
-  const updateState = useCallback((updater: (prev: AppState) => AppState) => {
+  // Load from localStorage on client mount
+  useEffect(() => {
+    let mounted = true;
+    Promise.resolve().then(() => {
+      if (mounted) {
+        setState(loadState());
+        setIsReady(true);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Save to localStorage whenever state changes after initial hydration
+  useEffect(() => {
+    if (!isReady) return;
+    if (isClearingRef.current) {
+      isClearingRef.current = false;
+      return;
+    }
+    saveState(state);
+  }, [state, isReady]);
+
+  const addCheckIn = useCallback((checkIn: CheckIn) => {
     setState((prev) => {
-      const next = updater(prev);
-      saveState(next);
-      return next;
+      // Replace check-in by date to prevent duplicate check-ins on the same day
+      const existingIndex = prev.checkIns.findIndex((c) => c.date === checkIn.date);
+      const nextCheckIns =
+        existingIndex >= 0
+          ? prev.checkIns.map((c, i) => (i === existingIndex ? checkIn : c))
+          : [...prev.checkIns, checkIn];
+
+      return {
+        ...prev,
+        checkIns: nextCheckIns,
+      };
     });
   }, []);
 
-  const addCheckIn = useCallback(
-    (checkIn: CheckIn) => {
-      updateState((prev) => {
-        const existingIndex = prev.checkIns.findIndex((c) => c.id === checkIn.id);
-        const nextCheckIns =
-          existingIndex >= 0
-            ? prev.checkIns.map((c, i) => (i === existingIndex ? checkIn : c))
-            : [...prev.checkIns, checkIn];
+  const addMissionLog = useCallback((log: MissionLog) => {
+    setState((prev) => ({
+      ...prev,
+      missionLogs: [...prev.missionLogs, log],
+    }));
+  }, []);
 
-        return {
-          ...prev,
-          checkIns: nextCheckIns,
-        };
-      });
-    },
-    [updateState],
-  );
+  const saveParentLog = useCallback((log: ParentLog) => {
+    setState((prev) => {
+      const existingIndex = prev.parentLogs.findIndex((p) => p.date === log.date);
+      const nextLogs =
+        existingIndex >= 0
+          ? prev.parentLogs.map((p, i) => (i === existingIndex ? log : p))
+          : [...prev.parentLogs, log];
 
-  const addMissionLog = useCallback(
-    (log: MissionLog) => {
-      updateState((prev) => ({
+      return {
         ...prev,
-        missionLogs: [...prev.missionLogs, log],
-      }));
-    },
-    [updateState],
-  );
+        parentLogs: nextLogs,
+      };
+    });
+  }, []);
 
-  const saveParentLog = useCallback(
-    (log: ParentLog) => {
-      updateState((prev) => {
-        const existingIndex = prev.parentLogs.findIndex((p) => p.date === log.date);
-        const nextLogs =
-          existingIndex >= 0
-            ? prev.parentLogs.map((p, i) => (i === existingIndex ? log : p))
-            : [...prev.parentLogs, log];
+  const addFoodEntry = useCallback((entry: FoodEntry) => {
+    setState((prev) => ({
+      ...prev,
+      foodEntries: [...prev.foodEntries, entry],
+    }));
+  }, []);
 
-        return {
-          ...prev,
-          parentLogs: nextLogs,
-        };
-      });
-    },
-    [updateState],
-  );
+  const addConsultation = useCallback((consultation: Consultation) => {
+    setState((prev) => ({
+      ...prev,
+      consultations: [...prev.consultations, consultation],
+    }));
+  }, []);
 
-  const addFoodEntry = useCallback(
-    (entry: FoodEntry) => {
-      updateState((prev) => ({
+  const equipItem = useCallback((itemId: string) => {
+    setState((prev) => {
+      // Must be owned to equip
+      if (!prev.companion.ownedItemIds.includes(itemId)) {
+        return prev;
+      }
+
+      if (prev.companion.equippedItemIds.includes(itemId)) {
+        return prev;
+      }
+
+      return {
         ...prev,
-        foodEntries: [...prev.foodEntries, entry],
-      }));
-    },
-    [updateState],
-  );
+        companion: {
+          ...prev.companion,
+          equippedItemIds: [...prev.companion.equippedItemIds, itemId],
+        },
+      };
+    });
+  }, []);
 
-  const addConsultation = useCallback(
-    (consultation: Consultation) => {
-      updateState((prev) => ({
-        ...prev,
-        consultations: [...prev.consultations, consultation],
-      }));
-    },
-    [updateState],
-  );
+  const unequipItem = useCallback((itemId: string) => {
+    setState((prev) => ({
+      ...prev,
+      companion: {
+        ...prev.companion,
+        equippedItemIds: prev.companion.equippedItemIds.filter((id) => id !== itemId),
+      },
+    }));
+  }, []);
 
-  const equipItem = useCallback(
-    (itemId: string) => {
-      updateState((prev) => {
-        const isEquipped = prev.companion.equippedItemIds.includes(itemId);
-        const nextEquipped = isEquipped
-          ? prev.companion.equippedItemIds.filter((id) => id !== itemId)
-          : [...prev.companion.equippedItemIds, itemId];
+  const setSettings = useCallback((settings: ParentSettings) => {
+    setState((prev) => ({
+      ...prev,
+      settings,
+    }));
+  }, []);
 
-        return {
-          ...prev,
-          companion: {
-            ...prev.companion,
-            equippedItemIds: nextEquipped,
-          },
-        };
-      });
-    },
-    [updateState],
-  );
-
-  const setSettings = useCallback(
-    (settings: ParentSettings) => {
-      updateState((prev) => ({
-        ...prev,
-        settings,
-      }));
-    },
-    [updateState],
-  );
-
-  const setChild = useCallback(
-    (child: ChildProfile) => {
-      updateState((prev) => ({
-        ...prev,
-        child,
-      }));
-    },
-    [updateState],
-  );
+  const setChild = useCallback((child: ChildProfile) => {
+    setState((prev) => ({
+      ...prev,
+      child,
+    }));
+  }, []);
 
   const loadDemo = useCallback((demoState: AppState) => {
-    const stateToLoad: AppState = {
+    setState({
       ...demoState,
       isDemo: true,
-    };
-    saveState(stateToLoad);
-    setState(stateToLoad);
+    });
   }, []);
 
   const clearAll = useCallback(() => {
-    if (typeof window !== "undefined" && window.localStorage) {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
+    isClearingRef.current = true;
+    clearStorage();
     setState(createEmptyState());
   }, []);
 
@@ -178,6 +196,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       addFoodEntry,
       addConsultation,
       equipItem,
+      unequipItem,
       setSettings,
       setChild,
       loadDemo,
@@ -190,6 +209,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       addFoodEntry,
       addConsultation,
       equipItem,
+      unequipItem,
       setSettings,
       setChild,
       loadDemo,
@@ -201,8 +221,9 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     () => ({
       state,
       actions,
+      isReady,
     }),
-    [state, actions],
+    [state, actions, isReady],
   );
 
   return <AppStateContext.Provider value={contextValue}>{children}</AppStateContext.Provider>;

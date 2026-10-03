@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   BACKUP_STORAGE_KEY,
   STORAGE_KEY,
+  clearStorage,
   createEmptyState,
   exportBackup,
   importBackup,
@@ -17,6 +18,7 @@ describe("storage layer", () => {
 
   afterEach(() => {
     localStorage.clear();
+    vi.restoreAllMocks();
   });
 
   it("createEmptyState returns valid schemaVersion 1 empty state", () => {
@@ -57,7 +59,8 @@ describe("storage layer", () => {
       createdAt: "2026-10-03T10:00:00.000Z",
     });
 
-    saveState(initial);
+    const success = saveState(initial);
+    expect(success).toBe(true);
 
     const rawInStorage = localStorage.getItem(STORAGE_KEY);
     expect(rawInStorage).not.toBeNull();
@@ -87,6 +90,46 @@ describe("storage layer", () => {
     const loaded = loadState();
     expect(loaded).toEqual(createEmptyState());
     expect(localStorage.getItem(BACKUP_STORAGE_KEY)).toBe(invalidJson);
+  });
+
+  it("rejects invalid date format in schemas", () => {
+    const invalidDateState = {
+      ...createEmptyState(),
+      checkIns: [
+        {
+          id: "ci-1",
+          date: "not-a-date",
+          answers: {},
+          notToday: false,
+          createdAt: "2026-10-03T10:00:00.000Z",
+        },
+      ],
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(invalidDateState));
+
+    const loaded = loadState();
+    expect(loaded).toEqual(createEmptyState());
+    expect(localStorage.getItem(BACKUP_STORAGE_KEY)).not.toBeNull();
+  });
+
+  it("saveState catches QuotaExceededError and returns false instead of throwing", () => {
+    const state = createEmptyState();
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("QuotaExceededError");
+    });
+
+    expect(() => saveState(state)).not.toThrow();
+    expect(saveState(state)).toBe(false);
+  });
+
+  it("clearStorage deletes both active state and backup copies", () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(createEmptyState()));
+    localStorage.setItem(BACKUP_STORAGE_KEY, "corrupt-data");
+
+    clearStorage();
+
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(localStorage.getItem(BACKUP_STORAGE_KEY)).toBeNull();
   });
 
   it("migrate passes through valid schemaVersion 1 data", () => {

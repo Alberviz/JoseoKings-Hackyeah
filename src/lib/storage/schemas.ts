@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isDateKey } from "@/lib/dates";
 import type {
   ActivityLevel,
   AppState,
@@ -7,6 +8,7 @@ import type {
   ChildProfile,
   CompanionState,
   Consultation,
+  DateKey,
   FoodEntry,
   MedicationTaken,
   MissionCompany,
@@ -17,6 +19,10 @@ import type {
   ParentSettings,
   SchoolDay,
 } from "@/types";
+
+export const dateKeySchema: z.ZodType<DateKey> = z
+  .string()
+  .refine(isDateKey, { message: "Invalid date format, expected YYYY-MM-DD" });
 
 export const childProfileSchema: z.ZodType<ChildProfile> = z.object({
   nickname: z.string(),
@@ -44,7 +50,7 @@ export const checkInAnswerSchema: z.ZodType<CheckInAnswer> = z.union([
 
 export const checkInSchema: z.ZodType<CheckIn> = z.object({
   id: z.string(),
-  date: z.string(),
+  date: dateKeySchema,
   answers: z.record(z.string(), checkInAnswerSchema),
   notToday: z.boolean(),
   childNote: z.string().optional(),
@@ -63,7 +69,7 @@ export const missionConfirmationSchema: z.ZodType<MissionConfirmation> = z.enum(
 
 export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   id: z.string(),
-  date: z.string(),
+  date: dateKeySchema,
   missionId: z.string(),
   status: missionStatusSchema,
   company: missionCompanySchema,
@@ -93,7 +99,7 @@ export const medicationTakenSchema: z.ZodType<MedicationTaken> = z.enum([
 ]);
 
 export const parentLogSchema: z.ZodType<ParentLog> = z.object({
-  date: z.string(),
+  date: dateKeySchema,
   sleepHours: z.number().optional(),
   activity: activityLevelSchema.optional(),
   school: schoolDaySchema.optional(),
@@ -103,7 +109,7 @@ export const parentLogSchema: z.ZodType<ParentLog> = z.object({
 
 export const foodEntrySchema: z.ZodType<FoodEntry> = z.object({
   id: z.string(),
-  date: z.string(),
+  date: dateKeySchema,
   text: z.string(),
   relatedCheckInId: z.string().optional(),
   createdAt: z.string(),
@@ -111,7 +117,7 @@ export const foodEntrySchema: z.ZodType<FoodEntry> = z.object({
 
 export const consultationSchema: z.ZodType<Consultation> = z.object({
   id: z.string(),
-  date: z.string(),
+  date: dateKeySchema,
 });
 
 export const appStateSchema: z.ZodType<AppState> = z.object({
