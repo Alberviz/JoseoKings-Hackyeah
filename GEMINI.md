@@ -10,15 +10,24 @@ You implement **one task from `docs/TASKS.md` at a time**, on its own branch, an
 
 ## Start of every session
 
-1. Ask the human which task (`T1`, `T2`...) they are working on. If they do not know, show the open tasks in `docs/TASKS.md` whose dependencies are done.
-2. Read the task row in `docs/TASKS.md`: its **Folders** are the only places you may edit, and **New deps allowed** are the only packages you may add.
-3. Make sure you are on a task branch, not `main`:
+1. Read `docs/PRODUCT.md` and `docs/ARCHITECTURE.md`. They define the product, the data model and the routes, and they win over any older draft (`IDEA.md`, research notes, other branches).
+2. Ask the human which task (`T1`, `T2`...) they are working on. The owner of each task is listed in `docs/TASKS.md`. If they do not know, show the tasks assigned to them.
+3. Read the task section in `docs/TASKS.md`: its **Folders** are the only places you may edit, and **New deps allowed** are the only packages you may add.
+4. Make sure you are on a task branch, not `main`:
    ```sh
    git switch main && git pull && git switch -c feat/<task-id>-<short-name>
    ```
-4. Look at an existing component (for example `src/components/ui/Button/`) and copy its pattern.
-5. If the task needs a Next.js API you are not sure about, read the guide in `node_modules/next/dist/docs/` first. This is Next.js 16.
-6. Skim `ERRORS.md`, especially entries with status `open` and any that mention your task.
+5. Look at an existing component (for example `src/components/ui/Button/`) and copy its pattern.
+6. If the task needs a Next.js API you are not sure about, read the guide in `node_modules/next/dist/docs/` first. This is Next.js 16.
+7. Skim `ERRORS.md`, especially entries with status `open` and any that mention your task.
+
+## Product rules you must not break
+
+- No medical advice, no predictions, no invented indexes. Use only the wording allowed in `docs/PRODUCT.md` section 6.
+- Rewards never depend on the child's answers or on the mission kind. No punishment mechanics.
+- No health data to any server. No backend, no accounts, no analytics.
+- Do not build the paused restroom map or menu reader.
+- If an older file says something different from `docs/PRODUCT.md`, follow `docs/PRODUCT.md` and tell the human.
 
 ## When you hit an error
 

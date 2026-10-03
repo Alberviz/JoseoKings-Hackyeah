@@ -21,6 +21,8 @@
 - [ ] Every `.tsx` only composes components; styles live in the sibling `.style.ts`
 - [ ] Everything is in English (code, comments, UI copy, this PR)
 - [ ] No API keys, no health data sent to a server
+- [ ] No medical advice or claims; wording follows `docs/PRODUCT.md` section 6
+- [ ] Rewards do not depend on answers or mission kind; no punishment mechanics (if my task touches rewards)
 - [ ] New env vars are listed in `.env.example`
 - [ ] Errors I hit are logged at the end of `ERRORS.md` (append only)
 - [ ] I did not change shared files (`src/theme`, `src/components/ui`, `src/types`, configs) without approval

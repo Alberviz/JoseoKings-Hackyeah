@@ -15,22 +15,39 @@ The rules for every AI agent and every human in this repository.
 
 ---
 
+## 0. Read these first (every agent, every session)
+
+1. This file (`AGENTS.md`): the rules.
+2. [`docs/PRODUCT.md`](docs/PRODUCT.md): what we build and the product rules. It wins over any draft, `IDEA.md` or research note.
+3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the data model, routes, folders and who owns what.
+4. Your task in [`docs/TASKS.md`](docs/TASKS.md), and [`docs/TEAM.md`](docs/TEAM.md) for roles.
+5. [`ERRORS.md`](ERRORS.md) before debugging.
+
+If two documents disagree, the order above decides. If something is unclear, **ask; do not guess**.
+
+---
+
 ## 1. The project
 
-**CrohnCare** (working name) is a Progressive Web App for people living with Crohn's disease, built at HackYeah 2026 (Kraków, 3-4 October 2026). Hacking ends **Sunday 4 October, 11:00**.
+**CrohnCare** (working name) is a Progressive Web App for families with a child aged 8 to 12 who has inflammatory bowel disease (Crohn's disease or ulcerative colitis), built at HackYeah 2026 (Kraków, 3-4 October 2026), category **Sport & Healthcare**. Hacking ends **Sunday 4 October, 11:00**.
+
+In one sentence: the child plays with a companion and tells how they feel without being questioned; parents and the doctor get that information in an organised, honest form.
 
 What we build (and nothing else):
 
-- **Pillar A, urgent restroom map**: nearest accessible restroom by walking time, walking route, 2/4/6-minute rings, offline, plus an access card in Polish.
-- **Pillar B, menu reader**: photo of a restaurant menu, then a traffic light per dish based on the trigger foods the user marked in their local profile.
+- **Child mode:** a daily check-in on drawings, a companion that does gentle movement missions with the child (alone, with family or with someone else), and rewards for steadiness.
+- **Parent mode (PIN):** summary of what the child marked, daily log, reactive food diary, patterns.
+- **Doctor report:** one page since the last consultation, printable or saved as PDF on the device.
 
-The task list with the folders each task may touch is in [`docs/TASKS.md`](docs/TASKS.md). Team decisions are in [`docs/DECISIONS.md`](docs/DECISIONS.md). Known errors and their fixes are in [`ERRORS.md`](ERRORS.md).
+The restroom map and the menu reader were paused on 2026-10-03 and are out of scope. Full definition: [`docs/PRODUCT.md`](docs/PRODUCT.md). The task list with the folders each task may touch is in [`docs/TASKS.md`](docs/TASKS.md). Team decisions are in [`docs/DECISIONS.md`](docs/DECISIONS.md). Known errors and their fixes are in [`ERRORS.md`](ERRORS.md).
 
 ### Domain rules (never break these)
 
-- **Health data stays on the device.** Symptoms, trigger foods, needs and location history are never sent to our server or any analytics. The only things that leave the phone are: a menu photo (to the analysis endpoint) and coordinates (to the routing endpoint), never linked to a user.
-- **No medical advice.** No diagnosing, no treatment suggestions, no "this will make you sick". We say "contains X, which you marked".
-- **No accounts, no login.**
+- **Health data stays on the device.** Check-ins, mission records, sleep, school, medication-taken, food entries and everything else are never sent to a server or any analytics. There is no backend for health data, no accounts, no login, no cloud sync.
+- **No medical advice.** No diagnosing, no treatment suggestions, no predictions, no scores or indexes that look clinical, no claims that exercise treats or prevents anything. The app records and summarises what the family entered and never explains why. Allowed and forbidden words are in `docs/PRODUCT.md` section 6.
+- **Reward the act, never the answer.** Rewards never depend on what the child answered or on the mission kind. No punishment, no streak that breaks, no sad or sick companion. See `docs/PRODUCT.md` section 5.2.
+- **Honest data.** Activity is never presented as measured. Records carry a neutral confidence label (`docs/PRODUCT.md` section 5.3). Demo data is always labelled "Demo data".
+- **No drug names, doses or personal identifiers** in the code, the demo data or the UI.
 - **Accessibility is part of the product**: touch targets at least 48 px, visible focus, labels on every control, readable at 360 px wide.
 
 ---
@@ -42,9 +59,8 @@ The task list with the folders each task may touch is in [`docs/TASKS.md`](docs/
 | Framework       | Next.js 16 (App Router, Turbopack) + React 19 + TypeScript strict                                    |
 | Styling         | styled-components 6, theme in `src/theme/theme.ts`                                                   |
 | PWA             | Serwist (`@serwist/turbopack`): service worker in `src/app/sw.ts`, manifest in `src/app/manifest.ts` |
-| Map             | MapLibre GL JS + OpenStreetMap data (task T2)                                                        |
-| Routing         | OpenRouteService through our route handlers (tasks T3, T4)                                           |
-| Menu analysis   | Gemini API through our route handler (task T8)                                                       |
+| Validation      | zod (approved for task T1) for everything read from `localStorage`                                   |
+| Report / PDF    | Browser print (`window.print()`) with print CSS. No PDF library                                      |
 | Local storage   | `localStorage` via typed helpers in `src/lib/`                                                       |
 | Tests           | Vitest + Testing Library (`*.test.ts(x)` next to the code)                                           |
 | Quality gate    | ESLint + Prettier + TypeScript, run on staged files before each commit, and in CI on each PR         |
@@ -133,16 +149,17 @@ src/
   components/
     ui/                      # shared primitives (owned by Alberto + Claude)
     providers/               # theme, styled-components registry, service worker (owned by Alberto + Claude)
-    features/<feature>/      # one folder per feature: restroom-map, menu-reader, profile, access-card...
+    features/<feature>/      # one folder per feature: child-mode, companion, missions, parent-mode, patterns, doctor-report
       <Component>/<Component>.tsx + .style.ts
-  lib/<topic>/               # pure TypeScript logic, no React. Unit-tested.
+  lib/<topic>/               # pure TypeScript logic, no React. Unit-tested: storage, rewards, pin, patterns, report, demo-data
+  content/                   # typed static content written by the clinical team: questions, missions, disclaimers
   hooks/                     # React hooks (useSomething.ts)
   types/                     # shared types (owned by Alberto + Claude)
   config/                    # app constants and routes
   theme/                     # design tokens and global style (owned by Alberto + Claude)
-scripts/                     # one-off Node scripts (data download)
-public/                      # icons, static data
-docs/                        # TASKS.md, DECISIONS.md
+scripts/                     # one-off Node scripts
+public/                      # icons
+docs/                        # PRODUCT.md, ARCHITECTURE.md, TASKS.md, TEAM.md, DECISIONS.md, HANDOFF.md
 ```
 
 ### 3.4 TypeScript
@@ -162,11 +179,11 @@ docs/                        # TASKS.md, DECISIONS.md
 
 ### Who does what
 
-| Who       | Tool                     | Role                                                            |
-| :-------- | :----------------------- | :-------------------------------------------------------------- |
-| Alberto   | Claude Code              | Product owner. Approves scope. **Reviews and merges every PR.** |
-| Claude    | Claude Code              | Lead engineer with Alberto: architecture, shared code, reviews. |
-| Teammates | Gemini CLI / Antigravity | Implement tasks from `docs/TASKS.md`, one at a time.            |
+| Who       | Tool                                      | Role                                                                          |
+| :-------- | :---------------------------------------- | :---------------------------------------------------------------------------- |
+| Alberto   | Claude Code                               | Product owner. Approves scope. **Reviews and merges every PR.**               |
+| Claude    | Claude Code                               | Lead engineer with Alberto: architecture, shared code, reviews.               |
+| Teammates | Gemini CLI, Antigravity or other AI tools | Implement tasks from `docs/TASKS.md`, one at a time. Owners are listed there. |
 
 ### The flow for every change
 
@@ -174,20 +191,20 @@ docs/                        # TASKS.md, DECISIONS.md
 2. **Update and branch**:
    ```sh
    git switch main && git pull
-   git switch -c feat/t2-map-view
+   git switch -c feat/t5-companion
    ```
    Branch prefixes: `feat/`, `fix/`, `chore/`, `docs/`. Lowercase, hyphens, task ID first.
 3. **Implement** only inside the task's folders. Run `pnpm dev` and check it at 360 px wide.
 4. **Commit small and often** with Conventional Commits (the `commit-msg` hook rejects anything else):
    ```
-   feat(restroom-map): show restrooms colored by confidence
-   fix(menu-reader): handle photos larger than 5 MB
+   feat(companion): add breathe and balance poses
+   fix(check-in): keep the answer when going back
    ```
 5. **Pre-commit check ("prelint")** runs automatically on staged files: ESLint with auto-fix, Prettier, and a TypeScript check. If it fails, **fix the cause**. Never use `git commit --no-verify`, never add `eslint-disable` to get past the main rule.
 6. **Before pushing**, run `pnpm check` (typecheck + lint + test + build). It must pass.
 7. **Push and open a PR** to `main`:
    ```sh
-   git push -u origin feat/t2-map-view
+   git push -u origin feat/t5-companion
    gh pr create --fill
    ```
    Fill the PR template. Write `Closes #<issue>`. Add a phone-width screenshot for UI changes.
@@ -285,7 +302,7 @@ The service worker is only registered in production builds; to test offline, run
 git clone git@github.com:Alberviz/JoseoKings-Hackyeah.git
 cd JoseoKings-Hackyeah
 pnpm install            # also installs the pre-commit hooks
-cp .env.example .env.local   # then ask Alberto for the keys
+cp .env.example .env.local   # v1 needs no keys; the file only lists paused features
 pnpm dev
 ```
 
