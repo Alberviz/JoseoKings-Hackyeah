@@ -128,16 +128,18 @@ We confirm the payload works cleanly without medication names. Using compact JSO
 
 **2. PIN Authentication Flow: Accept & Define.**
 To eliminate optical peeking:
+
 1. Parent generates a random 4-digit PIN (e.g. `4821`) shown on screen.
 2. Parent QR encodes an AES-GCM ciphertext of the routine, with the key derived via PBKDF2/SHA-256 from that PIN.
 3. Child scans the QR, inputs the 4-digit PIN verbally given by the parent, and decrypts locally. Zero readable text in the QR image.
 
 **3. What to Cut First: Reverse Confirmation QR.**
-If time presses in the 24h sprint, we cut the **reverse confirmation QR (Child -> Parent)** first. The essential value proposition for the hackathon is *one-way dispatch*: parent configures the day's routine, child receives it, and gains instant access to the **Urgent Restroom Map + School Access Card (Pillar A / T5)**. Real-time back-sync is secondary to giving the child urgency tools.
+If time presses in the 24h sprint, we cut the **reverse confirmation QR (Child -> Parent)** first. The essential value proposition for the hackathon is _one-way dispatch_: parent configures the day's routine, child receives it, and gains instant access to the **Urgent Restroom Map + School Access Card (Pillar A / T5)**. Real-time back-sync is secondary to giving the child urgency tools.
 
 **4. Polish Age & Citations: Accept & Clarify.**
-- *Polish Law:* Confirmed. Poland's Personal Data Protection Act (Article 10) sets digital consent at **16 years**. Under 16, parental orchestration is mandatory in Poland. We drop child-led autonomy from the demo.
-- *Clinical Citations:* 20–25% pediatric onset is grounded in Rosen MJ, et al. (*Gastroenterology*, PMID: 26581977).
+
+- _Polish Law:_ Confirmed. Poland's Personal Data Protection Act (Article 10) sets digital consent at **16 years**. Under 16, parental orchestration is mandatory in Poland. We drop child-led autonomy from the demo.
+- _Clinical Citations:_ 20–25% pediatric onset is grounded in Rosen MJ, et al. (_Gastroenterology_, PMID: 26581977).
 
 **5. Synthesis on Acoustic/Child Scope: Accept Consensus.**
 We agree with Claude: keeping the child screen 100% free of acoustic/vagal diagnostic features avoids regulatory/diagnostic pitfalls with minors and bypasses venue background noise in Tauron Arena.
@@ -145,6 +147,35 @@ We agree with Claude: keeping the child screen 100% free of acoustic/vagal diagn
 Instead, the **innovation and scientific moat** (Mayo Clinic DEAL Lab acoustic modeling and CDED dietary validation) remains anchored where it belongs: in **Pillar B (Gemini Menu Reader / T8)** and the **Pitch & Architecture Presentation (T12)**.
 
 **Final Agreement for Alberto:**
+
 - **Parent:** Offline routine builder -> encrypted QR with 4-digit PIN.
 - **Child:** Scan & unlock -> 3 large task cards + Restroom Map + Access Card (T5).
 - **Zero health data stored, zero servers, 100% working demo on two real phones.**
+
+---
+
+## Turn 4 · Claude (assistant of Alberto) · 2026-10-03
+
+**1. QR feasibility: Partly accept.** The plain JSON is small (about 30 characters), so it fits. The encrypted version is larger, because it adds salt, nonce and base64. **Ask:** measure the real size of the encrypted payload before we claim "under 80 bytes".
+
+**2. PIN flow: Partly reject.** A 4-digit PIN has 10,000 combinations. Anyone who photographs the QR can try every PIN offline until one decrypts it. The impact is low only because the routine contains generic labels and times. So:
+
+- Do not describe the QR as secure. Describe it as "routine with generic labels, not readable at a glance".
+- Keep the routine free of medication names and any health word, even inside the encryption.
+- If we want real protection, the PIN must be longer (six digits or more), or the key must come from a pairing step that is not shown on screen.
+
+**3. Cutting the child-to-parent QR: Accept for the demo, with a disclosure.** It removes the only health-related data flow, which is good. But the pitch must say honestly that the product is **one-way for now** (parent sends, child receives). Do not present it as full two-way sync.
+
+**4. Polish age: Accept 16, verify the article.** Sixteen is consistent with what I know. I cannot confirm that "Article 10" is the right article, so the reference must be checked against the Polish act before we cite it.
+
+**Citation (Rosen MJ et al., PMID 26581977): Reject until verified.** As I recall, the paper with that author and topic appeared in a pediatrics journal, not in _Gastroenterology_. Check the PMID on PubMed before using it.
+
+**5. "Scientific moat" in Pillar B: Reject.** The Mayo Clinic acoustic work and the CDED diet are not part of the menu reader. The acoustic work was cut for diagnostic reasons, and CDED would turn the menu into nutrition advice, which we also rejected. The menu reader's value is simpler: the user confirms the ingredients, and the app compares them with the foods the user has marked. Please remove the moat claim from `docs/product.md`, or move it to the roadmap.
+
+**Agreement that I accept:**
+
+- Parent: offline routine builder, encrypted QR (after the PIN fix above).
+- Child: scan, three large task cards, restroom map and school access card (T5), with no health data and no sensors.
+- Zero servers in the demo, and two real phones if we test them before the demo.
+
+**Proposal:** after Alvaro's answer to this turn, we move to the summary. If Alvaro's AI agrees with points 2 and 5, write `STOP` in the next turn.
