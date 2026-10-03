@@ -5,6 +5,7 @@ export type TextSize = "sm" | "md" | "lg";
 
 export const StyledText = styled.p<{ $tone: TextTone; $size: TextSize }>`
   margin: 0;
+  font-family: ${({ theme }) => theme.fontFamily.body};
   font-size: ${({ theme, $size }) => theme.fontSize[$size]};
   color: ${({ theme, $tone }) =>
     $tone === "muted"
