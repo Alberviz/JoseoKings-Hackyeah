@@ -113,7 +113,9 @@ Pure functions in `src/lib/rewards/`, with tests. The numbers are constants in o
 
 - Check-in answered: `+CHECK_IN_POINTS`. "Not today": `+NOT_TODAY_POINTS` (smaller). Mission `completed`: `+MISSION_POINTS`. Mission `rest`: `+REST_POINTS` (same as not today).
 - **The reward never depends on the value of an answer or on the mission kind.** There is a test that proves it.
-- Missions with `company` of `family` or `other` add `+1` to `teamStars`. This never changes `points`.
+- A `completed` mission with `company` of `family` or `other` adds `+1` to `teamStars`. This never changes `points`. A `rest` session never gives a star.
+- `syncCompanion(state)` recomputes points, stars, owned items and badges from the logs. It is idempotent and never takes anything away. **Call it after every check-in or mission is saved** (T1 does this inside the actions), so a check-in that is replaced the same day is never counted twice.
+- `equipItem` puts one item per slot. `nextUnlock(companion, track)` feeds the progress bar. `confidenceLabel(company)` gives the neutral labels of `PRODUCT.md` section 5.3.
 - "Care days" is the number of distinct days with a check-in or a rest or completed mission. It only goes up. Never expose a streak that resets.
 - Items unlock when `points` (main track) or `teamStars` (team track) pass `cost`. Nothing is ever taken away.
 
