@@ -54,7 +54,7 @@ export function ReportScreen() {
     <Screen>
       <NavigationBar>
         <LinkButton href={ROUTES.parent} variant="secondary">
-          ← Back to Parent Mode
+          ← Back to parent summary
         </LinkButton>
       </NavigationBar>
       <DoctorReportView data={report} />

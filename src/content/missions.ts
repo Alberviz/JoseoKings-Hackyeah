@@ -99,7 +99,7 @@ export const GENTLE_MISSIONS: Mission[] = [
     parentNote: "A shallow, gentle wall slide with easy breathing.",
     steps: [
       {
-        text: "Lean your back against a wall and slide down just a little bit, like on a tall stool. Keep breathing easily.",
+        text: "Lean your back against a wall and slide down a little, like sitting tall.",
         durationSeconds: 20,
         poseKey: "strength",
       },
@@ -109,7 +109,7 @@ export const GENTLE_MISSIONS: Mission[] = [
         poseKey: "idle",
       },
       {
-        text: "Lean gently against the wall again and hold a high, comfortable position while breathing smoothly.",
+        text: "Lean against the wall again and hold your spot while breathing smoothly.",
         durationSeconds: 20,
         poseKey: "strength",
       },

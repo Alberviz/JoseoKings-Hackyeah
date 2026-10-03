@@ -101,17 +101,25 @@ export const PLAY_GAMES: PlayGame[] = [
     kind: "strength",
     mode: "alone",
     level: 1,
-    parentNote: "Done sitting on a chair, with hand movements only.",
+    parentNote: "Done sitting on a chair, with gentle hand movements.",
     steps: [
       {
-        text: "Sit on a chair and imagine a balloon floating above you.",
+        text: "Sit back and picture a floating magic balloon above you.",
         durationSeconds: 10,
         poseKey: "tap-seated",
       },
-      { text: "Tap the balloon up with one hand.", durationSeconds: 15, poseKey: "tap-seated" },
-      { text: "Now tap it with your other hand.", durationSeconds: 15, poseKey: "tap-seated" },
       {
-        text: "Keep it in the air with both hands, nice and gentle.",
+        text: "Tap the magic balloon high with your left hand.",
+        durationSeconds: 15,
+        poseKey: "tap-seated",
+      },
+      {
+        text: "Boop it back up with your other hand.",
+        durationSeconds: 15,
+        poseKey: "tap-seated",
+      },
+      {
+        text: "Keep the floaty balloon in the air with soft taps.",
         durationSeconds: 20,
         poseKey: "tap-seated",
       },
@@ -119,25 +127,29 @@ export const PLAY_GAMES: PlayGame[] = [
   },
   {
     id: GAME_IDS.quickYoga,
-    title: "Quick Yoga",
+    title: "Cat & Dragon",
     kind: "stretch",
     mode: "alone",
     level: 1,
-    parentNote: "A slow cat and cow stretch on hands and knees, on a soft surface.",
+    parentNote: "A slow back and belly stretch on hands and knees, on a soft surface.",
     steps: [
-      { text: "Get on your hands and knees, like a cat.", durationSeconds: 10, poseKey: "cat-cow" },
       {
-        text: "Round your back up slowly, like a stretching cat.",
+        text: "Get on your hands and knees like a sleepy cat.",
+        durationSeconds: 10,
+        poseKey: "cat-cow",
+      },
+      {
+        text: "Arch your back up tall like a stretching cat.",
         durationSeconds: 15,
         poseKey: "cat-cow",
       },
       {
-        text: "Let your back dip gently and look ahead, like a cow.",
+        text: "Dip your back gently and peek ahead like a dragon.",
         durationSeconds: 15,
         poseKey: "cat-cow",
       },
       {
-        text: "Switch between cat and cow, slowly, with your breath.",
+        text: "Gently switch between cat and dragon with your breath.",
         durationSeconds: 20,
         poseKey: "cat-cow",
       },
@@ -154,28 +166,28 @@ export const PLAY_GAMES: PlayGame[] = [
     parentNote: "Gentle neck, arm and upper body stretches, standing or sitting.",
     steps: [
       {
-        text: "Roll the dice to see which stretch comes first.",
+        text: "Roll the dice to see which mystery stretch comes first.",
         durationSeconds: 10,
         poseKey: "hold-pose",
         iconKey: "dice",
       },
       {
-        text: "Tilt your head slowly to one side, then to the other.",
+        text: "Owl stretch: tilt your head gently from side to side.",
         durationSeconds: 15,
         poseKey: "stretch-neck",
       },
       {
-        text: "Reach one arm up and lean gently to the side.",
+        text: "Windmill stretch: reach high with one arm and sway sideways.",
         durationSeconds: 15,
         poseKey: "stretch-side",
       },
       {
-        text: "Reach the other arm up and lean the other way.",
+        text: "Switch arms and sway to the other side like a tall tree.",
         durationSeconds: 15,
         poseKey: "stretch-side",
       },
       {
-        text: "Turn your upper body slowly left and right.",
+        text: "Helicopter turn: rotate your shoulders smoothly side to side.",
         durationSeconds: 15,
         poseKey: "twist",
       },
@@ -352,14 +364,18 @@ export const PLAY_GAMES: PlayGame[] = [
         durationSeconds: 10,
         poseKey: "march",
       },
-      { text: "March in place: tick, tock, tick, tock.", durationSeconds: 20, poseKey: "march" },
+      {
+        text: "March in place to the steady beat: tick, tock, tick, tock.",
+        durationSeconds: 20,
+        poseKey: "march",
+      },
       {
         text: "Keep marching and lift your knees a little higher.",
         durationSeconds: 20,
         poseKey: "march",
       },
       {
-        text: "Swing your arms like clock hands while you march.",
+        text: "Swing your arms like giant clock hands in a tower.",
         durationSeconds: 20,
         poseKey: "march",
       },
@@ -374,29 +390,29 @@ export const PLAY_GAMES: PlayGame[] = [
   // --- Family, level 1 ---
   {
     id: GAME_IDS.seatedBallPass,
-    title: "Seated Ball Pass",
+    title: "Space Orb Pass",
     kind: "strength",
     mode: "family",
     level: 1,
-    parentNote: "Passing a soft ball or a balloon while sitting close together.",
+    parentNote: "Passing a soft ball or balloon while sitting close together.",
     steps: [
       {
-        text: "Sit close together with a soft ball or a balloon.",
+        text: "Sit close together with a soft ball or balloon.",
         durationSeconds: 10,
         poseKey: "tap-seated",
       },
       {
-        text: "Pass it gently to your grown-up with both hands.",
+        text: "Pass the space orb gently to your partner with two hands.",
         durationSeconds: 20,
         poseKey: "tap-seated",
       },
       {
-        text: "Now pass it back and forth with one hand.",
+        text: "Now pass the orb back and forth with one hand.",
         durationSeconds: 20,
         poseKey: "tap-seated",
       },
       {
-        text: "Try to keep it from touching the floor, together.",
+        text: "Keep the flying orb in the air without touching the floor.",
         durationSeconds: 20,
         poseKey: "tap-seated",
       },
@@ -477,21 +493,29 @@ export const PLAY_GAMES: PlayGame[] = [
   },
   {
     id: GAME_IDS.countAndWalk,
-    title: "Count and Walk",
+    title: "Detective Patrol",
     kind: "strength",
     mode: "family",
     level: 2,
     parentNote: "Walking together for about a minute, spotting things around the house.",
     steps: [
-      { text: "Walk together around the room or the house.", durationSeconds: 15, poseKey: "walk" },
       {
-        text: "Spot all the doors you pass and say each one out loud.",
+        text: "Start your detective patrol together around the room.",
+        durationSeconds: 15,
+        poseKey: "walk",
+      },
+      {
+        text: "Spot all the doors you pass and whisper their count.",
         durationSeconds: 20,
         poseKey: "walk",
       },
-      { text: "Now spot chairs or windows as you walk.", durationSeconds: 20, poseKey: "walk" },
       {
-        text: "Stop and tell each other your favourite thing you saw.",
+        text: "Now spot chairs or windows like a spy on a mission.",
+        durationSeconds: 20,
+        poseKey: "walk",
+      },
+      {
+        text: "Stop and report your favourite mystery discovery to each other.",
         durationSeconds: 10,
         poseKey: "hold-pose",
       },
@@ -499,7 +523,7 @@ export const PLAY_GAMES: PlayGame[] = [
   },
   {
     id: GAME_IDS.miniAdventure,
-    title: "Mini Adventure",
+    title: "River of Lava",
     kind: "balance",
     mode: "family",
     level: 2,
@@ -507,7 +531,7 @@ export const PLAY_GAMES: PlayGame[] = [
       "Stepping across cushions while holding hands. Use firm cushions on a non-slip floor.",
     steps: [
       {
-        text: "Put cushions on the floor as stones across a river.",
+        text: "Put cushions on the floor as stepping stones across the river.",
         durationSeconds: 15,
         poseKey: "carry",
       },
@@ -517,40 +541,44 @@ export const PLAY_GAMES: PlayGame[] = [
         poseKey: "walk",
       },
       {
-        text: "Cross back the other way, slowly and carefully.",
+        text: "Cross back the other way, carefully avoiding the hot lava.",
         durationSeconds: 20,
         poseKey: "walk",
       },
-      { text: "You crossed the river together!", durationSeconds: 10, poseKey: "hold-pose" },
+      {
+        text: "You made it safely across the wild river together!",
+        durationSeconds: 10,
+        poseKey: "hold-pose",
+      },
     ],
   },
 
   // --- Family, level 3 ---
   {
     id: GAME_IDS.energyDelivery,
-    title: "Energy Delivery",
+    title: "Dragon Egg Express",
     kind: "strength",
     mode: "family",
     level: 3,
-    parentNote: "Carrying a soft object across the room in turns, walking briskly.",
+    parentNote: "Carrying a soft toy or cushion across the room in turns, walking briskly.",
     steps: [
       {
-        text: "Pick a soft object to deliver, like a cushion or a toy.",
+        text: "Pick a cushion or toy: it is a fragile dragon egg!",
         durationSeconds: 10,
         poseKey: "carry",
       },
       {
-        text: "Walk briskly with it to the other side of the room.",
+        text: "Walk briskly with the precious egg to the other side.",
         durationSeconds: 20,
         poseKey: "carry",
       },
       {
-        text: "Hand it to your grown-up so they can carry it back.",
+        text: "Hand the egg to your grown-up so they can carry it back.",
         durationSeconds: 20,
         poseKey: "carry",
       },
       {
-        text: "Take turns a few more times, at your own pace.",
+        text: "Take turns making safe deliveries at your own pace.",
         durationSeconds: 20,
         poseKey: "carry",
       },
@@ -558,25 +586,29 @@ export const PLAY_GAMES: PlayGame[] = [
   },
   {
     id: GAME_IDS.outdoorMission,
-    title: "Outdoor Mission",
+    title: "Nature Scout",
     kind: "strength",
     mode: "family",
     level: 3,
     parentNote: "A short walking search in the hallway or the yard, together.",
     steps: [
-      { text: "Go to the hallway or the yard together.", durationSeconds: 15, poseKey: "walk" },
       {
-        text: "Find something round, something soft and something green.",
+        text: "Head out to the hallway or the yard together on a mission.",
+        durationSeconds: 15,
+        poseKey: "walk",
+      },
+      {
+        text: "Scout for something round, something soft and something green.",
         durationSeconds: 20,
         poseKey: "walk",
       },
       {
-        text: "Walk briskly to each thing you find and point at it.",
+        text: "Walk briskly to each target you spot and point at it.",
         durationSeconds: 20,
         poseKey: "walk",
       },
       {
-        text: "Walk back together and tell each other what you found.",
+        text: "Walk back together and share your cool discoveries.",
         durationSeconds: 15,
         poseKey: "walk",
       },

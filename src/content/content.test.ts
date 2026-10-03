@@ -134,6 +134,15 @@ describe("Missions", () => {
       expect(mission.parentNote.trim().length).toBeGreaterThan(0);
     }
   });
+
+  it("writes every step as one short sentence of at most 80 characters across all missions", () => {
+    for (const mission of MISSIONS) {
+      for (const step of mission.steps) {
+        expect(step.text.length, step.text).toBeLessThanOrEqual(80);
+        expect(step.text, step.text).not.toMatch(/[.!?]\s+\S/);
+      }
+    }
+  });
 });
 
 describe("Play games", () => {
