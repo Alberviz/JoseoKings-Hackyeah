@@ -108,8 +108,10 @@ describe("buildDemoState", () => {
     for (const word of FORBIDDEN_WORDS) expect(text).not.toContain(word);
   });
 
-  it("counts team stars as the missions done with someone", () => {
-    const withSomeone = state.missionLogs.filter((m) => m.company !== "alone").length;
+  it("counts team stars as the finished missions done with someone", () => {
+    const withSomeone = state.missionLogs.filter(
+      (m) => m.status === "completed" && m.company !== "alone",
+    ).length;
     expect(state.companion.teamStars).toBe(withSomeone);
     expect(state.companion.points).toBeGreaterThan(0);
   });
