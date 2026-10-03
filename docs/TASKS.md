@@ -118,6 +118,7 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 - `src/content/check-in-questions.ts`: the daily questions as `CheckInQuestion[]`, from real sources, simple words, with the `notToday` path handled by the UI. Suggested 3 to 4 questions covering belly pain, bathroom, energy and one free-choice. Final choice is yours; every question has a source comment.
 - `src/content/missions.ts`: 5 to 6 gentle missions as `Mission[]`: breathing, bed stretches, balance (hold a wall), wall sit, and similar. **No impact, no jumping.** Short steps, `poseKey` for the companion, a neutral `parentNote`.
 - `src/content/disclaimers.ts`: the text of `PRODUCT.md` section 6.3, plus a one-line child-facing "what your parents can see" text.
+- Use the ids in `src/config/content-ids.ts` for the three core questions and the missions. If you change or add one, update that file in the same PR and tell Alberto, because the demo data and the screens use it.
 - Read `PRODUCT.md` section 5.4 and 6 before writing a word. If a statement needs a source and has none, write `// source: to verify`.
 
 **Done when:** every item typed against `src/types`, every source cited, Farouk and Álvaro both agree on the wording, and no forbidden word from section 6.2 appears.
