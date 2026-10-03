@@ -108,3 +108,14 @@ Before debugging something, search this file first: it may already be solved.
 - **Cause:** the mission log is saved in a `useEffect` after the "Nice work!" text appears, and the PIN check (PBKDF2) is slow on CI runners. The test read `localStorage` right after the text appeared, before the effect ran.
 - **Fix:** wait for the saved log with `waitFor` (timeout 5 s) and give the PIN `findByText` calls a 5 s timeout. The test still checks wrong PIN rejected, correct PIN accepted and the log saved exactly once. Rule for new tests: after an async PIN check, never read storage synchronously; wait for it.
 - **Refs:** T8
+
+### E8 · Parent PIN gate test times out when the machine is busy
+
+- **Date:** 2026-10-03 23:07
+- **Who:** Álvaro (Claude in Cursor)
+- **Task:** M3 (seen while running `pnpm check`, not caused by it)
+- **Status:** open
+- **Symptom:** `src/components/features/parent-mode/parent-mode.test.tsx:155`: `expect(mockPush).toHaveBeenCalledWith(ROUTES.parent)` fails inside `waitFor` during the full `pnpm check`. The same file passes when run alone.
+- **Cause:** same as E7: the PIN check (PBKDF2) is slow under load and `waitFor` uses the default 1 s timeout.
+- **Fix:** not applied (not my test). Suggested: give that `waitFor` a 5 s timeout, as in E7.
+- **Refs:** E7, T10
