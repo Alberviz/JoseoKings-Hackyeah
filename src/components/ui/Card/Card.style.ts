@@ -6,6 +6,7 @@ export const CardContainer = styled.section`
   gap: ${({ theme }) => theme.spacing.md};
   padding: ${({ theme }) => theme.spacing.lg};
   background: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.leaf};
+  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
 `;

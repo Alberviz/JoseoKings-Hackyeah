@@ -8,6 +8,8 @@ import {
   Chip,
   Heading,
   LinkButton,
+  OptionButton,
+  OptionGroup,
   Screen,
   Stack,
   Text,
@@ -18,6 +20,8 @@ import { MISSION_IDS } from "@/config/content-ids";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { createPinRecord, hasPin, isValidPin } from "@/lib/pin";
+import { buildDemoState } from "@/lib/demo-data";
+import type { DeviceRole } from "@/types";
 import { formatMissionTitle } from "../missionLabels";
 import { AlertBox, ChipWrap, ErrorText, SetupContainer, SetupForm } from "./SetupScreen.style";
 
@@ -29,6 +33,7 @@ export function SetupScreen() {
   const session = useParentSession();
 
   const [nickname, setNickname] = useState("");
+  const [deviceRole, setDeviceRole] = useState<DeviceRole>("both");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [enabledMissions, setEnabledMissions] = useState<string[]>(ALL_MISSIONS);
@@ -106,12 +111,18 @@ export function SetupScreen() {
     });
   };
 
+  const handleLoadDemo = () => {
+    const demo = buildDemoState();
+    actions.loadDemo(demo);
+    router.replace(ROUTES.home);
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     let hasValidationError = false;
 
     if (!nickname.trim()) {
-      setNicknameError("Please enter a nickname.");
+      setNicknameError("Please enter a name.");
       hasValidationError = true;
     }
 
@@ -150,10 +161,15 @@ export function SetupScreen() {
       actions.setSettings({
         ...pinRecord,
         allowedMissionIds: enabledMissions,
+        deviceRole,
       });
 
       session.setUnlocked(true);
-      router.push(ROUTES.parent);
+      if (deviceRole === "child") {
+        router.push(ROUTES.home);
+      } else {
+        router.push(ROUTES.parent);
+      }
     } catch (err) {
       setGeneralError(err instanceof Error ? err.message : "Failed to create PIN.");
       setIsSubmitting(false);
@@ -190,7 +206,7 @@ export function SetupScreen() {
                 <Stack gap="md">
                   <Heading level={2}>Child profile</Heading>
                   <TextField
-                    label="Child's nickname"
+                    label="Child's name"
                     value={nickname}
                     onChange={handleNicknameChange}
                     error={nicknameError}
@@ -198,6 +214,32 @@ export function SetupScreen() {
                     maxLength={30}
                     autoComplete="off"
                   />
+                </Stack>
+              </Card>
+
+              <Card label="Device role">
+                <Stack gap="md">
+                  <Heading level={2}>This phone is for:</Heading>
+                  <Text size="sm" tone="muted">
+                    Choose how this phone will be used. You can change this anytime in settings.
+                  </Text>
+                  <OptionGroup legend="This phone is for:" hideLegend columns={3}>
+                    <OptionButton
+                      label="My child"
+                      selected={deviceRole === "child"}
+                      onSelect={() => setDeviceRole("child")}
+                    />
+                    <OptionButton
+                      label="Me (parent)"
+                      selected={deviceRole === "parent"}
+                      onSelect={() => setDeviceRole("parent")}
+                    />
+                    <OptionButton
+                      label="Both"
+                      selected={deviceRole === "both"}
+                      onSelect={() => setDeviceRole("both")}
+                    />
+                  </OptionGroup>
                 </Stack>
               </Card>
 
@@ -259,6 +301,9 @@ export function SetupScreen() {
                   fullWidth
                 >
                   Complete setup
+                </Button>
+                <Button type="button" variant="secondary" onClick={handleLoadDemo} fullWidth>
+                  Quick Start: Load demo data & explore
                 </Button>
                 {/* No "Back to child mode" here: before the setup there is no child, so "/" would send the family right back to this screen. */}
               </Stack>

@@ -1,44 +1,40 @@
 #!/usr/bin/env bash
 # Message channel between the AIs and people of the team. See docs/COMMS.md.
-# Messages live on the `comms` branch (never merged), one file per message, in a local copy at .comms/.
+# Backed by GitHub Issues (Buzones personales #70-#75 + Broadcast #76).
 set -euo pipefail
 
-BRANCH="comms"
-LOCAL="comms-local"
-ROOT="$(git rev-parse --show-toplevel)"
-DIR="$ROOT/.comms"
-NAMES="claude alberto juan baitiare alvaro farouk claudia all"
+if ! command -v gh >/dev/null 2>&1; then
+  if [ -x "/c/Program Files/GitHub CLI/gh.exe" ]; then
+    export PATH="$PATH:/c/Program Files/GitHub CLI"
+  fi
+fi
+
+if [ -z "${GH_TOKEN:-}" ]; then
+  GH_TOKEN="$(printf "protocol=https\nhost=github.com\n" | git credential fill 2>/dev/null | grep -E "^password=" | cut -d= -f2- || true)"
+  if [ -n "$GH_TOKEN" ]; then
+    export GH_TOKEN
+  fi
+fi
+
+NAMES="claude alberto lead-ai juan alvaro baitiare farouk claudia all broadcast"
+REPO="Alberviz/JoseoKings-Hackyeah"
 
 die() { echo "comms: $*" >&2; exit 1; }
 
-# Everything that touches .comms/ runs under one lock, so two commands (for example `watch` and `send`)
-# never update the copy at the same time. Without flock the lock is skipped.
-LOCKFILE="$ROOT/.comms.lock"
-with_lock() {
-  if command -v flock >/dev/null 2>&1; then
-    ( flock 9; "$@" ) 9>"$LOCKFILE"
-  else
-    "$@"
-  fi
-}
-
-update_copy() {
-  git -C "$ROOT" fetch -q origin "$BRANCH" || die "cannot fetch origin/$BRANCH"
-  if [ ! -e "$DIR/.git" ]; then
-    git -C "$ROOT" worktree prune
-    git -C "$ROOT" worktree add -q -B "$LOCAL" "$DIR" "origin/$BRANCH" || die "cannot create $DIR"
-  fi
-  # Explicit fetch and rebase (not `git pull`): `pull` can fail with "cannot rebase onto multiple branches".
-  git -C "$DIR" fetch -q origin "$BRANCH" || die "cannot update the local copy"
-  git -C "$DIR" rebase -q "origin/$BRANCH" || die "cannot rebase the local copy"
-}
-
-ensure_copy() { with_lock update_copy; }
-
 valid_name() { for n in $NAMES; do [ "$n" = "$1" ] && return 0; done; return 1; }
 
-# Value of a front-matter field (first lines of a message file).
-field() { sed -n "1,12s/^$2: //p" "$1" | head -1; }
+name_to_issue() {
+  case "$1" in
+    alberto|lead-ai|claude) echo "70" ;;
+    alvaro|alvaro-ai) echo "71" ;;
+    juan|juan-ai) echo "72" ;;
+    baitiare|baitiare-ai) echo "73" ;;
+    farouk|farouk-ai) echo "74" ;;
+    claudia|claudia-ai) echo "75" ;;
+    all|broadcast) echo "76" ;;
+    *) echo "" ;;
+  esac
+}
 
 cmd_send() {
   local from="${COMMS_NAME:-}" to="" type="info" task="-" re="-" subject="" body=""
@@ -62,90 +58,88 @@ cmd_send() {
   if [ -z "$body" ] && [ ! -t 0 ]; then body="$(cat)"; fi
   [ -n "$body" ] || die "--body is required (or pipe the text on stdin)"
 
-  ensure_copy
-  local stamp slug file
-  stamp="$(date -u +%Y%m%d-%H%M%S)"
-  slug="$(printf '%s' "$subject" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-' | sed 's/--*/-/g; s/^-//; s/-$//' | cut -c1-40)"
-  file="messages/${stamp}-${from}-to-${to}-${slug}.md"
-  {
-    echo "from: $from"
-    echo "to: $to"
-    echo "type: $type"
-    echo "task: $task"
-    echo "re: $re"
-    echo "subject: $subject"
-    echo "---"
-    printf '%s\n' "$body"
-  } > "$DIR/$file"
+  local issue_id
+  issue_id="$(name_to_issue "$to")"
+  [ -n "$issue_id" ] || die "no issue configured for recipient '$to'"
 
-  git -C "$DIR" add "$file"
-  # The comms branch has no code, so the code hooks (lint-staged) do not apply: HUSKY=0 skips them.
-  HUSKY=0 git -C "$DIR" commit -q -m "docs(comms): $from to $to, $type" || die "commit failed"
-  for attempt in 1 2 3; do
-    if git -C "$DIR" push -q origin "$LOCAL:$BRANCH" 2>/dev/null; then echo "sent: $file"; return 0; fi
-    ensure_copy
-  done
-  die "push failed after 3 tries (the message is committed locally in .comms/)"
+  local words
+  words="$(printf '%s' "$body" | wc -w)"
+  if [ "$words" -gt 50 ]; then
+    echo "comms: notice: body is $words words (>50). Follow telegraphic protocol: max 1-2 lines to save tokens." >&2
+  fi
+
+  local re_tag=""
+  if [ "$re" != "-" ] && [ -n "$re" ]; then
+    re_tag=" (re: $re)"
+  fi
+
+  local payload
+  payload="[$from -> $to][$type][$task] $subject$re_tag: $body"
+
+  gh issue comment "$issue_id" -R "$REPO" -b "$payload" >/dev/null || die "failed to post comment to issue #$issue_id"
+  echo "sent to #$issue_id ($to): $payload"
 }
 
-# Messages addressed to a name (or to all) that no other message answers yet.
 cmd_open() {
   local me="${1:-${COMMS_NAME:-}}"
   [ -n "$me" ] || die "usage: comms.sh open <name>"
   valid_name "$me" || die "unknown name '$me'"
-  ensure_copy
-  local found=0 f base to
-  for f in "$DIR"/messages/*.md; do
-    [ -e "$f" ] || continue
-    base="$(basename "$f")"
-    to="$(field "$f" to)"
-    { [ "$to" = "$me" ] || [ "$to" = "all" ]; } || continue
-    [ "$(field "$f" from)" = "$me" ] && continue
-    if grep -lq "^re: $base$" "$DIR"/messages/*.md 2>/dev/null; then continue; fi
-    found=1
-    echo "=== $base"
-    echo "from: $(field "$f" from) | type: $(field "$f" type) | task: $(field "$f" task)"
-    echo "subject: $(field "$f" subject)"
-  done
-  [ "$found" = 1 ] || echo "no open messages for $me"
+
+  local issue_id
+  issue_id="$(name_to_issue "$me")"
+  [ -n "$issue_id" ] || die "no inbox issue found for '$me'"
+
+  echo "=== [INBOX #$issue_id for $me] ==="
+  local inbox_comments
+  inbox_comments="$(gh issue view "$issue_id" -R "$REPO" --json comments --jq '.comments[-5:][] | "\(.createdAt[11:16]) [\(.author.login)]: \(.body)"' 2>/dev/null || true)"
+  if [ -n "$inbox_comments" ]; then
+    echo "$inbox_comments"
+  else
+    echo "no recent messages in your inbox"
+  fi
+
+  if [ "$issue_id" != "76" ]; then
+    echo "=== [BROADCAST #76 (all)] ==="
+    local broadcast_comments
+    broadcast_comments="$(gh issue view 76 -R "$REPO" --json comments --jq '.comments[-3:][] | "\(.createdAt[11:16]) [\(.author.login)]: \(.body)"' 2>/dev/null || true)"
+    if [ -n "$broadcast_comments" ]; then
+      echo "$broadcast_comments"
+    else
+      echo "no broadcast messages"
+    fi
+  fi
 }
 
 cmd_read() {
-  [ $# -ge 1 ] || die "usage: comms.sh read <file name>"
-  ensure_copy
-  cat "$DIR/messages/$(basename "$1")"
+  local target="${1:-76}"
+  local issue_id
+  issue_id="$(name_to_issue "$target")"
+  if [ -z "$issue_id" ]; then
+    issue_id="$target"
+  fi
+  gh issue view "$issue_id" -R "$REPO" --comments
 }
 
 cmd_log() {
-  ensure_copy
-  ls -1 "$DIR"/messages/*.md 2>/dev/null | tail -"${1:-20}" | while read -r f; do
-    echo "$(basename "$f")  [$(field "$f" type)] $(field "$f" subject)"
-  done
+  local limit="${1:-5}"
+  echo "=== Recent Broadcast (#76) ==="
+  gh issue view 76 -R "$REPO" --json comments --jq ".comments[-$limit:][] | \"\\(.createdAt[11:16]) [\\(.author.login)]: \\(.body)\"" 2>/dev/null || true
 }
 
-# Prints a line every time a new message for <name> arrives (messages that already exist when it starts are
-# skipped; set COMMS_WATCH_ALL=1 to see them). Meant to run in the background.
 cmd_watch() {
   local me="${1:-${COMMS_NAME:-}}" every="${2:-30}"
   [ -n "$me" ] || die "usage: comms.sh watch <name> [seconds]"
-  local seen="" first=1
+  echo "Notice: continuous background watch burns context tokens. Consider checking 'open' only on events." >&2
+  local issue_id
+  issue_id="$(name_to_issue "$me")"
+  local last_count=0 count=0
   while true; do
-    # A failed update (network, race) must not end the watch: try again next round.
-    if ! ( ensure_copy ) 2>/dev/null; then sleep "$every"; continue; fi
-    for f in "$DIR"/messages/*.md; do
-      [ -e "$f" ] || continue
-      local base to
-      base="$(basename "$f")"
-      to="$(field "$f" to)"
-      { [ "$to" = "$me" ] || [ "$to" = "all" ]; } || continue
-      [ "$(field "$f" from)" = "$me" ] && continue
-      case " $seen " in *" $base "*) continue ;; esac
-      seen="$seen $base"
-      # First round: messages that already exist are not "new" (unless COMMS_WATCH_ALL=1).
-      [ "$first" = 1 ] && [ "${COMMS_WATCH_ALL:-0}" != 1 ] && continue
-      echo "NEW $base | from $(field "$f" from) | $(field "$f" type) | $(field "$f" subject)"
-    done
-    first=0
+    count="$(gh issue view "$issue_id" -R "$REPO" --json comments --jq '.comments | length' 2>/dev/null || echo 0)"
+    if [ "$count" -gt "$last_count" ] && [ "$last_count" -gt 0 ]; then
+      echo "NEW MESSAGE IN INBOX #$issue_id ($me):"
+      gh issue view "$issue_id" -R "$REPO" --json comments --jq '.comments[-1] | "\(.createdAt[11:16]) [\(.author.login)]: \(.body)"' 2>/dev/null || true
+    fi
+    last_count="$count"
     sleep "$every"
   done
 }
@@ -158,13 +152,21 @@ case "${1:-help}" in
   watch) shift; cmd_watch "$@" ;;
   *) cat <<USAGE
 usage:
-  scripts/comms.sh open <name>                 messages waiting for you
-  scripts/comms.sh read <file>                 read one message
+  scripts/comms.sh open <name>                 messages waiting in your inbox + broadcast
+  scripts/comms.sh read <name|issue>           read conversation of an inbox issue
   scripts/comms.sh send --from <you> --to <name> --type <question|answer|blocked|done|info> \\
-                        --subject "..." --body "..." [--task T5] [--re <file being answered>]
-  scripts/comms.sh log [n]                     last n messages
-  scripts/comms.sh watch <name> [seconds]      print a line when a new message arrives
-names: $NAMES
+                        --subject "..." --body "..." [--task T5] [--re <id>]
+  scripts/comms.sh log [n]                     last n broadcast messages
+  scripts/comms.sh watch <name> [seconds]      print a line when a new inbox message arrives
+
+names & inboxes:
+  alberto, lead-ai, claude -> #70
+  alvaro, alvaro-ai        -> #71
+  juan, juan-ai            -> #72
+  baitiare, baitiare-ai    -> #73
+  farouk, farouk-ai        -> #74
+  claudia, claudia-ai      -> #75
+  all, broadcast           -> #76
 USAGE
   ;;
 esac

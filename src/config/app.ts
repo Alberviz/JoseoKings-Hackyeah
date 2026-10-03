@@ -20,6 +20,10 @@ export const ROUTES = {
   parentReport: "/parent/report",
   parentSettings: "/parent/settings",
   offline: "/~offline",
+  play: "/play",
+  shop: "/shop",
+  food: "/food",
+  customize: "/customize",
 } as const;
 
 /** Missions are opened by id: `${ROUTES.missions}/${missionId}`. */

@@ -6,6 +6,7 @@ import { AppStateProvider } from "@/components/providers/AppStateProvider";
 import { MISSION_IDS } from "@/config/content-ids";
 import { sessionStore } from "@/hooks/useParentSession";
 import { todayKey } from "@/lib/dates";
+import { createDefaultEconomy } from "@/lib/economy";
 import { createPinRecord } from "@/lib/pin";
 import { saveState, STORAGE_KEY } from "@/lib/storage";
 import { renderWithTheme } from "@/test/renderWithTheme";
@@ -50,6 +51,7 @@ async function seedReadyState(): Promise<AppState> {
       equippedItemIds: [],
       badgeIds: [],
     },
+    economy: createDefaultEconomy(),
     checkIns: [],
     missionLogs: [],
     parentLogs: [],
@@ -110,19 +112,22 @@ describe("DailyLogScreen (T12)", () => {
 
     expect(await screen.findByText("Daily log saved.")).toBeTruthy();
 
-    await waitFor(() => {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      expect(raw).toBeTruthy();
-      const parsed = JSON.parse(raw as string) as AppState;
-      const log = parsed.parentLogs.find((item) => item.date === todayKey());
-      expect(log).toMatchObject({
-        sleepHours: 9,
-        activity: "light",
-        school: "attended",
-        medicationTaken: "yes",
-        note: "Felt okay after school.",
-      });
-    });
+    await waitFor(
+      () => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        expect(raw).toBeTruthy();
+        const parsed = JSON.parse(raw as string) as AppState;
+        const log = parsed.parentLogs.find((item) => item.date === todayKey());
+        expect(log).toMatchObject({
+          sleepHours: 9,
+          activity: "light",
+          school: "attended",
+          medicationTaken: "yes",
+          note: "Felt okay after school.",
+        });
+      },
+      { timeout: 5000 },
+    );
 
     fireEvent.change(screen.getByLabelText("Consultation date"), {
       target: { value: "2026-09-01" },
@@ -132,10 +137,13 @@ describe("DailyLogScreen (T12)", () => {
     expect(await screen.findByText("Consultation date added.")).toBeTruthy();
     expect(screen.getByText("2026-09-01")).toBeTruthy();
 
-    await waitFor(() => {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const parsed = JSON.parse(raw as string) as AppState;
-      expect(parsed.consultations.some((item) => item.date === "2026-09-01")).toBe(true);
-    });
+    await waitFor(
+      () => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const parsed = JSON.parse(raw as string) as AppState;
+        expect(parsed.consultations.some((item) => item.date === "2026-09-01")).toBe(true);
+      },
+      { timeout: 5000 },
+    );
   });
 });

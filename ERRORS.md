@@ -97,3 +97,47 @@ Before debugging something, search this file first: it may already be solved.
 - **Cause:** Table columns exceed 390px on small screens.
 - **Fix:** `DoctorReportView.style.ts` uses `@media print` with `@page { size: A4 portrait; margin: 10mm; }`, disables container clipping (`overflow-x: visible !important`), hides action buttons via `.no-print`, and adopts `theme.colors.*` design tokens. Tested real printing on desktop Chrome and phone-sized viewport (emulated 390x844; real physical phone test remains for Alberto in T16).
 - **Refs:** T11, T16
+
+### E7 · Missions test fails at random in CI: "expected [] to have a length of 1"
+
+- **Date:** 2026-10-03 22:40
+- **Who:** Alberto (Claude, fix by a Gemini agent)
+- **Task:** T8
+- **Status:** fixed
+- **Symptom:** `family mission rejects wrong PIN and accepts correct PIN to save log once` passes locally and sometimes fails in GitHub Actions.
+- **Cause:** the mission log is saved in a `useEffect` after the "Nice work!" text appears, and the PIN check (PBKDF2) is slow on CI runners. The test read `localStorage` right after the text appeared, before the effect ran.
+- **Fix:** wait for the saved log with `waitFor` (timeout 5 s) and give the PIN `findByText` calls a 5 s timeout. The test still checks wrong PIN rejected, correct PIN accepted and the log saved exactly once. Rule for new tests: after an async PIN check, never read storage synchronously; wait for it.
+- **Refs:** T8
+
+### E8 · Parent PIN gate test times out when the machine is busy
+
+- **Date:** 2026-10-03 23:07
+- **Who:** Álvaro (Claude in Cursor), fixed by Alberto (Antigravity)
+- **Task:** M3 / feat/device-role-setup
+- **Status:** fixed
+- **Symptom:** `src/components/features/parent-mode/parent-mode.test.tsx:155`: `expect(mockPush).toHaveBeenCalledWith(ROUTES.parent)` fails inside `waitFor` during the full `pnpm check`. The same file passes when run alone. In a second full run, `DailyLog/DailyLogScreen.test.tsx` "saves a daily log and a consultation date" failed the same way and passed alone.
+- **Cause:** same as E7: the PIN check (PBKDF2) is slow under load and `waitFor` uses the default 1 s timeout.
+- **Fix:** applied 5 s timeout (`{ timeout: 5000 }`) to `waitFor` in `parent-mode.test.tsx` and `DailyLog/DailyLogScreen.test.tsx`.
+- **Refs:** E7, T10
+
+### E9 · `comms-local is already used by worktree` when running comms.sh
+
+- **Date:** 2026-10-03 23:50
+- **Who:** Alberto (Antigravity)
+- **Task:** comms
+- **Status:** fixed
+- **Symptom:** `fatal: 'comms-local' is already used by worktree at '/tmp/claude-1000/...'` and `comms: cannot create /home/alberviz/JoseoKings-Hackyeah/.comms`.
+- **Cause:** `scripts/comms.sh` created its worktree with a fixed branch name (`-B comms-local`). When an agent or user had another worktree open with that branch checked out, Git refused to attach the same branch to `.comms`.
+- **Fix:** `scripts/comms.sh` now attaches the worktree in detached HEAD state (`git worktree add -q --detach "$DIR" "origin/$BRANCH"`) and pushes commits via `HEAD:$BRANCH`. Detached HEAD allows multiple concurrent worktrees without local branch name collisions.
+- **Refs:** -
+
+### E10 · Comms channel migrated from Git branch to GitHub Issues inboxes
+
+- **Date:** 2026-10-04 00:14
+- **Who:** Alberto (Antigravity)
+- **Task:** comms
+- **Status:** fixed
+- **Symptom:** High token consumption, context bloat (Claude ran out of tokens earlier), 118+ git commits polluting remote objects, and worktree collisions.
+- **Cause:** Using a git branch (`comms`) with 1 commit per message and verbose text cards created repo overhead and filled agent context buffers.
+- **Fix:** Replaced Git branch backend in `scripts/comms.sh` with GitHub Issues personal inboxes (#70-#75) and broadcast (#76). Reading inboxes consumes < 50 tokens with zero git commits.
+- **Refs:** E9

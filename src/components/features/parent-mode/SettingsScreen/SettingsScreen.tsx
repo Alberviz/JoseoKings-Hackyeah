@@ -9,6 +9,8 @@ import {
   Dialog,
   Heading,
   LinkButton,
+  OptionButton,
+  OptionGroup,
   Screen,
   Stack,
   Text,
@@ -21,6 +23,7 @@ import { useParentSession } from "@/hooks/useParentSession";
 import { buildDemoState } from "@/lib/demo-data";
 import { createPinRecord, isValidPin, verifyPin } from "@/lib/pin";
 import { exportBackup, importBackup } from "@/lib/storage";
+import type { DeviceRole } from "@/types";
 import { formatMissionTitle } from "../missionLabels";
 import { PinGate } from "../PinGate/PinGate";
 import {
@@ -81,6 +84,15 @@ export function SettingsScreen() {
   }
 
   const enabledMissions = state.settings?.allowedMissionIds ?? ALL_MISSIONS;
+  const currentDeviceRole: DeviceRole = state.settings?.deviceRole ?? "both";
+
+  const handleDeviceRoleChange = (role: DeviceRole) => {
+    if (!state.settings) return;
+    actions.setSettings({
+      ...state.settings,
+      deviceRole: role,
+    });
+  };
 
   const handleToggleMission = (missionId: string) => {
     if (!state.settings) return;
@@ -230,8 +242,36 @@ export function SettingsScreen() {
           </Stack>
 
           <LinkButton href={ROUTES.parent} variant="secondary">
-            Back to parent summary
+            ← Back to parent summary
           </LinkButton>
+
+          {/* Device role */}
+          <Card label="Device role">
+            <Stack gap="md">
+              <Heading level={2}>This phone is for</Heading>
+              <Text size="sm" tone="muted">
+                Choose how this phone is used. Child-only phones hide parent shortcuts, and
+                parent-only phones open directly in parent mode.
+              </Text>
+              <OptionGroup legend="This phone is for" hideLegend columns={3}>
+                <OptionButton
+                  label="My child"
+                  selected={currentDeviceRole === "child"}
+                  onSelect={() => handleDeviceRoleChange("child")}
+                />
+                <OptionButton
+                  label="Me (parent)"
+                  selected={currentDeviceRole === "parent"}
+                  onSelect={() => handleDeviceRoleChange("parent")}
+                />
+                <OptionButton
+                  label="Both"
+                  selected={currentDeviceRole === "both"}
+                  onSelect={() => handleDeviceRoleChange("both")}
+                />
+              </OptionGroup>
+            </Stack>
+          </Card>
 
           {/* 1. Enabled missions */}
           <Card label="Enabled missions">

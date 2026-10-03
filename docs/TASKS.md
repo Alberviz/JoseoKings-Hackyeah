@@ -55,6 +55,46 @@ Every AI tool reads `AGENTS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md` and t
 
 New dependencies: `zod` for T1 only. Nothing else without approval.
 
+## Motion tasks (M1-M3)
+
+The dragon gets motion by parts; the exercises are shown by an ink stick figure, not by the dragon. Everything is SVG with CSS keyframes: no Rive, no Lottie, no AI-generated video, **no new dependency**. Why: see `docs/DECISIONS.md`. These tasks feed V5 (exercise screen) and V8 (dragon art) of `docs/V2-CHILD-PLAN.md`.
+
+| ID  | Task                                         | Owner           | Folders                                                                                         | Depends on | Time  | Cut if not started by |
+| :-- | :------------------------------------------- | :-------------- | :---------------------------------------------------------------------------------------------- | :--------- | :---- | :-------------------- |
+| M1  | Dragon motion by parts                       | Baitiare        | `src/components/features/companion/Companion/`                                                  | -          | 2 h   | Sun 03:00             |
+| M2  | `ExerciseFigure`: ink stick figure and moves | Claude          | `src/components/features/missions/ExerciseFigure/`, `MissionActiveRun/` (one import and render) | -          | 3 h   | Sun 03:00             |
+| M3  | New mission list in the app                  | Farouk + Álvaro | `src/content/games.ts`, `src/types/mission.ts`, `src/config/content-ids.ts`                     | M2 keys    | 1.5 h | Sun 03:00             |
+
+M2 and M3 share one contract, so they can run in parallel: a step's `poseKey` is a **move key** from this list. Any other value shows the dragon as today.
+
+`breathe-arms` · `hold-pose` · `tap-seated` · `cat-cow` · `stretch-neck` · `stretch-side` · `march` · `walk` · `tiptoe` · `one-leg` · `dance` · `clap` · `carry`
+
+### M1 · Dragon motion by parts (Baitiare)
+
+- Same props as today. Animate parts on their own: wings flap, tail swings, belly rises with the breath, head tilts, squash and stretch on `cheer`. Equipped items move with the part they sit on.
+- Motion follows the visual direction: a short breathing idle loop and a reaction on check-in and mission done. Never a sad or sick pose.
+- If the V8 dragon art comes as a PNG, it must be redrawn as a layered SVG first (Claude can trace it from the PNG). If there is no time, animate the whole PNG (breathing scale and the reaction bounce) and drop the parts.
+
+**Done when:** every pose moves by parts at 360 px; equipped items stay attached; reduced motion shows a still dragon; the existing companion tests pass.
+
+### M2 · `ExerciseFigure` (Claude)
+
+- One SVG figure in the notebook style (ink-navy stroke from the theme, round head, thick rounded limbs). Joints: neck, shoulders, elbows, hips, knees. A move is 2 to 4 key poses (joint angles) looped with CSS keyframes.
+- Props: `move` (a move key), `withAdult` (draws a second, taller figure doing the same move), `size`. Accessible name from the move, for example "Stick figure marching in place".
+- Unknown move: render nothing, the screen shows the dragon. Reduced motion: the first key pose, still.
+- In `MissionActiveRun`, show the figure for the current step and keep the dragon small beside it, cheering.
+
+**Done when:** all 13 moves render and loop; unit test for the unknown key and reduced motion; readable at 360 px.
+
+### M3 · New mission list (Farouk + Álvaro)
+
+- Bring the new games list (the team's "Minijuegos" sheet) into `PLAY_GAMES` in `src/content/games.ts`, in English, with short steps and a move key per step. Pick 8 to 10 games, not all 20.
+- Remove every "what it is for" health phrase: no "calms the belly", "builds endurance", "tolerate effort" or "motor control" (`PRODUCT.md` section 6). The game describes what to do, never why it helps.
+- The "high" games (fast circuit, step race, 60 s dance) and the console game need Alberto's and the clinical team's OK first: v1 missions are gentle, no impact, no jumping (`docs/DECISIONS.md`).
+- `kind` stays one of the four existing kinds; rewards never depend on it.
+
+**Done when:** content tests pass; no forbidden word from section 6.2; every step's `poseKey` is in the move list above.
+
 ## First assignment (start here)
 
 | Who      | Start with                                                                                                           | Then                             |
@@ -199,6 +239,8 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 - `/companion`: accessories and colours on the main track, badges, the team track. Equip and unequip. Keep the room for last.
 
+Note: wearables are now bought with coins in the shop (V6 of `docs/V2-CHILD-PLAN.md`); `/companion` keeps badges and the team track.
+
 **Done when:** items unlock from `points` and `teamStars` using T3; nothing is ever locked again after unlocking; no "sad" state anywhere.
 
 ### T16 · PWA offline, deploy and device QA (Alberto)
@@ -229,6 +271,12 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 ---
 
+## V-tasks and L-tasks (child interface v2 and family link)
+
+Decided on 2026-10-03 (see `docs/DECISIONS.md`). The V-tasks (V1 to V9: economy lib, theme, timer, home, play flow, shop, parent v2, dragon art, QA) are in `docs/V2-CHILD-PLAN.md` section 5. The L-tasks, owned by Álvaro's AI, are: **L1** link lib (`src/lib/link/`, with tests), **L3** link UI (`src/components/features/link/`, routes `/share` and `/parent/link`), **L5** parent v2 (parent home sections, diet, rewards from home, resume range). The old tasks above are not rewritten.
+
+---
+
 ## Out of scope (roadmap slide only)
 
-Restroom map, menu reader, smartwatch and health platform integration, motion detection and camera pose estimation, push notifications, accounts and sync, QR from child to parent device (stretch), online play, impact exercise, predictions and invented indexes, adolescent privacy, other languages. See [`PRODUCT.md`](PRODUCT.md) section 8.
+Restroom map, menu reader, smartwatch and health platform integration, motion detection and camera pose estimation, push notifications, accounts and sync, family QR link (now in scope, see L-tasks), online play, impact exercise, predictions and invented indexes, adolescent privacy, other languages. See [`PRODUCT.md`](PRODUCT.md) section 8.

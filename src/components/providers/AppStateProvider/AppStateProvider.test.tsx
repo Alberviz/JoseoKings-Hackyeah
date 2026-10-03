@@ -1,6 +1,7 @@
 import { act, render, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { INITIAL_COINS } from "@/config/economy";
 import { ITEM_IDS } from "@/config/content-ids";
 import { useAppState } from "@/hooks/useAppState";
 import { BACKUP_STORAGE_KEY, STORAGE_KEY, createEmptyState } from "@/lib/storage";
@@ -392,5 +393,46 @@ describe("AppStateProvider and useAppState hook", () => {
     expect(localStorage.getItem(BACKUP_STORAGE_KEY)).toBeNull();
     expect(result.current.state.child).toBeNull();
     expect(result.current.state.checkIns).toEqual([]);
+  });
+
+  it("economy actions return the result and persist", () => {
+    const { result } = renderHook(() => useAppState(), { wrapper });
+    act(() => {
+      result.current.actions.importState({
+        ...result.current.state,
+        economy: {
+          ...result.current.state.economy,
+          coinsSpent: INITIAL_COINS,
+        },
+      });
+    });
+    let bought: ReturnType<typeof result.current.actions.buyShopItem> | undefined;
+    act(() => {
+      bought = result.current.actions.buyShopItem("food");
+    });
+    expect(bought).toEqual({ ok: false, reason: "not-enough-coins" });
+    expect(result.current.state.economy.coinsSpent).toBe(INITIAL_COINS);
+
+    act(() => {
+      result.current.actions.addMissionLog({
+        id: "m1",
+        date: "2026-10-03",
+        missionId: "dragon-breathing",
+        status: "completed",
+        company: "alone",
+        confirmedBy: "child",
+        createdAt: "2026-10-03T10:00:00.000Z",
+      });
+    });
+    act(() => {
+      bought = result.current.actions.buyShopItem("food");
+    });
+    expect(bought?.ok).toBe(true);
+    act(() => {
+      result.current.actions.giveFood();
+    });
+    expect(result.current.state.economy.fire).toBe(10);
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
+    expect(saved.economy.fire).toBe(10);
   });
 });

@@ -1,5 +1,12 @@
 import { z } from "zod";
+import {
+  FIRE_MAX,
+  SPECIAL_REWARD_COST_MAX,
+  SPECIAL_REWARD_COST_MIN,
+  SPECIAL_REWARD_NAME_MAX_LENGTH,
+} from "@/config/economy";
 import { isDateKey } from "@/lib/dates";
+import { createDefaultEconomy } from "@/lib/economy";
 import type {
   ActivityLevel,
   AppState,
@@ -9,15 +16,20 @@ import type {
   CompanionState,
   Consultation,
   DateKey,
+  EconomyState,
   FoodEntry,
   MedicationTaken,
   MissionCompany,
   MissionConfirmation,
   MissionLog,
+  MissionMoodAfter,
+  MissionMoodBefore,
   MissionStatus,
   ParentLog,
   ParentSettings,
   SchoolDay,
+  RewardClaim,
+  SpecialReward,
 } from "@/types";
 
 export const childProfileSchema: z.ZodType<ChildProfile> = z.object({
@@ -28,6 +40,7 @@ export const parentSettingsSchema: z.ZodType<ParentSettings> = z.object({
   pinHash: z.string(),
   pinSalt: z.string(),
   allowedMissionIds: z.array(z.string()),
+  deviceRole: z.enum(["child", "parent", "both"]).optional(),
 });
 
 export const companionStateSchema: z.ZodType<CompanionState> = z.object({
@@ -67,6 +80,18 @@ export const missionConfirmationSchema: z.ZodType<MissionConfirmation> = z.enum(
   "other-tap",
 ]);
 
+export const missionMoodBeforeSchema: z.ZodType<MissionMoodBefore> = z.enum([
+  "calm",
+  "strong",
+  "amazing",
+]);
+
+export const missionMoodAfterSchema: z.ZodType<MissionMoodAfter> = z.enum([
+  "exhausted",
+  "chill",
+  "great",
+]);
+
 export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   id: z.string(),
   date: dateKeySchema,
@@ -75,6 +100,8 @@ export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   company: missionCompanySchema,
   confirmedBy: missionConfirmationSchema,
   createdAt: z.string(),
+  moodBefore: missionMoodBeforeSchema.optional(),
+  moodAfter: missionMoodAfterSchema.optional(),
 });
 
 export const activityLevelSchema: z.ZodType<ActivityLevel> = z.enum([
@@ -120,12 +147,43 @@ export const consultationSchema: z.ZodType<Consultation> = z.object({
   date: dateKeySchema,
 });
 
+export const shopItemIdSchema = z.enum(["food", "glasses", "t-shirt", "hat"]);
+
+export const specialRewardSchema: z.ZodType<SpecialReward> = z.object({
+  id: z.string(),
+  name: z.string().min(1).max(SPECIAL_REWARD_NAME_MAX_LENGTH),
+  fireCost: z.number().int().min(SPECIAL_REWARD_COST_MIN).max(SPECIAL_REWARD_COST_MAX),
+});
+
+export const rewardClaimSchema: z.ZodType<RewardClaim> = z.object({
+  id: z.string(),
+  rewardId: z.string(),
+  date: dateKeySchema,
+  createdAt: z.string(),
+  status: z.enum(["requested", "done"]),
+  doneAt: dateKeySchema.optional(),
+});
+
+/** Old saves have no economy, and corrupt economy data resets to defaults without touching the rest. */
+export const economyStateSchema: z.ZodType<EconomyState> = z
+  .object({
+    fire: z.number().int().min(0).max(FIRE_MAX),
+    coinsSpent: z.number().int().nonnegative(),
+    inventory: z.object({ food: z.number().int().nonnegative() }),
+    ownedItemIds: z.array(shopItemIdSchema),
+    equippedItemIds: z.array(shopItemIdSchema),
+    specialRewards: z.array(specialRewardSchema),
+    rewardClaims: z.array(rewardClaimSchema),
+  })
+  .catch(() => createDefaultEconomy());
+
 export const appStateSchema: z.ZodType<AppState> = z.object({
   schemaVersion: z.literal(1),
   isDemo: z.boolean(),
   child: childProfileSchema.nullable(),
   settings: parentSettingsSchema.nullable(),
   companion: companionStateSchema,
+  economy: economyStateSchema,
   checkIns: z.array(checkInSchema),
   missionLogs: z.array(missionLogSchema),
   parentLogs: z.array(parentLogSchema),

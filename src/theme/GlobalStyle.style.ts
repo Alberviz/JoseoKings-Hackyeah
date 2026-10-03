@@ -14,10 +14,15 @@ export const GlobalStyle = createGlobalStyle`
     min-height: 100%;
   }
 
+  /* Notebook paper: a very light 24px grid drawn with two linear gradients. */
   body {
-    background: ${({ theme }) => theme.colors.background};
-    color: ${({ theme }) => theme.colors.text};
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background-color: ${({ theme }) => theme.colors.paper};
+    background-image:
+      linear-gradient(${({ theme }) => theme.colors.paperGrid} 1px, transparent 1px),
+      linear-gradient(90deg, ${({ theme }) => theme.colors.paperGrid} 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: ${({ theme }) => theme.colors.ink};
+    font-family: ${({ theme }) => theme.fontFamily.body};
     font-size: ${({ theme }) => theme.fontSize.md};
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -34,6 +39,20 @@ export const GlobalStyle = createGlobalStyle`
     *::after {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
+    }
+  }
+
+  @media print {
+    body {
+      background: #fff;
+      background-image: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-shadow: none !important;
+      text-shadow: none !important;
     }
   }
 `;
