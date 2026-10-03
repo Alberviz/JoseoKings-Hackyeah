@@ -98,6 +98,7 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 - `addCheckIn` replaces an existing check-in of the same day. After `addCheckIn` and `addMissionLog`, call `syncCompanion` from `src/lib/rewards` (T3) so rewards are derived from the logs.
 - Typed actions: `addCheckIn`, `addMissionLog`, `saveParentLog`, `addFoodEntry`, `addConsultation`, `equipItem`, `setSettings`, `setChild`, `loadDemo`, `clearAll`.
 - Unlock state of parent mode is **not** here (memory only, owned by T10).
+- The context exposes `isReady`: it is `false` until the stored state is loaded after mount. Screens must wait for `isReady` before redirecting (for example to `/parent/setup`), so the server and the first client render match.
 
 **Done when:** unit tests cover load, save, migrate, corrupt data, backup round trip; the hook works in a test with Testing Library; the app does not crash with empty storage or with garbage in storage.
 

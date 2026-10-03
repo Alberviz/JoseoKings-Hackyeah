@@ -1,7 +1,21 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { STORAGE_KEY, createEmptyState, loadState, saveState } from "@/lib/storage";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import { clearStorage, createEmptyState, loadState, saveState } from "@/lib/storage";
+import {
+  equipItem as equipCompanionItem,
+  syncCompanion,
+  unequipItem as unequipCompanionItem,
+} from "@/lib/rewards";
 import type {
   AppState,
   CheckIn,
@@ -20,6 +34,7 @@ export type AppStateActions = {
   addFoodEntry: (entry: FoodEntry) => void;
   addConsultation: (consultation: Consultation) => void;
   equipItem: (itemId: string) => void;
+  unequipItem: (itemId: string) => void;
   setSettings: (settings: ParentSettings) => void;
   setChild: (child: ChildProfile) => void;
   loadDemo: (demoState: AppState) => void;
@@ -29,56 +44,154 @@ export type AppStateActions = {
 export type AppStateContextValue = {
   state: AppState;
   actions: AppStateActions;
+  isReady: boolean;
 };
 
 export const AppStateContext = createContext<AppStateContextValue | null>(null);
+
+type StoreSnapshot = {
+  state: AppState;
+  isReady: boolean;
+};
+
+const initialServerSnapshot: StoreSnapshot = {
+  state: createEmptyState(),
+  isReady: false,
+};
+
+function createAppStateStore() {
+  let snapshot: StoreSnapshot = initialServerSnapshot;
+  const listeners = new Set<() => void>();
+
+  const notify = () => {
+    listeners.forEach((listener) => listener());
+  };
+
+  return {
+    getSnapshot: (): StoreSnapshot => snapshot,
+    getServerSnapshot: (): StoreSnapshot => initialServerSnapshot,
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    load: () => {
+      if (snapshot.isReady) {
+        return;
+      }
+      const loaded = loadState();
+      snapshot = {
+        state: loaded,
+        isReady: true,
+      };
+      notify();
+    },
+    updateState: (updater: (prev: AppState) => AppState) => {
+      const nextState = updater(snapshot.state);
+      snapshot = {
+        state: nextState,
+        isReady: snapshot.isReady,
+      };
+      if (snapshot.isReady) {
+        saveState(nextState);
+      }
+      notify();
+    },
+    loadDemo: (demoState: AppState) => {
+      const companion = syncCompanion({
+        checkIns: demoState.checkIns,
+        missionLogs: demoState.missionLogs,
+        companion: demoState.companion,
+      });
+      const nextState: AppState = {
+        ...demoState,
+        isDemo: true,
+        companion,
+      };
+      snapshot = {
+        state: nextState,
+        isReady: true,
+      };
+      saveState(nextState);
+      notify();
+    },
+    clearAll: () => {
+      clearStorage();
+      snapshot = {
+        state: createEmptyState(),
+        isReady: true,
+      };
+      notify();
+    },
+  };
+}
 
 type AppStateProviderProps = {
   children: ReactNode;
 };
 
 export function AppStateProvider({ children }: AppStateProviderProps) {
-  const [state, setState] = useState<AppState>(() => loadState());
+  const [store] = useState(() => createAppStateStore());
 
-  const updateState = useCallback((updater: (prev: AppState) => AppState) => {
-    setState((prev) => {
-      const next = updater(prev);
-      saveState(next);
-      return next;
-    });
-  }, []);
+  const snapshot = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getServerSnapshot,
+  );
+
+  useEffect(() => {
+    store.load();
+  }, [store]);
 
   const addCheckIn = useCallback(
     (checkIn: CheckIn) => {
-      updateState((prev) => {
-        const existingIndex = prev.checkIns.findIndex((c) => c.id === checkIn.id);
+      store.updateState((prev) => {
+        const existingIndex = prev.checkIns.findIndex((c) => c.date === checkIn.date);
         const nextCheckIns =
           existingIndex >= 0
-            ? prev.checkIns.map((c, i) => (i === existingIndex ? checkIn : c))
+            ? prev.checkIns.map((c, i) => (i === existingIndex ? { ...checkIn, id: c.id } : c))
             : [...prev.checkIns, checkIn];
+
+        const nextCompanion = syncCompanion({
+          checkIns: nextCheckIns,
+          missionLogs: prev.missionLogs,
+          companion: prev.companion,
+        });
 
         return {
           ...prev,
           checkIns: nextCheckIns,
+          companion: nextCompanion,
         };
       });
     },
-    [updateState],
+    [store],
   );
 
   const addMissionLog = useCallback(
     (log: MissionLog) => {
-      updateState((prev) => ({
-        ...prev,
-        missionLogs: [...prev.missionLogs, log],
-      }));
+      store.updateState((prev) => {
+        const nextMissionLogs = [...prev.missionLogs, log];
+        const nextCompanion = syncCompanion({
+          checkIns: prev.checkIns,
+          missionLogs: nextMissionLogs,
+          companion: prev.companion,
+        });
+
+        return {
+          ...prev,
+          missionLogs: nextMissionLogs,
+          companion: nextCompanion,
+        };
+      });
     },
-    [updateState],
+    [store],
   );
 
   const saveParentLog = useCallback(
     (log: ParentLog) => {
-      updateState((prev) => {
+      store.updateState((prev) => {
         const existingIndex = prev.parentLogs.findIndex((p) => p.date === log.date);
         const nextLogs =
           existingIndex >= 0
@@ -91,84 +204,79 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
         };
       });
     },
-    [updateState],
+    [store],
   );
 
   const addFoodEntry = useCallback(
     (entry: FoodEntry) => {
-      updateState((prev) => ({
+      store.updateState((prev) => ({
         ...prev,
         foodEntries: [...prev.foodEntries, entry],
       }));
     },
-    [updateState],
+    [store],
   );
 
   const addConsultation = useCallback(
     (consultation: Consultation) => {
-      updateState((prev) => ({
+      store.updateState((prev) => ({
         ...prev,
         consultations: [...prev.consultations, consultation],
       }));
     },
-    [updateState],
+    [store],
   );
 
   const equipItem = useCallback(
     (itemId: string) => {
-      updateState((prev) => {
-        const isEquipped = prev.companion.equippedItemIds.includes(itemId);
-        const nextEquipped = isEquipped
-          ? prev.companion.equippedItemIds.filter((id) => id !== itemId)
-          : [...prev.companion.equippedItemIds, itemId];
-
-        return {
-          ...prev,
-          companion: {
-            ...prev.companion,
-            equippedItemIds: nextEquipped,
-          },
-        };
-      });
+      store.updateState((prev) => ({
+        ...prev,
+        companion: equipCompanionItem(prev.companion, itemId),
+      }));
     },
-    [updateState],
+    [store],
+  );
+
+  const unequipItem = useCallback(
+    (itemId: string) => {
+      store.updateState((prev) => ({
+        ...prev,
+        companion: unequipCompanionItem(prev.companion, itemId),
+      }));
+    },
+    [store],
   );
 
   const setSettings = useCallback(
     (settings: ParentSettings) => {
-      updateState((prev) => ({
+      store.updateState((prev) => ({
         ...prev,
         settings,
       }));
     },
-    [updateState],
+    [store],
   );
 
   const setChild = useCallback(
     (child: ChildProfile) => {
-      updateState((prev) => ({
+      store.updateState((prev) => ({
         ...prev,
         child,
       }));
     },
-    [updateState],
+    [store],
   );
 
-  const loadDemo = useCallback((demoState: AppState) => {
-    const stateToLoad: AppState = {
-      ...demoState,
-      isDemo: true,
-    };
-    saveState(stateToLoad);
-    setState(stateToLoad);
-  }, []);
+  const loadDemo = useCallback(
+    (demoState: AppState) => {
+      store.loadDemo(demoState);
+    },
+    [store],
+  );
 
   const clearAll = useCallback(() => {
-    if (typeof window !== "undefined" && window.localStorage) {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
-    setState(createEmptyState());
-  }, []);
+    store.clearAll();
+  }, [store]);
 
   const actions = useMemo<AppStateActions>(
     () => ({
@@ -178,6 +286,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       addFoodEntry,
       addConsultation,
       equipItem,
+      unequipItem,
       setSettings,
       setChild,
       loadDemo,
@@ -190,6 +299,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       addFoodEntry,
       addConsultation,
       equipItem,
+      unequipItem,
       setSettings,
       setChild,
       loadDemo,
@@ -199,10 +309,11 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
 
   const contextValue = useMemo<AppStateContextValue>(
     () => ({
-      state,
+      state: snapshot.state,
       actions,
+      isReady: snapshot.isReady,
     }),
-    [state, actions],
+    [snapshot.state, snapshot.isReady, actions],
   );
 
   return <AppStateContext.Provider value={contextValue}>{children}</AppStateContext.Provider>;
