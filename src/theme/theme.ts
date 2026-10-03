@@ -17,7 +17,7 @@ export const theme = {
     textMuted: "#5C5868",
     focus: "#F2B705",
     overlay: "rgba(29, 27, 34, 0.55)",
-    // Kraków Dragon Mascot and Child Home palette
+    // Kraków dragon companion and child home (palette from Baitiare, 2026-10-03).
     dragonBody: "#36C5D4",
     dragonBodyBorder: "#258D9C",
     dragonBelly: "#E0F7EC",
