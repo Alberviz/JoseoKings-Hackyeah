@@ -95,6 +95,7 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 - `src/lib/storage/`: `createEmptyState()`, `loadState()`, `saveState()`, `migrate()`, `exportBackup()`, `importBackup()`. `zod` schemas that match `src/types/` exactly. Corrupt data falls back to an empty state and keeps the raw value under a backup key.
 - `src/hooks/useAppState.ts` and `src/components/providers/AppStateProvider/` (one new line in `AppProviders` is approved).
+- `addCheckIn` replaces an existing check-in of the same day. After `addCheckIn` and `addMissionLog`, call `syncCompanion` from `src/lib/rewards` (T3) so rewards are derived from the logs.
 - Typed actions: `addCheckIn`, `addMissionLog`, `saveParentLog`, `addFoodEntry`, `addConsultation`, `equipItem`, `setSettings`, `setChild`, `loadDemo`, `clearAll`.
 - Unlock state of parent mode is **not** here (memory only, owned by T10).
 
