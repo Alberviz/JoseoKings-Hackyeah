@@ -6,8 +6,8 @@
   <title>Dragón de Cracovia Oficial - CrohnCare</title>
   <style>
     :root {
-      --bg: #BFEAF3;
-      --card-bg: rgba(255, 255, 255, 0.9);
+      --bg: #F5F7F8;
+      --card-bg: rgba(255, 255, 255, 0.95);
       --text: #153F4B;
       --accent: #FF7A59;
       --primary: #127782;
@@ -34,7 +34,7 @@
 
     header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     h1 {
@@ -47,7 +47,7 @@
 
     p.subtitle {
       font-size: 15px;
-      color: #386875;
+      color: #486E78;
       font-weight: 500;
     }
 
@@ -55,42 +55,42 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #D4F4EA;
+      background: #EAF7F3;
       color: #0B6B52;
       border: 1.5px solid #20A779;
       padding: 6px 14px;
       border-radius: 9999px;
       font-size: 13px;
       font-weight: 700;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     /* Mascot Stage */
     .stage-container {
       position: relative;
       width: 100%;
-      max-width: 480px;
+      max-width: 440px;
       aspect-ratio: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .dragon-glow {
       position: absolute;
-      width: 340px;
-      height: 340px;
+      width: 320px;
+      height: 320px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 70%);
+      background: radial-gradient(circle, rgba(18, 119, 130, 0.08) 0%, rgba(255,255,255,0) 70%);
       pointer-events: none;
     }
 
     .dragon-img {
-      width: 85%;
-      height: 85%;
+      width: 88%;
+      height: 88%;
       object-fit: contain;
-      filter: drop-shadow(0 12px 24px rgba(18, 119, 130, 0.25));
+      filter: drop-shadow(0 14px 28px rgba(18, 119, 130, 0.16));
       transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       user-select: none;
       -webkit-user-drag: none;
@@ -159,7 +159,7 @@
       background: var(--card-bg);
       border-radius: 20px;
       padding: 20px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
       backdrop-filter: blur(8px);
       display: flex;
       flex-direction: column;
@@ -185,7 +185,7 @@
       flex: 1;
       min-width: 110px;
       padding: 10px 14px;
-      border: 1.5px solid #BDDDE2;
+      border: 1.5px solid #D0E4E8;
       background: #FFFFFF;
       color: #153F4B;
       border-radius: 12px;
@@ -200,7 +200,7 @@
     }
 
     button:hover {
-      background: #E8F7FA;
+      background: #F0F8FA;
       border-color: #127782;
       transform: translateY(-1px);
     }
@@ -216,7 +216,8 @@
       color: #FFFFFF;
       border: none;
       font-size: 15px;
-      padding: 12px 18px;
+      padding: 13px 18px;
+      font-weight: 700;
     }
 
     .primary-btn:hover {
@@ -235,8 +236,8 @@
       display: flex;
       flex-direction: column;
       padding: 12px;
-      background: #F4FAF8;
-      border: 1.5px solid #CDECE3;
+      background: #F8FBFA;
+      border: 1.5px solid #D7EDE6;
       border-radius: 14px;
       text-decoration: none;
       color: #153F4B;
@@ -244,7 +245,7 @@
     }
 
     .app-link:hover {
-      background: #E4F7F2;
+      background: #E8F7F2;
       border-color: #20A779;
       transform: translateY(-2px);
     }
@@ -289,9 +290,9 @@
 <body>
 
   <header>
-    <div class="badge-approved">✨ Dragón Oficial Aprobado</div>
-    <h1>El Dragón de Cracovia en la Web</h1>
-    <p class="subtitle">Modelo final verificado con anatomía tradicional de Wawel</p>
+    <div class="badge-approved">🛡️ Barriga, Patas y Cejas 100% Sólidas</div>
+    <h1>El Dragón con Fondo Blanco Suave</h1>
+    <p class="subtitle">Fondo sutil (#F5F7F8) sin huecos transparentes en el personaje</p>
   </header>
 
   <!-- Mascot Stage -->
@@ -299,8 +300,8 @@
     <div class="dragon-glow"></div>
     <img
       id="dragon-image"
-      src="/dragon.png"
-      alt="Dragón de Cracovia Oficial"
+      src="/dragon_offwhite.png"
+      alt="Dragón de Cracovia Oficial con Fondo Blanco Suave"
       class="dragon-img anim-breathe"
       title="¡Tócame para saltar!"
     />
@@ -309,21 +310,21 @@
   <!-- Interactive Controls Panel -->
   <div class="panel">
     <div>
+      <div class="section-title">Fondo de Visualización</div>
+      <div class="button-group">
+        <button id="btn-offwhite" class="active" onclick="switchImage('offwhite', '#F5F7F8', this)">⚪ Blanco Suave</button>
+        <button id="btn-trans" onclick="switchImage('trans', '#F5F7F8', this)">✨ Transparente Sólido</button>
+        <button id="btn-cyan" onclick="switchImage('cyan', '#BFEAF3', this)">🌊 Celeste #BFEAF3</button>
+        <button id="btn-dark" onclick="switchImage('trans', '#15242E', this)">🌙 Modo Noche</button>
+      </div>
+    </div>
+
+    <div>
       <div class="section-title">Animaciones en Vivo</div>
       <div class="button-group">
         <button id="btn-breathe" class="active" onclick="setAnim('breathe')">🌬️ Respiración</button>
         <button id="btn-bounce" onclick="setAnim('bounce')">🎉 Celebración</button>
         <button id="btn-wag" onclick="setAnim('wag')">🐾 Bamboleo</button>
-      </div>
-    </div>
-
-    <div>
-      <div class="section-title">Fondo de Visualización</div>
-      <div class="button-group">
-        <button class="active" onclick="setBg('#BFEAF3', this)">Celeste #BFEAF3</button>
-        <button onclick="setBg('#FFFFFF', this)">Blanco Puro</button>
-        <button onclick="setBg('#E8F5F1', this)">Verde Menta</button>
-        <button onclick="setBg('#15242E', this)">Modo Noche</button>
       </div>
     </div>
 
@@ -363,7 +364,30 @@
     const img = document.getElementById('dragon-image');
     const toast = document.getElementById('toast');
 
+    function switchImage(mode, bgColor, btn) {
+      if (mode === 'offwhite') {
+        img.src = '/dragon_offwhite.png';
+      } else if (mode === 'cyan') {
+        img.src = '/dragon_krakow_final.jpg';
+      } else {
+        img.src = '/dragon.png'; // 100% solid character on transparent background
+      }
+
+      document.body.style.backgroundColor = bgColor;
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (bgColor === '#15242E') {
+        document.querySelector('h1').style.color = '#FFFFFF';
+        document.querySelector('p.subtitle').style.color = '#A3E3EC';
+      } else {
+        document.querySelector('h1').style.color = '#0F3B46';
+        document.querySelector('p.subtitle').style.color = '#486E78';
+      }
+    }
+
     function setAnim(name) {
+      const currentSrc = img.src;
       img.className = 'dragon-img';
       document.querySelectorAll('#btn-breathe, #btn-bounce, #btn-wag').forEach(b => b.classList.remove('active'));
       
@@ -379,20 +403,6 @@
       }
     }
 
-    function setBg(color, btn) {
-      document.body.style.backgroundColor = color;
-      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      if (color === '#15242E') {
-        document.querySelector('h1').style.color = '#FFFFFF';
-        document.querySelector('p.subtitle').style.color = '#8EDAE5';
-      } else {
-        document.querySelector('h1').style.color = '#0F3B46';
-        document.querySelector('p.subtitle').style.color = '#386875';
-      }
-    }
-
     // Touch or click to tap jump
     img.addEventListener('click', () => {
       const prevClass = img.className;
@@ -403,7 +413,6 @@
     });
 
     function initDemoAndEnter() {
-      // Build sample child & companion state in localStorage
       const demoState = {
         version: 3,
         child: {
