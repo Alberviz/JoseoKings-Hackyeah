@@ -20,6 +20,7 @@ import { MISSION_IDS } from "@/config/content-ids";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { createPinRecord, hasPin, isValidPin } from "@/lib/pin";
+import { buildDemoState } from "@/lib/demo-data";
 import type { DeviceRole } from "@/types";
 import { formatMissionTitle } from "../missionLabels";
 import { AlertBox, ChipWrap, ErrorText, SetupContainer, SetupForm } from "./SetupScreen.style";
@@ -108,6 +109,12 @@ export function SetupScreen() {
       }
       return next;
     });
+  };
+
+  const handleLoadDemo = () => {
+    const demo = buildDemoState();
+    actions.loadDemo(demo);
+    router.replace(ROUTES.home);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -294,6 +301,9 @@ export function SetupScreen() {
                   fullWidth
                 >
                   Complete setup
+                </Button>
+                <Button type="button" variant="secondary" onClick={handleLoadDemo} fullWidth>
+                  Quick Start: Load demo data & explore
                 </Button>
                 {/* No "Back to child mode" here: before the setup there is no child, so "/" would send the family right back to this screen. */}
               </Stack>

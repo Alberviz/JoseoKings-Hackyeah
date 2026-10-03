@@ -7,97 +7,203 @@ const sizeMap: Record<CompanionSize, string> = {
   lg: "240px",
 };
 
-// --- Keyframes for Idle & Parts Animations ---
+// =============================================================================
+// Organic Keyframe Animations (Disney Principles: Squash & Stretch, Secondary Motion)
+// =============================================================================
 
+// --- 1. Idle Torso: Organic Breathing with Squash & Stretch ---
 const idleBodyBreathe = keyframes`
   0%, 100% {
-    transform: translateY(0px) rotate(0deg);
+    transform: translateY(0px) scale(1, 1);
   }
-  35% {
-    transform: translateY(-3.5px) rotate(-0.5deg);
+  38% {
+    /* Inhale: chest lifts and subtly elongates */
+    transform: translateY(-3.5px) scale(0.99, 1.02);
   }
-  70% {
-    transform: translateY(-1px) rotate(0.5deg);
+  50% {
+    /* Peak breath: expansive chest */
+    transform: translateY(-4.5px) scale(1.02, 1.025);
+  }
+  75% {
+    /* Exhale: settling down */
+    transform: translateY(-1.5px) scale(1.005, 1.005);
+  }
+  90% {
+    /* Soft elastic settle at bottom */
+    transform: translateY(0.5px) scale(1.01, 0.995);
   }
 `;
 
+// --- 2. Mint Belly: Forward Expansion with Lung Volume ---
 const idleBellyBreathe = keyframes`
   0%, 100% {
-    transform: scaleY(1);
+    transform: scale(1, 1);
   }
-  50% {
-    transform: scaleY(1.03);
+  48% {
+    /* Belly pushes forward and slightly up */
+    transform: scale(1.045, 1.03) translateY(-1px);
+  }
+  90% {
+    transform: scale(0.99, 0.995) translateY(0.5px);
   }
 `;
 
+// --- 3. Expressive Double-Blink with Organic Timing ---
 const idleBlink = keyframes`
-  0%, 75%, 82%, 90%, 100% {
+  0%, 82%, 88%, 94%, 100% {
     transform: scaleY(1);
   }
-  78% {
-    transform: scaleY(0.08);
+  85% {
+    /* First fast blink */
+    transform: scaleY(0.06);
   }
-  86% {
+  91% {
+    /* Second inquisitive micro-blink */
     transform: scaleY(0.08);
   }
 `;
 
+// --- 4. Wings: Organic Articulated Flapping with Secondary Lag ---
 const leftWingIdle = keyframes`
   0%, 100% {
-    transform: rotate(0deg);
+    transform: rotate(0deg) scale(1);
   }
-  50% {
-    transform: rotate(-6deg);
+  25% {
+    transform: rotate(2deg) scale(0.98);
+  }
+  55% {
+    /* Unfurls gently as air fills the lungs */
+    transform: rotate(-9deg) scale(1.03);
+  }
+  80% {
+    transform: rotate(-3deg) scale(1.01);
   }
 `;
 
 const rightWingIdle = keyframes`
   0%, 100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(6deg);
-  }
-`;
-
-const tailSwing = keyframes`
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(7deg);
-  }
-`;
-
-const headTilt = keyframes`
-  0%, 100% {
-    transform: rotate(0deg);
+    transform: rotate(0deg) scale(1);
   }
   25% {
-    transform: rotate(-2.5deg);
+    transform: rotate(-2deg) scale(0.98);
+  }
+  55% {
+    /* Symmetrical gentle unfurl */
+    transform: rotate(9deg) scale(1.03);
+  }
+  80% {
+    transform: rotate(3deg) scale(1.01);
+  }
+`;
+
+// --- 5. Tail: Serpentine Wave with Follow-Through ---
+const tailSwing = keyframes`
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(7.5deg) translateY(-1px);
   }
   50% {
+    transform: rotate(-2deg) translateY(0.5px);
+  }
+  75% {
+    transform: rotate(9.5deg) translateY(-1.5px);
+  }
+`;
+
+// --- 6. Head: Curious Ladeos & Gentle Nods ---
+const headTilt = keyframes`
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  20% {
+    /* Curious tilt to the left */
+    transform: rotate(-2.8deg) translateY(-0.8px);
+  }
+  45% {
+    transform: rotate(0deg) translateY(-1.5px);
+  }
+  65% {
+    /* Inquisitive tilt to the right */
+    transform: rotate(3deg) translateY(-1.2px);
+  }
+  85% {
+    transform: rotate(0.8deg) translateY(0);
+  }
+`;
+
+// --- 7. Ear Fins: Micro-Twitching (Like real creatures listening) ---
+const earFinLeft = keyframes`
+  0%, 72%, 100% {
     transform: rotate(0deg);
   }
   75% {
-    transform: rotate(2.5deg);
+    transform: rotate(-9deg);
+  }
+  79% {
+    transform: rotate(3deg);
+  }
+  83% {
+    transform: rotate(-7deg);
+  }
+  88% {
+    transform: rotate(0deg);
   }
 `;
 
-// --- Keyframes for Cheer Pose ---
+const earFinRight = keyframes`
+  0%, 72%, 100% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(9deg);
+  }
+  79% {
+    transform: rotate(-3deg);
+  }
+  83% {
+    transform: rotate(7deg);
+  }
+  88% {
+    transform: rotate(0deg);
+  }
+`;
 
+// --- 8. Resting Paws: Riding the Respiratory Wave ---
+const restingArmsIdle = keyframes`
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  48% {
+    transform: translateY(-2.2px) scale(1.02);
+  }
+`;
+
+// =============================================================================
+// Pose-Specific Keyframes
+// =============================================================================
+
+// --- Cheer: Squat Anticipation, High Leap, and Joyous Landing ---
 const cheerSquatStretch = keyframes`
   0% {
     transform: scale(1, 1) translateY(0);
   }
-  20% {
-    transform: scale(1.04, 0.92) translateY(2px);
+  15% {
+    /* Anticipation squat */
+    transform: scale(1.08, 0.88) translateY(5px);
   }
-  55% {
-    transform: scale(0.96, 1.08) translateY(-12px);
+  45% {
+    /* Explosive upward leap */
+    transform: scale(0.92, 1.12) translateY(-18px);
   }
-  80% {
-    transform: scale(1.01, 0.98) translateY(1px);
+  65% {
+    /* Peak floating cheer */
+    transform: scale(1.02, 0.98) translateY(-12px);
+  }
+  82% {
+    /* Landing bounce */
+    transform: scale(1.05, 0.95) translateY(2px);
   }
   100% {
     transform: scale(1, 1) translateY(0);
@@ -105,76 +211,55 @@ const cheerSquatStretch = keyframes`
 `;
 
 const leftWingCheer = keyframes`
-  0% {
-    transform: rotate(0deg);
-  }
-  20% {
-    transform: rotate(4deg);
-  }
-  55% {
-    transform: rotate(-28deg);
-  }
-  80% {
-    transform: rotate(-22deg);
-  }
-  100% {
-    transform: rotate(-25deg);
-  }
+  0% { transform: rotate(0deg); }
+  15% { transform: rotate(5deg); }
+  45% { transform: rotate(-32deg) scale(1.06); }
+  75% { transform: rotate(-24deg); }
+  100% { transform: rotate(-26deg); }
 `;
 
 const rightWingCheer = keyframes`
-  0% {
-    transform: rotate(0deg);
-  }
-  20% {
-    transform: rotate(-4deg);
-  }
-  55% {
-    transform: rotate(28deg);
-  }
-  80% {
-    transform: rotate(22deg);
-  }
-  100% {
-    transform: rotate(24deg);
-  }
+  0% { transform: rotate(0deg); }
+  15% { transform: rotate(-5deg); }
+  45% { transform: rotate(32deg) scale(1.06); }
+  75% { transform: rotate(24deg); }
+  100% { transform: rotate(26deg); }
 `;
 
 const cheerArmsWave = keyframes`
   0%, 100% {
-    transform: rotate(-10deg);
+    transform: rotate(-12deg);
   }
   50% {
-    transform: rotate(10deg);
+    transform: rotate(12deg);
   }
 `;
 
-// --- Keyframes for Exercise Mission Poses ---
-
+// --- Exercise Mission Poses ---
 const breatheScale = keyframes`
   0%, 100% {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
   50% {
-    transform: scale(1.07);
+    transform: scale(1.08) translateY(-4px);
   }
 `;
 
 const stretchSway = keyframes`
   0%, 100% {
-    transform: rotate(-6deg);
+    transform: rotate(-7deg) scale(1.01);
   }
   50% {
-    transform: rotate(6deg);
+    transform: rotate(7deg) scale(1.01);
   }
 `;
 
 const balanceSway = keyframes`
   0%, 100% {
-    transform: rotate(-3deg);
+    transform: rotate(-4deg) translateX(-1px);
   }
   50% {
-    transform: rotate(3deg);
+    transform: rotate(4deg) translateX(1px);
   }
 `;
 
@@ -183,7 +268,7 @@ const strengthPulse = keyframes`
     transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(4px) scale(0.98, 0.99);
+    transform: translateY(5px) scale(1.02, 0.97);
   }
 `;
 
@@ -273,7 +358,9 @@ const tapBounce = keyframes`
   }
 `;
 
-// --- Styled SVG Components ---
+// =============================================================================
+// Styled SVG Primitives & Container
+// =============================================================================
 
 export const StyledCompanionSvg = styled.svg<{
   $size: CompanionSize;
@@ -287,7 +374,27 @@ export const StyledCompanionSvg = styled.svg<{
   height: ${({ $size }) => sizeMap[$size]};
   max-width: 100%;
   overflow: visible;
-  ${({ $interactive }) => $interactive && `cursor: pointer;`}
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  ${({ $interactive }) =>
+    $interactive &&
+    css`
+      cursor: pointer;
+      transition:
+        filter 0.25s ease,
+        transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      &:hover {
+        filter: drop-shadow(0 4px 12px rgba(54, 197, 212, 0.35));
+        transform: scale(1.02);
+      }
+
+      &:active {
+        transform: scale(0.97) translateY(2px);
+      }
+    `}
+
   ${({ $tapped }) =>
     $tapped &&
     css`
@@ -319,13 +426,76 @@ export const SvgCircle = styled.circle``;
 export const SvgEllipse = styled.ellipse``;
 export const SvgRect = styled.rect``;
 export const SvgPolygon = styled.polygon``;
+export const SvgImage = styled.image``;
 
-// --- Animated SVG Groups by Part ---
+export const HiddenSemanticG = styled.g`
+  display: none;
+`;
 
-export const AnimatedIdleG = styled.g<{ $animated?: boolean }>`
+// --- 9. Flame Breath Puff (When feeding in /food) ---
+const flameBreathPuff = keyframes`
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2) rotate(-6deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(6px, -6px) scale(0.9) rotate(0deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(18px, -18px) scale(1.25) rotate(6deg);
+  }
+  80% {
+    opacity: 0.9;
+    transform: translate(32px, -32px) scale(1.1) rotate(10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(45px, -45px) scale(0.6) rotate(14deg);
+  }
+`;
+
+// --- 10. Embers & Sparkles (Celebrations and rewards) ---
+const emberSparkleFloat = keyframes`
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-12px) scale(1.1);
+  }
+  70% {
+    opacity: 0.85;
+    transform: translateY(-28px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-44px) scale(0.3);
+  }
+`;
+
+// --- 11. Tap Interaction Bounce ---
+const tapBounceReaction = keyframes`
+  0% { transform: scale(1, 1) translateY(0); }
+  20% { transform: scale(1.12, 0.88) translateY(4px); }
+  50% { transform: scale(0.92, 1.14) translateY(-18px); }
+  75% { transform: scale(1.04, 0.96) translateY(2px); }
+  100% { transform: scale(1, 1) translateY(0); }
+`;
+
+export const AnimatedIdleG = styled.g<{ $animated?: boolean; $isTapped?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: ${idleBodyBreathe} 3.5s ease-in-out infinite;
+  animation: ${({ $isTapped }) =>
+    $isTapped
+      ? css`
+          ${tapBounceReaction} 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)
+        `
+      : css`
+          ${idleBodyBreathe} 3.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite
+        `};
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
@@ -337,7 +507,7 @@ export const AnimatedIdleG = styled.g<{ $animated?: boolean }>`
 export const AnimatedBellyG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: ${idleBellyBreathe} 3.5s ease-in-out infinite;
+  animation: ${idleBellyBreathe} 3.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
@@ -352,10 +522,10 @@ export const AnimatedLeftWingG = styled.g<{ $animated?: boolean; $isCheer?: bool
   animation: ${({ $isCheer }) =>
     $isCheer
       ? css`
-          ${leftWingCheer} 0.95s ease-in-out forwards
+          ${leftWingCheer} 0.95s cubic-bezier(0.34, 1.56, 0.64, 1) forwards
         `
       : css`
-          ${leftWingIdle} 3s ease-in-out infinite
+          ${leftWingIdle} 3.6s ease-in-out 120ms infinite
         `};
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
@@ -371,10 +541,10 @@ export const AnimatedRightWingG = styled.g<{ $animated?: boolean; $isCheer?: boo
   animation: ${({ $isCheer }) =>
     $isCheer
       ? css`
-          ${rightWingCheer} 0.95s ease-in-out forwards
+          ${rightWingCheer} 0.95s cubic-bezier(0.34, 1.56, 0.64, 1) forwards
         `
       : css`
-          ${rightWingIdle} 3s ease-in-out infinite
+          ${rightWingIdle} 3.6s ease-in-out 120ms infinite
         `};
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
@@ -387,7 +557,7 @@ export const AnimatedRightWingG = styled.g<{ $animated?: boolean; $isCheer?: boo
 export const AnimatedTailG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 5% 85%;
-  animation: ${tailSwing} 3.5s ease-in-out 150ms infinite;
+  animation: ${tailSwing} 3.8s ease-in-out 220ms infinite;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
@@ -399,7 +569,31 @@ export const AnimatedTailG = styled.g<{ $animated?: boolean }>`
 export const AnimatedHeadG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 90%;
-  animation: ${headTilt} 4s ease-in-out infinite;
+  animation: ${headTilt} 4.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+
+  ${({ $animated }) => $animated === false && `animation: none !important;`}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+export const AnimatedLeftEarFinG = styled.g<{ $animated?: boolean }>`
+  transform-box: fill-box;
+  transform-origin: 85% 65%;
+  animation: ${earFinLeft} 5.5s ease-in-out infinite;
+
+  ${({ $animated }) => $animated === false && `animation: none !important;`}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+export const AnimatedRightEarFinG = styled.g<{ $animated?: boolean }>`
+  transform-box: fill-box;
+  transform-origin: 15% 65%;
+  animation: ${earFinRight} 5.5s ease-in-out infinite;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
@@ -411,7 +605,19 @@ export const AnimatedHeadG = styled.g<{ $animated?: boolean }>`
 export const AnimatedEyesG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 50%;
-  animation: ${idleBlink} 5s ease-in-out infinite;
+  animation: ${idleBlink} 4.8s ease-in-out infinite;
+
+  ${({ $animated }) => $animated === false && `animation: none !important;`}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+export const AnimatedRestingArmsG = styled.g<{ $animated?: boolean }>`
+  transform-box: fill-box;
+  transform-origin: 50% 30%;
+  animation: ${restingArmsIdle} 3.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
@@ -423,7 +629,7 @@ export const AnimatedEyesG = styled.g<{ $animated?: boolean }>`
 export const AnimatedCheerG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: ${cheerSquatStretch} 0.95s ease-in-out forwards;
+  animation: ${cheerSquatStretch} 0.95s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
@@ -435,7 +641,7 @@ export const AnimatedCheerG = styled.g<{ $animated?: boolean }>`
 export const AnimatedCheerArmsG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 70%;
-  animation: ${cheerArmsWave} 0.85s ease-in-out infinite;
+  animation: ${cheerArmsWave} 0.75s ease-in-out infinite;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
@@ -447,7 +653,7 @@ export const AnimatedCheerArmsG = styled.g<{ $animated?: boolean }>`
 export const AnimatedBreatheG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 60%;
-  animation: ${breatheScale} 4.8s ease-in-out infinite;
+  animation: ${breatheScale} 4.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
@@ -504,6 +710,18 @@ export const AnimatedEatG = styled.g<{ $animated?: boolean }>`
   }
 `;
 
+export const AnimatedFlamePuffG = styled.g<{ $animated?: boolean }>`
+  transform-box: fill-box;
+  transform-origin: 10% 90%;
+  animation: ${flameBreathPuff} 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+
+  ${({ $animated }) => $animated === false && `animation: none !important;`}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
 export const AnimatedFlameG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 100%;
@@ -526,6 +744,16 @@ export const AnimatedEmberCircle = styled.circle<{
   --dx2: ${({ $dx2 }) => $dx2 || "14px"};
   --dx3: ${({ $dx3 }) => $dx3 || "20px"};
   animation: ${emberSparkle} 1.8s ease-out forwards;
+
+  ${({ $animated }) => $animated === false && `animation: none !important;`}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+export const AnimatedEmbersG = styled.g<{ $animated?: boolean }>`
+  animation: ${emberSparkleFloat} 1.5s ease-out infinite;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
