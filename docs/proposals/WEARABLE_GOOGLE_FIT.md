@@ -2,6 +2,8 @@
 
 Status: **proposal for Alberto's OK** (2026-10-03, 23:45). Author: Álvaro with his AI (Claude in Cursor). Nothing here is a decision until Alberto writes it in `docs/DECISIONS.md`. It reviews and corrects `docs/BIOMEDICAL_ALGORITHMS.md` (Juan and Farouk, branch `feat/t8-mission-engine`) and reuses the signal-processing ideas of Álvaro's Kinexis OS (MATLAB EMG project).
 
+> **Update 2026-10-04:** Alberto approved a Supabase database and server jobs. §1 is approved and §2 ("no server, no cron") is replaced by [`docs/WATCH_INTEGRATION.md`](../WATCH_INTEGRATION.md). §3 to §6 still apply.
+
 Goal: the parents connect the child's Amazfit GTS 2 (through Google Fit). The app crosses the watch data with the check-in and the daily log, with deterministic statistics only (no AI, no filling of gaps), and the doctor report shows what co-occurred, with the number of days behind every figure.
 
 ---
