@@ -77,7 +77,7 @@ Reply in your next turn.
 
 2. **Accept (QR Handshake is Optimal for 24h):** A standard QR (Version 6–10) reliably holds 130–395 bytes with error correction M, readable in <0.5s by mobile cameras. A routine payload requires <120 bytes: `{"v":1,"p":"c1","t":[{"id":"t1","time":"08:00"}]}`. To protect privacy, we use zero medical names in the QR and an optional 16-byte AES pre-shared key exchanged during initial pairing.
 
-3. **Accept (Two Real Phones via Camera Scan):** Two physical phones scanning each other is the most robust, visually compelling live demo—immune to venue Wi-Fi failures at Tauron Arena. If single-device simulated, the script must state: *"Simulated dual-view for recording."*
+3. **Accept (Two Real Phones via Camera Scan):** Two physical phones scanning each other is the most robust, visually compelling live demo—immune to venue Wi-Fi failures at Tauron Arena. If single-device simulated, the script must state: _"Simulated dual-view for recording."_
 
 4. **Ask / Propose Age 14:** GDPR Art. 8 allows member states to set consent between 13–16 (Poland: 16, Spain: 14). Clinically, ECCO guidelines begin pediatric IBD healthcare transition autonomy at age 14. We propose: ages 7–13 full parent orchestration; ages 14–15 child-led with optional selective privacy masking.
 
@@ -85,3 +85,36 @@ Reply in your next turn.
 
 **Synthesis & Rebuttal:**
 We concede on WebRTC: Claude is right that QR handshakes eliminate backend failure points in 24h. However, the child app must not be a hollow checklist. Grounding the child UX in Mayo Clinic acoustic biofeedback (listening to their "belly rumbles" via Web Audio API bandpass 100–1500Hz) and school bathroom pass cards (T5) transforms compliance into an engaging health tool that judges will remember.
+
+---
+
+## Turn 2 · Claude (assistant of Alberto) · 2026-10-03
+
+**Q1 (medication taken is GDPR Art. 9): Accept.** The payload `{"task_id":"k8","status":true}` is still a fact about a child's treatment. Keeping it on the parent's device is the right answer. The child device should keep only the task list, not the confirmation history.
+
+**Q2 (QR handshake): Partly accept, partly reject.**
+
+- _Reject the capacity figures._ By the standard byte-mode tables, version 6 at error level M holds about 106 bytes and version 10 at M about 213 bytes. The 130-395 range does not match. Our routine payload fits anyway, but we must test real scanning on two phones before the demo.
+- _Reject the AES key inside the QR._ A key shown in the same QR protects nothing against someone who photographs the screen. If we want encryption, the key must come from something not on screen, for example a PIN typed on the child's phone. **Ask:** what exactly is the PIN flow?
+
+**Q3 (smallest demo): Accept two real phones.** Reject the label "Simulated dual-view for recording" as the only disclosure. A recorded flow that looks like working software is the same deception risk. Show the two real devices, or show a concept slide and say it is a concept.
+
+**Q4 (age 14): Reject as proposed.** Spain is not the relevant reference for a Polish event. As far as I know, Poland set the age at 16 in its implementing law. **Ask:** who gives consent for a 14- or 15-year-old, and does the child app need a consent at all? If you cannot answer with the Polish rule, mark it as unknown and remove the child-led phase from the demo.
+
+**Q5 (partner challenge): Ask.** "25% of Crohn diagnoses are pediatric" and "70% drop-off" have no source in our files. Cite them or drop them. The alignment argument also needs a partner challenge, not only the Sport & Healthcare category.
+
+**Synthesis: Reject the acoustic and vagal pieces in the child app.** We already decided to cut them (see `docs/DECISIONS.md` and the team's idea log). Reasons:
+
+1. A "belly rumble" status for a child is a health judgement. That is the diagnostic risk we rejected in the adult app, now with minors.
+2. A phone microphone captures voices and traffic. A 100-1500 Hz band-pass filter will not isolate bowel sounds in the Tauron Arena.
+3. PubMed IDs do not validate a phone classifier. The judges will ask.
+
+**Accept:** the move from WebRTC to QR handshake, and the school bathroom pass card (T5) as part of the child screen.
+
+**Proposed child app for the demo (for agreement):**
+
+- Parent screen: create a routine with generic labels, show a QR.
+- Child screen: scan the QR, see three large buttons with generic tasks, show a confirmation QR.
+- Child screen also shows the restroom map and the access card (Pilar A). No health data, no acoustic input, no vagal input, no HRV.
+
+**Next turn (Gemini):** confirm that the QR payload without medication names works on two real phones within our 24-hour plan, answer the PIN question, and name the one element of this list you would cut first. Turn 3 is the last one before the summary.
