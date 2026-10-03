@@ -55,7 +55,7 @@ Every AI tool reads `AGENTS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md` and t
 
 New dependencies: `zod` for T1 only. Nothing else without approval.
 
-## Motion tasks (proposal, 2026-10-03 22:45, needs Alberto's OK)
+## Motion tasks (M1-M3)
 
 The dragon gets motion by parts; the exercises are shown by an ink stick figure, not by the dragon. Everything is SVG with CSS keyframes: no Rive, no Lottie, no AI-generated video, **no new dependency**. Why: see `docs/DECISIONS.md`. These tasks feed V5 (exercise screen) and V8 (dragon art) of `docs/V2-CHILD-PLAN.md`.
 
@@ -63,7 +63,7 @@ The dragon gets motion by parts; the exercises are shown by an ink stick figure,
 | :-- | :------------------------------------------- | :-------------- | :---------------------------------------------------------------------------------------------- | :--------- | :---- | :-------------------- |
 | M1  | Dragon motion by parts                       | Baitiare        | `src/components/features/companion/Companion/`                                                  | -          | 2 h   | Sun 03:00             |
 | M2  | `ExerciseFigure`: ink stick figure and moves | Claude          | `src/components/features/missions/ExerciseFigure/`, `MissionActiveRun/` (one import and render) | -          | 3 h   | Sun 03:00             |
-| M3  | New mission list in the app                  | Farouk + Álvaro | `src/content/missions.ts`, `src/config/content-ids.ts` (mission ids only)                       | M2 keys    | 1.5 h | Sun 03:00             |
+| M3  | New mission list in the app                  | Farouk + Álvaro | `src/content/games.ts`, `src/types/mission.ts`, `src/config/content-ids.ts`                     | M2 keys    | 1.5 h | Sun 03:00             |
 
 M2 and M3 share one contract, so they can run in parallel: a step's `poseKey` is a **move key** from this list. Any other value shows the dragon as today.
 
@@ -88,7 +88,7 @@ M2 and M3 share one contract, so they can run in parallel: a step's `poseKey` is
 
 ### M3 · New mission list (Farouk + Álvaro)
 
-- Bring the new games list (the team's "Minijuegos" sheet) into `MISSIONS`, in English, with short steps and a move key per step. Pick 8 to 10 games, not all 20.
+- Bring the new games list (the team's "Minijuegos" sheet) into `PLAY_GAMES` in `src/content/games.ts`, in English, with short steps and a move key per step. Pick 8 to 10 games, not all 20.
 - Remove every "what it is for" health phrase: no "calms the belly", "builds endurance", "tolerate effort" or "motor control" (`PRODUCT.md` section 6). The game describes what to do, never why it helps.
 - The "high" games (fast circuit, step race, 60 s dance) and the console game need Alberto's and the clinical team's OK first: v1 missions are gentle, no impact, no jumping (`docs/DECISIONS.md`).
 - `kind` stays one of the four existing kinds; rewards never depend on it.
@@ -239,6 +239,8 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 - `/companion`: accessories and colours on the main track, badges, the team track. Equip and unequip. Keep the room for last.
 
+Note: wearables are now bought with coins in the shop (V6 of `docs/V2-CHILD-PLAN.md`); `/companion` keeps badges and the team track.
+
 **Done when:** items unlock from `points` and `teamStars` using T3; nothing is ever locked again after unlocking; no "sad" state anywhere.
 
 ### T16 · PWA offline, deploy and device QA (Alberto)
@@ -269,6 +271,12 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 ---
 
+## V-tasks and L-tasks (child interface v2 and family link)
+
+Decided on 2026-10-03 (see `docs/DECISIONS.md`). The V-tasks (V1 to V9: economy lib, theme, timer, home, play flow, shop, parent v2, dragon art, QA) are in `docs/V2-CHILD-PLAN.md` section 5. The L-tasks, owned by Álvaro's AI, are: **L1** link lib (`src/lib/link/`, with tests), **L3** link UI (`src/components/features/link/`, routes `/share` and `/parent/link`), **L5** parent v2 (parent home sections, diet, rewards from home, resume range). The old tasks above are not rewritten.
+
+---
+
 ## Out of scope (roadmap slide only)
 
-Restroom map, menu reader, smartwatch and health platform integration, motion detection and camera pose estimation, push notifications, accounts and sync, QR from child to parent device (stretch), online play, impact exercise, predictions and invented indexes, adolescent privacy, other languages. See [`PRODUCT.md`](PRODUCT.md) section 8.
+Restroom map, menu reader, smartwatch and health platform integration, motion detection and camera pose estimation, push notifications, accounts and sync, family QR link (now in scope, see L-tasks), online play, impact exercise, predictions and invented indexes, adolescent privacy, other languages. See [`PRODUCT.md`](PRODUCT.md) section 8.

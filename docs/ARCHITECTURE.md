@@ -8,7 +8,7 @@ How the product in [`PRODUCT.md`](PRODUCT.md) is built. Rules for code style are
 
 - One Next.js 16 PWA. **No backend for health data.** There are no route handlers in v1.
 - One `AppState` object, stored in `localStorage` under one key, validated on every read.
-- Two modes on the same device: **child mode** (default) and **parent mode** (PIN).
+- Two modes on the same device: **child mode** (default) and **parent mode** (PIN). At setup the device gets a role (child, parent or both); two phones can exchange data only through the family QR link (section 8b).
 - Pure logic lives in `src/lib/<topic>/` (no React, unit-tested). UI lives in `src/components/features/<feature>/`. Static content (questions, missions, disclaimers) lives in `src/content/`.
 
 ```
@@ -31,15 +31,16 @@ How the product in [`PRODUCT.md`](PRODUCT.md) is built. Rules for code style are
 
 The types are in `src/types/` and are the contract. Summary:
 
-| Type             | What it is                                                                                 |
-| :--------------- | :----------------------------------------------------------------------------------------- |
-| `AppState`       | Everything. Has `schemaVersion`, `isDemo`, `child`, `settings`, `companion` and the lists. |
-| `CheckIn`        | One per day. `answers` keyed by question id, `notToday`, optional `childNote`.             |
-| `MissionLog`     | One per mission run. `status` (`completed` or `rest`), `company`, `confirmedBy`.           |
-| `ParentLog`      | One per day. Sleep, activity, school, medication taken (yes/no only), note.                |
-| `FoodEntry`      | Free text from a parent, optionally linked to a check-in.                                  |
-| `Consultation`   | A date. The report covers the time since the previous consultation.                        |
-| `CompanionState` | Points, team stars, owned and equipped items, badges. Only ever goes up.                   |
+| Type             | What it is                                                                                      |
+| :--------------- | :---------------------------------------------------------------------------------------------- |
+| `AppState`       | Everything. Has `schemaVersion`, `isDemo`, `child`, `settings`, `companion` and the lists.      |
+| `CheckIn`        | One per day. `answers` keyed by question id, `notToday`, optional `childNote`.                  |
+| `MissionLog`     | One per mission run. `status` (`completed` or `rest`), `company`, `confirmedBy`.                |
+| `ParentLog`      | One per day. Sleep, activity, school, medication taken (yes/no only), note.                     |
+| `FoodEntry`      | Free text from a parent, optionally linked to a check-in.                                       |
+| `Consultation`   | A date. The report covers the time since the previous consultation.                             |
+| `CompanionState` | Points, team stars, badges. Only ever goes up.                                                  |
+| `EconomyState`   | Fire (0-100), coins, inventory, equipped wearables, rewards from home (`src/types/economy.ts`). |
 
 Rules for the data:
 
@@ -60,6 +61,8 @@ Rules for the data:
 | `src/lib/demo-data/`                              | Alberto                               | T2                                                              |
 | `src/lib/rewards/`, `src/lib/pin/`                | Alberto                               | T3                                                              |
 | `src/lib/patterns/`                               | Juan                                  | T9                                                              |
+| `src/lib/economy/`                                | Claude                                | V1. Coins, fire, shop, rewards from home                        |
+| `src/lib/link/`, `src/components/features/link/`  | Álvaro's AI                           | L1, L3. Family QR link                                          |
 | `src/lib/report/`                                 | Juan                                  | T11                                                             |
 | `src/content/`                                    | Farouk (with Álvaro)                  | T4. Typed data files, with sources in comments.                 |
 | `src/components/features/companion/`              | Baitiare                              | T5                                                              |
@@ -91,6 +94,10 @@ Defined in `src/config/app.ts` (`ROUTES`). Do not hard-code paths.
 | `/parent/patterns` | Calendar and weekly charts                                          | parent |
 | `/parent/report`   | Doctor report view and print                                        | parent |
 | `/parent/settings` | Enabled missions, PIN, backup export and import, consultations      | parent |
+| `/parent/link`     | Family link: show the pairing QR, scan the child's data QR          | parent |
+| `/share`           | Child side of the link: scan the pairing QR, show the data QR       | child  |
+
+The v2 child routes (Play flow, Shop, Food, Customize) are planned in `docs/V2-CHILD-PLAN.md` and will be added to `ROUTES` with it.
 
 First run: if `AppState.child` is `null`, `/` redirects to `/parent/setup`.
 
@@ -109,15 +116,27 @@ First run: if `AppState.child` is `null`, `/` redirects to `/parent/setup`.
 
 ## 7. Rewards
 
-Pure functions in `src/lib/rewards/`, with tests. The numbers are constants in one place so they are easy to tune.
+Two layers. Both follow `PRODUCT.md` section 5.2: the reward never depends on an answer or on the mission kind, nothing is punished.
+
+### 7.1 Companion progress (existing)
+
+Pure functions in `src/lib/rewards/`, with tests. The numbers are constants in one place so they are easy to tune. It stays for **badges and the companion**; wearables moved to the shop (7.2).
 
 - Check-in answered: `+CHECK_IN_POINTS`. "Not today": `+NOT_TODAY_POINTS` (smaller). Mission `completed`: `+MISSION_POINTS`. Mission `rest`: `+REST_POINTS` (same as not today).
 - **The reward never depends on the value of an answer or on the mission kind.** There is a test that proves it.
 - A `completed` mission with `company` of `family` or `other` adds `+1` to `teamStars`. This never changes `points`. A `rest` session never gives a star.
-- `syncCompanion(state)` recomputes points, stars, owned items and badges from the logs. It is idempotent and never takes anything away. **Call it after every check-in or mission is saved** (T1 does this inside the actions), so a check-in that is replaced the same day is never counted twice.
-- `equipItem` puts one item per slot. `nextUnlock(companion, track)` feeds the progress bar. `confidenceLabel(company)` gives the neutral labels of `PRODUCT.md` section 5.3.
+- `syncCompanion(state)` recomputes points, stars and badges from the logs. It is monotonic (never takes anything away) and idempotent. **Call it after every check-in or mission is saved** (T1 does this inside the actions), so a check-in that is replaced the same day is never counted twice.
+- `nextUnlock(companion, track)` feeds the progress bar. `confidenceLabel(company)` gives the neutral labels of `PRODUCT.md` section 5.3.
 - "Care days" is the number of distinct days with a check-in or a rest or completed mission. It only goes up. Never expose a streak that resets.
-- Items unlock when `points` (main track) or `teamStars` (team track) pass `cost`. Nothing is ever taken away.
+
+### 7.2 Coins, fire and the shop (v2)
+
+Pure functions in `src/lib/economy/`, constants in `src/config/economy.ts`, types in `src/types/economy.ts`. Plan: `docs/V2-CHILD-PLAN.md`.
+
+- **Coins** are earned by the act: check-in 5, "not today" 3, mission completed 12, rest 6. Coins from the logs are derived (idempotent, like `syncCompanion`); spending is stored. Coins never go below zero.
+- The coins buy **food and wearables** (glasses, t-shirt, hat) in the shop. This replaces the item unlocks by points of the old layer.
+- **Fire** is 0 to 100. It is raised by feeding the dragon, never decays, and goes down only when the child chooses to spend it on a reward from home.
+- **Rewards from home** are created by parents (name and fire price). A claim is a request the parents confirm when it happens. Parents cannot reject a claim or refund fire. Prices never depend on answers.
 
 ## 8. Mission flow
 
@@ -131,9 +150,13 @@ Pure functions in `src/lib/rewards/`, with tests. The numbers are constants in o
 5. Stopping early saves a `rest` log. The completion button is not shown before the timer ends.
 6. The reward and the confidence label come from `src/lib/rewards/` and the label mapping in `PRODUCT.md` section 5.3.
 
+## 8b. Family link
+
+In scope (it was a stretch goal). One PWA, no server. The pairing QR goes from the parent phone to the child phone, and the child's data goes back as an encrypted QR (AES-GCM). Code: `src/lib/link/` (pure, tested) and `src/components/features/link/`. Dependencies `qrcode` and `jsqr` are approved. Health data still never reaches a server.
+
 ## 9. Doctor report
 
-- `src/lib/report/buildReport(state, today)` returns a plain object (period, day strip, counts, food entries on discomfort days, sleep and school summary, active days with confidence labels). It has tests.
+- `src/lib/report/buildReport(state, today)` returns a plain object (period, by default since the last consultation, and parents may choose From and To; day strip, counts, food entries on discomfort days, sleep and school summary, active days with confidence labels). It has tests.
 - The view in `doctor-report/` renders it for A4 portrait and uses print CSS (`@media print`, `@page`) so that `window.print()` produces a clean page and "Save as PDF" works on the device. **No PDF library.**
 - Test printing in desktop Chrome and on a real phone, including the installed PWA on iPhone, because `window.print()` may behave differently there. Log findings in `ERRORS.md`.
 
@@ -150,7 +173,7 @@ Pure functions in `src/lib/rewards/`, with tests. The numbers are constants in o
 
 ## 12. Dependencies
 
-Approved for the project: `zod` (T1). Anything else needs approval, as in `AGENTS.md`. No charting library (charts are small SVG components), no PDF library, no animation library, no Tailwind.
+Approved for the project: `zod` (T1), `qrcode` and `jsqr` (family link). Anything else needs approval, as in `AGENTS.md`. No charting library (charts are small SVG components), no PDF library, no animation library, no Tailwind.
 
 ## 13. Content files (`src/content/`)
 

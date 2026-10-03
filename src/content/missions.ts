@@ -1,7 +1,9 @@
 import { MISSION_IDS } from "@/config/content-ids";
 import type { Mission } from "@/types";
+import { PLAY_GAMES } from "./games";
 
-export const MISSIONS: Mission[] = [
+/** The gentle missions of the v1 mission list. They use companion poses and have no `mode` or `level`. */
+export const GENTLE_MISSIONS: Mission[] = [
   {
     // source: to verify
     id: MISSION_IDS.dragonBreathing,
@@ -148,3 +150,6 @@ export const MISSIONS: Mission[] = [
     ],
   },
 ];
+
+/** One source for every screen: the gentle missions, then the play games (filter by `mode` and `level`). */
+export const MISSIONS: Mission[] = [...GENTLE_MISSIONS, ...PLAY_GAMES];

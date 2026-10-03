@@ -6,13 +6,13 @@ export const HomeScreenRoot = styled.main`
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
   padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 16px) 16px;
   background-color: ${({ theme }) => theme.colors.childHomeBg};
-  overflow: hidden;
+  overflow-x: hidden;
   box-sizing: border-box;
   user-select: none;
   position: relative;
@@ -20,45 +20,160 @@ export const HomeScreenRoot = styled.main`
 
 export const TopBar = styled.header`
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   max-width: 440px;
+  min-height: 48px;
+  gap: ${({ theme }) => theme.spacing.xs};
+  box-sizing: border-box;
+`;
+
+export const FireBar = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: 6px 10px;
+  background: ${({ theme }) => theme.colors.surface};
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
   min-height: 40px;
+  box-sizing: border-box;
+`;
+
+export const FlameIconWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: ${({ theme }) => theme.colors.accent};
+  flex-shrink: 0;
+`;
+
+export const FireTrack = styled.div`
+  width: 48px;
+  height: 12px;
+  background: ${({ theme }) => theme.colors.paper};
+  border: 1.5px solid ${({ theme }) => theme.colors.ink};
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+`;
+
+export const FireFill = styled.div.attrs<{ $percent: number }>(({ $percent }) => ({
+  style: { width: `${$percent}%` },
+}))`
+  height: 100%;
+  background: ${({ theme }) => theme.colors.accent};
+  transition: width 300ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`;
+
+export const FireValue = styled.span`
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.ink};
+  line-height: 1;
+  margin-left: 2px;
+`;
+
+export const TopRightCluster = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  flex-shrink: 0;
+`;
+
+export const CoinsPill = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: 6px 12px;
+  background: ${({ theme }) => theme.colors.surface};
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
+  min-height: 40px;
+  box-sizing: border-box;
+`;
+
+export const CoinIconWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: ${({ theme }) => theme.colors.highlight};
+  flex-shrink: 0;
+`;
+
+export const CoinsValue = styled.span`
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.ink};
+  line-height: 1;
 `;
 
 export const ParentDoorLink = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 20px;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  min-height: ${({ theme }) => theme.touchTarget};
+  background: ${({ theme }) => theme.colors.surface};
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
+  border-radius: ${({ theme }) => theme.radius.pill};
   color: ${({ theme }) => theme.colors.textMuted};
   text-decoration: none;
+  font-family: ${({ theme }) => theme.fontFamily.heading};
   font-size: 11px;
-  font-weight: 700;
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
   letter-spacing: 0.04em;
   text-transform: uppercase;
   transition:
-    transform 0.15s ease,
-    background-color 0.15s ease;
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
 
   &:hover {
-    transform: translateY(-1px);
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: ${({ theme }) => theme.colors.primarySoft};
     color: ${({ theme }) => theme.colors.text};
   }
 
+  &:active {
+    transform: translate(2px, 3px);
+    box-shadow: none;
+  }
+
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
 
-export const CenterFocusArea = styled.section`
+export const ParentIconWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+`;
+
+export const ParentLabel = styled.span`
+  line-height: 1;
+`;
+
+export const DragonStage = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -66,138 +181,180 @@ export const CenterFocusArea = styled.section`
   position: relative;
   width: 100%;
   max-width: 440px;
-  margin: auto 0;
+  flex: 1;
+  margin: ${({ theme }) => theme.spacing.xs} 0;
 `;
 
-export const DragonAnchor = styled.div`
-  position: relative;
+export const DragonWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
 `;
 
-export const PlayButton = styled.button`
-  position: absolute;
-  bottom: 0px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.playButton};
-  border: none;
-  outline: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 24px rgba(112, 84, 199, 0.35);
-  transition:
-    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.18s ease;
-  z-index: 10;
-  -webkit-tap-highlight-color: transparent;
-
-  &:hover {
-    transform: translateX(-50%) scale(1.06);
-    box-shadow: 0 10px 28px rgba(112, 84, 199, 0.45);
-  }
-
-  &:active {
-    transform: translateX(-50%) scale(0.94);
-    box-shadow: 0 4px 12px rgba(112, 84, 199, 0.3);
-  }
-
-  &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.dragonEye};
-    outline-offset: 3px;
-  }
-`;
-
-export const PlayTriangleSvg = styled.svg`
-  width: 26px;
-  height: 26px;
-  display: block;
-  margin-left: 4px;
-`;
-
-export const BottomNavArea = styled.nav`
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  width: 100%;
-  max-width: 380px;
-  padding: 10px 18px;
-  background-color: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 36px;
-  box-sizing: border-box;
-  margin-top: auto;
-  margin-bottom: 8px;
-  z-index: 5;
-`;
-
-export const NavLink = styled(Link)<{ $isActive?: boolean }>`
-  background: none;
-  border: none;
-  outline: none;
+export const BottomArea = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
+  width: 100%;
+  max-width: 380px;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-top: auto;
+  margin-bottom: 4px;
+  box-sizing: border-box;
+`;
+
+export const CheckInBanner = styled(Link)`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.sm};
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  min-height: ${({ theme }) => theme.touchTarget};
+  background: ${({ theme }) => theme.colors.surface};
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
+  border-radius: ${({ theme }) => theme.radius.leaf};
+  color: ${({ theme }) => theme.colors.text};
   text-decoration: none;
-  padding: 6px 14px;
-  border-radius: 18px;
-  color: ${({ theme, $isActive }) =>
-    $isActive ? theme.colors.playButton : theme.colors.dragonEye};
   transition:
-    color 0.18s ease,
-    transform 0.18s ease;
-  -webkit-tap-highlight-color: transparent;
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
 
   &:hover {
-    transform: translateY(-1px);
+    background-color: ${({ theme }) => theme.colors.primarySoft};
   }
 
   &:active {
-    transform: translateY(1px);
+    transform: translate(2px, 3px);
+    box-shadow: none;
   }
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.playButton};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
 
-export const NavIconWrapper = styled.span`
+export const CheckInLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+export const CheckInIconWrapper = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
-export const NavSvg = styled.svg`
-  width: 22px;
-  height: 22px;
-  display: block;
+export const CheckInTextGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 `;
 
-export const SvgPolygon = styled.polygon``;
-export const SvgPath = styled.path``;
-export const SvgCircle = styled.circle``;
+export const CheckInTitle = styled.span`
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.ink};
+  line-height: 1.2;
+`;
 
-export const NavLabel = styled.span`
-  font-family: inherit;
+export const CheckInSubtitle = styled.span`
+  font-family: ${({ theme }) => theme.fontFamily.body};
   font-size: 11px;
-  font-weight: 800;
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.2;
+`;
+
+export const CheckInArrowWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: ${({ theme }) => theme.colors.ink};
+`;
+
+export const PlayButtonContainer = styled.div`
+  width: 100%;
+  box-sizing: border-box;
+
+  & > button {
+    min-height: 56px;
+    font-size: ${({ theme }) => theme.fontSize.lg};
+  }
+`;
+
+export const PlayContent = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  width: 100%;
+`;
+
+export const PlayLabel = styled.span`
   letter-spacing: 0.05em;
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+`;
+
+export const ActionsNav = styled.nav`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.sm};
+  width: 100%;
+  box-sizing: border-box;
+`;
+
+export const ActionButtonWrapper = styled.div`
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+
+  & > button {
+    min-height: ${({ theme }) => theme.touchTarget};
+    padding: 8px 4px;
+  }
+`;
+
+export const ActionBtnContent = styled.span`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+`;
+
+export const ActionIconWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: ${({ theme }) => theme.colors.ink};
+`;
+
+export const ActionBtnLabel = styled.span`
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  font-size: 12px;
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
   line-height: 1;
+  color: ${({ theme }) => theme.colors.ink};
   text-transform: uppercase;
-  color: inherit;
+  letter-spacing: 0.03em;
 `;
 
 export const LoadingContainer = styled.div`
@@ -208,3 +365,63 @@ export const LoadingContainer = styled.div`
   min-height: 100vh;
   background-color: ${({ theme }) => theme.colors.childHomeBg};
 `;
+
+/* Styled SVG and SVG geometry primitives */
+export const FlameSvg = styled.svg`
+  width: 20px;
+  height: 20px;
+  display: block;
+`;
+
+export const CoinSvg = styled.svg`
+  width: 20px;
+  height: 20px;
+  display: block;
+`;
+
+export const NavSvg = styled.svg`
+  width: 16px;
+  height: 16px;
+  display: block;
+`;
+
+export const PlayTriangleSvg = styled.svg`
+  width: 22px;
+  height: 22px;
+  display: block;
+`;
+
+export const ShopSvg = styled.svg`
+  width: 20px;
+  height: 20px;
+  display: block;
+`;
+
+export const FoodSvg = styled.svg`
+  width: 20px;
+  height: 20px;
+  display: block;
+`;
+
+export const CustomizeSvg = styled.svg`
+  width: 20px;
+  height: 20px;
+  display: block;
+`;
+
+export const CheckSvg = styled.svg`
+  width: 24px;
+  height: 24px;
+  display: block;
+`;
+
+export const ArrowSvg = styled.svg`
+  width: 18px;
+  height: 18px;
+  display: block;
+`;
+
+export const SvgPolygon = styled.polygon``;
+export const SvgPath = styled.path``;
+export const SvgCircle = styled.circle``;
+export const SvgRect = styled.rect``;

@@ -6,6 +6,7 @@ import {
   QUESTION_IDS,
 } from "@/config/content-ids";
 import { addDays, isWeekend, todayKey } from "@/lib/dates";
+import { createDefaultEconomy } from "@/lib/economy";
 import { syncCompanion } from "@/lib/rewards";
 import type {
   ActivityLevel,
@@ -236,6 +237,15 @@ export function buildDemoState(options: DemoOptions = {}): AppState {
     child: { nickname: DEMO_CHILD_NICKNAME },
     settings: options.settings ?? DEFAULT_SETTINGS,
     companion: buildCompanion(checkIns, missionLogs),
+    economy: {
+      ...createDefaultEconomy(),
+      fire: 40,
+      // One hat (10) and two portions of food (5 each), all bought from demo coins.
+      coinsSpent: 20,
+      inventory: { food: 2 },
+      ownedItemIds: ["hat"],
+      equippedItemIds: ["hat"],
+    },
     checkIns,
     missionLogs,
     parentLogs,

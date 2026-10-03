@@ -1,5 +1,6 @@
 import type { CheckIn } from "./check-in";
 import type { CompanionState } from "./companion";
+import type { EconomyState } from "./economy";
 import type { MissionLog } from "./mission";
 import type { Consultation, FoodEntry, ParentLog } from "./parent-log";
 
@@ -25,6 +26,7 @@ export type AppState = {
   child: ChildProfile | null;
   settings: ParentSettings | null;
   companion: CompanionState;
+  economy: EconomyState;
   checkIns: CheckIn[];
   missionLogs: MissionLog[];
   parentLogs: ParentLog[];

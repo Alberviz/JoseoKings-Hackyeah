@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
+import { GAME_IDS, MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
 import {
   CHECK_IN_QUESTIONS,
   CHILD_VISIBILITY_NOTE,
+  GAME_MOVE_KEYS,
+  GENTLE_MISSIONS,
   MISSION_STOP_MESSAGE,
   MISSIONS,
   PATTERNS_DISCLAIMER,
+  PLAY_GAMES,
   REPORT_DISCLAIMER,
 } from "./index";
 
@@ -82,17 +85,22 @@ describe("Check-in questions", () => {
 });
 
 describe("Missions", () => {
-  it("defines exactly one mission for each id in MISSION_IDS", () => {
+  it("defines exactly one gentle mission for each id in MISSION_IDS", () => {
     const expectedMissionIds = Object.values(MISSION_IDS);
-    expect(MISSIONS).toHaveLength(expectedMissionIds.length);
+    expect(GENTLE_MISSIONS).toHaveLength(expectedMissionIds.length);
 
-    const missionIds = MISSIONS.map((m) => m.id);
+    const missionIds = GENTLE_MISSIONS.map((m) => m.id);
     expect(new Set(missionIds).size).toBe(expectedMissionIds.length);
 
     for (const expectedId of expectedMissionIds) {
-      const match = MISSIONS.filter((m) => m.id === expectedId);
+      const match = GENTLE_MISSIONS.filter((m) => m.id === expectedId);
       expect(match).toHaveLength(1);
     }
+  });
+
+  it("lists the gentle missions and the play games in MISSIONS, with unique ids", () => {
+    expect(MISSIONS).toHaveLength(GENTLE_MISSIONS.length + PLAY_GAMES.length);
+    expect(new Set(MISSIONS.map((m) => m.id)).size).toBe(MISSIONS.length);
   });
 
   it("has step counts and durations within allowed ranges", () => {
@@ -114,7 +122,7 @@ describe("Missions", () => {
   });
 
   it("only uses poseKeys from the allowed list", () => {
-    for (const mission of MISSIONS) {
+    for (const mission of GENTLE_MISSIONS) {
       for (const step of mission.steps) {
         expect(ALLOWED_POSE_KEYS).toContain(step.poseKey);
       }
@@ -124,6 +132,73 @@ describe("Missions", () => {
   it("has a non-empty neutral parentNote for each mission", () => {
     for (const mission of MISSIONS) {
       expect(mission.parentNote.trim().length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("Play games", () => {
+  it("defines exactly one game for each id in GAME_IDS", () => {
+    const expectedIds = Object.values(GAME_IDS);
+    expect(PLAY_GAMES.map((g) => g.id).sort()).toEqual([...expectedIds].sort());
+  });
+
+  it("has at least two games for every mode and level", () => {
+    for (const mode of ["alone", "family"] as const) {
+      for (const level of [1, 2, 3] as const) {
+        const matching = PLAY_GAMES.filter((g) => g.mode === mode && g.level === level);
+        expect(matching.length, `${mode} level ${level}`).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
+  it("has step counts and durations within the mission ranges", () => {
+    for (const game of PLAY_GAMES) {
+      expect(game.steps.length).toBeGreaterThanOrEqual(3);
+      expect(game.steps.length).toBeLessThanOrEqual(5);
+
+      let totalDuration = 0;
+      for (const step of game.steps) {
+        expect(step.text.trim().length).toBeGreaterThan(0);
+        expect(step.durationSeconds).toBeGreaterThanOrEqual(8);
+        expect(step.durationSeconds).toBeLessThanOrEqual(20);
+        totalDuration += step.durationSeconds;
+      }
+
+      expect(totalDuration, game.id).toBeGreaterThanOrEqual(60);
+      expect(totalDuration, game.id).toBeLessThanOrEqual(120);
+    }
+  });
+
+  it("only uses move keys the exercise figure knows", () => {
+    for (const game of PLAY_GAMES) {
+      for (const step of game.steps) {
+        expect(GAME_MOVE_KEYS).toContain(step.poseKey);
+      }
+    }
+  });
+
+  it("writes every step as one short sentence of at most 80 characters", () => {
+    for (const game of PLAY_GAMES) {
+      for (const step of game.steps) {
+        expect(step.text.length, step.text).toBeLessThanOrEqual(80);
+        expect(step.text, step.text).not.toMatch(/[.!?]\s+\S/);
+      }
+    }
+  });
+
+  it("puts a choice icon only on the first step of a game", () => {
+    for (const game of PLAY_GAMES) {
+      game.steps.slice(1).forEach((step) => expect(step.iconKey, game.id).toBeUndefined());
+    }
+    const iconKeys = PLAY_GAMES.flatMap((g) => g.steps.map((s) => s.iconKey)).filter(Boolean);
+    expect(iconKeys.sort()).toEqual(["colour", "dice", "traffic-light"]);
+  });
+
+  it("gives mode and level to the play games only", () => {
+    expect(MISSIONS.filter((m) => m.mode !== undefined)).toHaveLength(PLAY_GAMES.length);
+    for (const mission of GENTLE_MISSIONS) {
+      expect(mission.mode).toBeUndefined();
+      expect(mission.level).toBeUndefined();
     }
   });
 });

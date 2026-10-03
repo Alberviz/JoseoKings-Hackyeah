@@ -35,7 +35,7 @@ Scope of disease: **inflammatory bowel disease** (Crohn's and ulcerative colitis
 
 ## 4. How the app works
 
-One installable PWA. One device, **two modes**: child mode (default) and parent mode (protected by a PIN). Everything is stored on the device.
+One installable PWA. One device, **two modes**: child mode (default) and parent mode (protected by a PIN). Everything is stored on the device. The setup asks what the phone is for (child, parent or both). Two phones can share data only through the **family link**: the parent shows a pairing QR, the child phone answers with an encrypted data QR. There is no server.
 
 ### 4.1 Child mode
 
@@ -46,7 +46,8 @@ One installable PWA. One device, **two modes**: child mode (default) and parent 
    - **with a parent or carer**, or
    - **with someone else** (sibling, grandparent, friend).
      Team missions are **cooperative, never competitive**: either both win or both lose. A visible **Stop** button is always available.
-4. **Rewards.** Accessories and colours for the companion, badges for steadiness, and later a room that fills up.
+4. **Rewards.** Badges for steadiness and, in the shop, wearables (glasses, t-shirt, hat) and food bought with coins. Coins come from checking in, doing a mission or resting, and the chest after play.
+5. **Shop, fire and rewards from home.** Feeding the dragon raises its fire (0 to 100). Fire never decays; it goes down only when the child spends it on a reward from home, which the parents created (name and fire price). A claim is a request the parents confirm when it happens. See section 5.2.
 
 ### 4.2 Parent mode (PIN)
 
@@ -59,7 +60,7 @@ One installable PWA. One device, **two modes**: child mode (default) and parent 
 
 ### 4.3 Doctor report
 
-- One page, built on the device, covering **the time since the last consultation**.
+- One page, built on the device, covering **the time since the last consultation** by default; parents can choose From and To dates.
 - Shown on screen in a clean view, or saved as PDF through the browser print dialog (`window.print()` with print CSS). No PDF library.
 - English only in v1.
 - Contains: the period, a day-by-day colour strip, pain and energy as the child marked them, days with discomfort, food entries on those days, sleep and school summary, medication-taken yes/no, active days.
@@ -83,6 +84,8 @@ One installable PWA. One device, **two modes**: child mode (default) and parent 
 - **Stop early is rest, not failure.** It is logged as a rest session and gives the smaller reward.
 - **Fixed, predictable rewards.** No random loot boxes.
 - Rewards belong to the child (items, colours, a room). Parents never "give" them.
+- **Coins and fire (child interface v2).** Coins come from the act: a check-in (including "not today"), a mission (including rest) and the chest after play. They buy food and accessories in the shop. Fire rises when the child feeds the dragon. It never decays and the app never takes it away; it only goes down when the child chooses to spend it.
+- **Rewards from home** are a separate, optional layer that the family defines together: the parents create them (name and price in fire), the child can claim one, and a claim is a request the parents confirm when it happens. Prices never depend on what the child answered. The companion's items stay the child's and parents cannot touch them. Parents cannot reject a claim or refund fire; if a reward does not suit the family, they edit or remove it from the list before the child claims it.
 
 ### 5.3 Confidence labels on activity
 
@@ -145,7 +148,7 @@ Without a working item 1 to 3 there is no demo. Item 7 is cut first.
 
 - The restroom map and the menu reader (paused, see [`DECISIONS.md`](DECISIONS.md)).
 - Any smartwatch, health platform or sensor integration. Motion detection and camera pose estimation: roadmap.
-- Push notifications, accounts, sync between devices, online play. A QR from child to parent device is a stretch goal only.
+- Push notifications, accounts, cloud sync, online play. The family QR link is in scope (section 4); a second app and the web home are optional extras.
 - Impact exercise (jumping) and anything that assigns exercise by symptom.
 - Predictions, "energy percentage" or any invented index.
 - Adolescent privacy mode, other languages, other diseases.
