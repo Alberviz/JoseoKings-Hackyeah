@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AppStateContext } from "@/components/providers/AppStateProvider";
 import { Button, Heading, LinkButton, Screen, Stack, Text } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import type { CheckIn, CheckInAnswer, CheckInOption, CheckInQuestion } from "@/types";
@@ -79,6 +80,8 @@ export function CheckInScreen({
   const [notToday, setNotToday] = useState(false);
   const [petMood, setPetMood] = useState<"happy" | "calm" | "resting">("calm");
 
+  const appContext = useContext(AppStateContext);
+
   const currentQuestion = questions[currentStep];
   const selectedAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
 
@@ -92,13 +95,17 @@ export function CheckInScreen({
       createdAt: new Date().toISOString(),
     };
 
-    try {
-      const existing = localStorage.getItem("crohncare_checkins");
-      const list: CheckIn[] = existing ? JSON.parse(existing) : [];
-      list.push(checkInRecord);
-      localStorage.setItem("crohncare_checkins", JSON.stringify(list));
-    } catch {
-      // Storage blocked or unavailable
+    if (appContext) {
+      appContext.actions.addCheckIn(checkInRecord);
+    } else {
+      try {
+        const existing = localStorage.getItem("crohncare_checkins");
+        const list: CheckIn[] = existing ? JSON.parse(existing) : [];
+        list.push(checkInRecord);
+        localStorage.setItem("crohncare_checkins", JSON.stringify(list));
+      } catch {
+        // Storage blocked or unavailable
+      }
     }
 
     if (onComplete) {
