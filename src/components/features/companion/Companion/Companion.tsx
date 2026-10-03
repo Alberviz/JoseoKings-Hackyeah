@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ThemeContext } from "styled-components";
 import { theme as defaultTheme } from "@/theme/theme";
 import { ITEM_IDS } from "@/config/content-ids";
@@ -13,10 +13,15 @@ import {
   AnimatedBreatheG,
   AnimatedCheerArmsG,
   AnimatedCheerG,
+  AnimatedEmbersG,
   AnimatedEyesG,
+  AnimatedFlamePuffG,
   AnimatedHeadG,
   AnimatedIdleG,
+  AnimatedLeftEarFinG,
   AnimatedLeftWingG,
+  AnimatedRestingArmsG,
+  AnimatedRightEarFinG,
   AnimatedRightWingG,
   AnimatedStrengthG,
   AnimatedStretchG,
@@ -38,6 +43,10 @@ export type CompanionProps = {
   size?: CompanionSize;
   name?: string;
   animated?: boolean;
+  interactive?: boolean;
+  isEating?: boolean;
+  showEmbers?: boolean;
+  onClick?: () => void;
 };
 
 export function Companion({
@@ -46,8 +55,21 @@ export function Companion({
   size = "md",
   name = "Your companion",
   animated = true,
+  interactive = true,
+  isEating = false,
+  showEmbers = false,
+  onClick,
 }: CompanionProps) {
   const currentTheme = useContext(ThemeContext) || defaultTheme;
+  const [isTapped, setIsTapped] = useState(false);
+
+  const handleClick = () => {
+    if (interactive && animated) {
+      setIsTapped(true);
+      setTimeout(() => setIsTapped(false), 700);
+    }
+    onClick?.();
+  };
 
   // Resolve equipped items by slot: only one item per slot is shown, unknown IDs ignored
   const activeItemsBySlot = new Map<CompanionItemSlot, string>();
@@ -97,6 +119,8 @@ export function Companion({
       viewBox="0 0 200 200"
       $size={size}
       $animated={animated}
+      $interactive={interactive}
+      onClick={handleClick}
       data-animated={animated ? "true" : "false"}
       role="img"
       aria-label={accessibleLabel}
@@ -105,7 +129,24 @@ export function Companion({
       <PoseAnimationWrapper
         key={pose === "cheer" ? "pose-cheer" : `pose-${pose}`}
         $animated={animated}
+        $isTapped={isTapped}
       >
+        {/* --- Celebration Embers & Sparkles --- */}
+        {(showEmbers || pose === "cheer" || isTapped) && (
+          <AnimatedEmbersG data-testid="companion-embers">
+            <SvgPolygon
+              points="45,40 47,34 49,40 55,42 49,44 47,50 45,44 39,42"
+              fill={colors.accent || "#FF7A59"}
+            />
+            <SvgPolygon
+              points="155,45 157,39 159,45 165,47 159,49 157,55 155,49 149,47"
+              fill="#FFB049"
+            />
+            <SvgCircle cx="100" cy="25" r="2.5" fill="#FFD166" />
+            <SvgCircle cx="60" cy="70" r="2" fill={colors.accent || "#FF7A59"} />
+            <SvgCircle cx="140" cy="65" r="2" fill={colors.accent || "#FF7A59"} />
+          </AnimatedEmbersG>
+        )}
         {/* --- Back Layer: Cape Item --- */}
         {hasCape && (
           <SvgG data-testid="companion-cape">
@@ -452,21 +493,25 @@ export function Companion({
 
         {/* --- Dragon Head & Face (Tilts & Moves with Items) --- */}
         <AnimatedHeadG id="dragon-head" data-testid="companion-head" $animated={animated}>
-          {/* Kraków Dragon Ear Fins */}
-          <SvgPath
-            d="M 64 62 C 50 56 46 68 56 74 C 62 76 66 72 68 68 Z"
-            fill={bodyColor}
-            stroke={bodyBorderColor}
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-          <SvgPath
-            d="M 136 62 C 150 56 154 68 144 74 C 138 76 134 72 132 68 Z"
-            fill={bodyColor}
-            stroke={bodyBorderColor}
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
+          {/* Kraków Dragon Ear Fins (with organic micro-twitching) */}
+          <AnimatedLeftEarFinG $animated={animated}>
+            <SvgPath
+              d="M 64 62 C 50 56 46 68 56 74 C 62 76 66 72 68 68 Z"
+              fill={bodyColor}
+              stroke={bodyBorderColor}
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+          </AnimatedLeftEarFinG>
+          <AnimatedRightEarFinG $animated={animated}>
+            <SvgPath
+              d="M 136 62 C 150 56 154 68 144 74 C 138 76 134 72 132 68 Z"
+              fill={bodyColor}
+              stroke={bodyBorderColor}
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+          </AnimatedRightEarFinG>
 
           {/* Large Rounded Head */}
           <SvgPath
@@ -542,7 +587,13 @@ export function Companion({
             <SvgEllipse cx="128" cy="74" rx="6" ry="4" fill={cheekColor} opacity="0.6" />
 
             {/* Friendly Smile & Tiny Cute White Fangs */}
-            {pose === "cheer" ? (
+            {isEating ? (
+              <SvgG id="dragon-smile-eating">
+                <SvgEllipse cx="100" cy="82" rx="7" ry="5" fill={eyeColor} />
+                <SvgPolygon points="95,78 97,83 99,78" fill="#FFFFFF" />
+                <SvgPolygon points="101,78 103,83 105,78" fill="#FFFFFF" />
+              </SvgG>
+            ) : pose === "cheer" ? (
               <SvgG id="dragon-smile-cheer">
                 <SvgPath
                   d="M 91 80 Q 100 92 109 80 Z"
@@ -577,6 +628,30 @@ export function Companion({
                   strokeWidth="0.8"
                 />
               </SvgG>
+            )}
+
+            {/* Flame Breath Puff when Eating */}
+            {isEating && (
+              <AnimatedFlamePuffG data-testid="companion-flame-puff" $animated={animated}>
+                {/* Main Fire Cloud */}
+                <SvgPath
+                  d="M 112 70 C 118 64 128 66 134 72 C 140 72 146 78 144 86 C 146 94 138 100 130 98 C 124 102 116 98 114 92 C 110 86 110 78 112 70 Z"
+                  fill={colors.accent || "#FF7A59"}
+                  stroke={colors.text || "#1F2F6B"}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                {/* Inner Warm Highlight */}
+                <SvgPath
+                  d="M 116 74 C 120 68 126 69 130 73 C 134 73 138 77 136 83 C 138 88 132 92 127 91 C 123 93 118 90 117 86 C 114 82 114 78 116 74 Z"
+                  fill="#FFB049"
+                />
+                {/* Mini Embers */}
+                <SvgPolygon
+                  points="146,64 148,58 150,64 156,66 150,68 148,74 146,68 140,66"
+                  fill="#FFD166"
+                />
+              </AnimatedFlamePuffG>
             )}
           </SvgG>
 
@@ -815,7 +890,7 @@ export function Companion({
             <SvgCircle cx="146" cy="141" r="1.5" fill="#FFFFFF" />
           </SvgG>
         ) : (
-          <SvgG id="dragon-arms-resting">
+          <AnimatedRestingArmsG id="dragon-arms-resting" $animated={animated}>
             {/* Cute chubby paws resting in front */}
             <SvgPath
               d="M 68 116 C 60 124 64 138 74 140 C 82 140 84 130 82 120 Z"
@@ -852,7 +927,7 @@ export function Companion({
             />
             <SvgCircle cx="123" cy="142" r="1.5" fill="#FFFFFF" />
             <SvgCircle cx="127" cy="142" r="1.5" fill="#FFFFFF" />
-          </SvgG>
+          </AnimatedRestingArmsG>
         )}
       </PoseAnimationWrapper>
     </StyledCompanionSvg>

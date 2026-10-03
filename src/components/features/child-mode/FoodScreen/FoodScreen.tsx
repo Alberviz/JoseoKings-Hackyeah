@@ -71,6 +71,7 @@ function AppleIcon() {
 export function FoodScreen() {
   const { state, actions, isReady } = useAppState();
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [isEating, setIsEating] = useState(false);
 
   if (!isReady) {
     return (
@@ -88,7 +89,9 @@ export function FoodScreen() {
   const handleGiveFood = () => {
     const result = actions.giveFood();
     if (result.ok) {
+      setIsEating(true);
       setFeedback("Yum! Dragon fire increased!");
+      setTimeout(() => setIsEating(false), 1400);
     } else if (result.reason === "no-food") {
       setFeedback("You have no food left! Visit the shop to buy more.");
     }
@@ -111,7 +114,14 @@ export function FoodScreen() {
         </Stack>
 
         <Stage>
-          <Companion pose="idle" equippedItemIds={equippedItemIds} name={companionName} size="lg" />
+          <Companion
+            pose={isEating ? "cheer" : "idle"}
+            equippedItemIds={equippedItemIds}
+            name={companionName}
+            size="lg"
+            isEating={isEating}
+            showEmbers={isEating}
+          />
         </Stage>
 
         <StatsCard aria-label="Food and fire status">
