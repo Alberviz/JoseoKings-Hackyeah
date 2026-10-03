@@ -333,6 +333,11 @@ export const SvgCircle = styled.circle``;
 export const SvgEllipse = styled.ellipse``;
 export const SvgRect = styled.rect``;
 export const SvgPolygon = styled.polygon``;
+export const SvgImage = styled.image``;
+
+export const HiddenSemanticG = styled.g`
+  display: none;
+`;
 
 // --- 9. Flame Breath Puff (When feeding in /food) ---
 const flameBreathPuff = keyframes`
