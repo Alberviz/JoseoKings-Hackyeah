@@ -63,7 +63,7 @@ describe("DoctorReportPage", () => {
       </AppStateProvider>,
     );
 
-    expect(await findByRole("heading", { name: "Doctor consultation report" })).toBeDefined();
+    expect(await findByRole("heading", { name: "Doctor report" })).toBeDefined();
     expect(await findByRole("button", { name: "Unlock" })).toBeDefined();
   });
 
