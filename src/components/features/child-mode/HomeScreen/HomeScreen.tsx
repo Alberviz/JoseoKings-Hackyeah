@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ROUTES } from "@/config/app";
+import { APP_NAME, ROUTES } from "@/config/app";
 import { useAppState } from "@/hooks/useAppState";
 import { Text } from "@/components/ui";
 import { Companion } from "@/components/features/companion";
@@ -40,7 +40,7 @@ export function HomeScreen() {
   if (!isReady) {
     return (
       <LoadingContainer>
-        <Text tone="muted">Loading CrohnCare...</Text>
+        <Text tone="muted">Loading {APP_NAME}...</Text>
       </LoadingContainer>
     );
   }

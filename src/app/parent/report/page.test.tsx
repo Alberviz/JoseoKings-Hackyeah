@@ -78,7 +78,7 @@ describe("DoctorReportPage", () => {
       </AppStateProvider>,
     );
 
-    expect(await findByText("CrohnCare · Consultation Summary")).toBeDefined();
+    expect(await findByText("Mycrohnie · Consultation Summary")).toBeDefined();
     expect(await findByRole("link", { name: /Back to Parent Mode/i })).toBeDefined();
     expect(await findByRole("button", { name: "Save as PDF / Print" })).toBeDefined();
   });
