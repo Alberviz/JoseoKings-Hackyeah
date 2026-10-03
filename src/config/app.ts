@@ -16,9 +16,6 @@ export const ROUTES = {
   parentReport: "/parent/report",
   parentSettings: "/parent/settings",
   offline: "/~offline",
-  // Paused: the restroom map and the menu reader are out of scope (see docs/DECISIONS.md). Not linked from the app.
-  restroomMap: "/restroom-map",
-  menuReader: "/menu-reader",
 } as const;
 
 /** Missions are opened by id: `${ROUTES.missions}/${missionId}`. */
