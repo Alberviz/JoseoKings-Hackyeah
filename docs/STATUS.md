@@ -21,9 +21,9 @@ Two-minute read for anyone jumping back in. Sources: `docs/WATCH_INTEGRATION.md`
 | :--------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Supabase** `mycrohnie-watch` (ref `khziifyuhqitlzntesbu`, **eu-central-1**, org Atlas) | Schema applied 2026-10-04 (`watch_mvp_schema`); demo subject **`demo-child-1`**.                                                                                                                                                                  |
 | **`watch-collector`** (`Projects/watch-collector`)                                       | Collect loop: 48 h lookback, idempotent upsert to `watch_samples` + `collector_runs`. Commands: `auth`, `probe`, `collect`, `collect:dry`, `collect:once`. **`npm test`** (normalisation) passing. **Supabase connectivity verified 2026-10-04.** |
-| **Google OAuth / live collect**                                                          | **Blocked on W0:** consent + refresh token (`npm run auth` → `npm run probe`). **Álvaro:** one Google consent click still pending.                                                                                                                |
+| **Google OAuth / live collect**                                                          | Consent saved. Probe returns 403: the token's project (`272841921982`) does not have the Fitness API enabled. It is enabled on `hackyeah-510522`, which has a service account only. Need a Desktop OAuth client in that project, then auth again. |
 | **Mycrohnie app pipeline steps 2–5**                                                     | Ingest, `daily.ts`, `statistics.ts`, jobs on Vercel, parent/doctor UI — **to do** per `WATCH_INTEGRATION.md`.                                                                                                                                     |
-| **Analysis algorithms (research §3.0 MVP set)**                                          | Not started in code yet. First pass stopped when the account hit its limit on the heavier models; restarted on a lighter model, same scope (A0–A3, A9, A13, A14, A12, A10a, 3.V).                                                                 |
+| **Analysis algorithms (research §3.0 MVP set)**                                          | Written in `watch-collector/src/analysis` (A0–A3, A9, A10a, A12, A13, A14, 3.V). `node --test`: 17 passing, re-run 2026-10-04. Local only. The 1 000-dataset false-alarm runs were not executed.                                                  |
 
 **MVP demo assumption:** treat watch data as reliable for the hackathon; keep validity flags anyway.
 
@@ -53,9 +53,9 @@ From proposal §5, research §2.2, and §3.OUT — do not resurrect these in sli
 
 ## What is next (in order)
 
-1. **W0 — Google Fit gate (Álvaro):** OAuth consent → `npm run auth` → `npm run probe`. Confirms Zepp/GTS 2 sources (steps, HR, sleep). **Everything with real watch data waits on this one click.**
+1. **W0 — Google Fit gate (Álvaro):** create a Desktop OAuth client in project `hackyeah-510522` (the service account cannot read a person's Fit data) and send the new client id and secret. Then auth and probe again.
 2. **Live collect (whoever runs the laptop):** `npm run collect` → verify rows in `watch_samples` and `collector_runs`.
-3. **Analysis MVP (engineering, `watch-collector/src/analysis`):** A0 valid-day → A1 Hampel → A2 baseline → A3 nocturnal HR → A9 range days → A13/A14 counts/windows → A12 missions → A10a food counts → **3.V** synthetic + planted/null/gap tests. **A7** (Spearman + permutation) if a second engineer is free — it is what the demo shows.
+3. **Analysis MVP:** code is in `watch-collector/src/analysis` and the tests pass. Still to do: the 1 000-dataset false-alarm check, and A7 (lagged Spearman) if someone is free. Then copy the pure functions into Mycrohnie `src/lib/wearables/`.
 4. **`daily.ts` + tests** in Mycrohnie (`src/lib/wearables/`) — raw minutes → `daily_metrics`.
 5. **`statistics.ts` + tests** — same job as analyse; store `analysis_runs`.
 6. **`/api/ingest`** — PWA posts check-ins, logs, missions (demo: one ingest token / env).
