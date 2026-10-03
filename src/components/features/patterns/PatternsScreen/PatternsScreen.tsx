@@ -99,7 +99,7 @@ export function PatternsScreen() {
       <PatternsLayout>
         <BackButtonWrapper>
           <LinkButton href={ROUTES.parent} variant="secondary">
-            ← Parent Mode
+            ← Back to parent summary
           </LinkButton>
         </BackButtonWrapper>
 

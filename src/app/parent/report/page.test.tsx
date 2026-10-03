@@ -80,7 +80,7 @@ describe("DoctorReportPage", () => {
     );
 
     expect(await findByText(`${APP_NAME} · Consultation Summary`)).toBeDefined();
-    expect(await findByRole("link", { name: /Back to Parent Mode/i })).toBeDefined();
+    expect(await findByRole("link", { name: /Back to parent summary/i })).toBeDefined();
     expect(await findByRole("button", { name: "Save as PDF / Print" })).toBeDefined();
   });
 });
