@@ -119,3 +119,14 @@ Before debugging something, search this file first: it may already be solved.
 - **Cause:** same as E7: the PIN check (PBKDF2) is slow under load and `waitFor` uses the default 1 s timeout.
 - **Fix:** not applied (not my test). Suggested: give that `waitFor` a 5 s timeout, as in E7.
 - **Refs:** E7, T10
+
+### E9 · `comms-local is already used by worktree` when running comms.sh
+
+- **Date:** 2026-10-03 23:50
+- **Who:** Alberto (Antigravity)
+- **Task:** comms
+- **Status:** fixed
+- **Symptom:** `fatal: 'comms-local' is already used by worktree at '/tmp/claude-1000/...'` and `comms: cannot create /home/alberviz/JoseoKings-Hackyeah/.comms`.
+- **Cause:** `scripts/comms.sh` created its worktree with a fixed branch name (`-B comms-local`). When an agent or user had another worktree open with that branch checked out, Git refused to attach the same branch to `.comms`.
+- **Fix:** `scripts/comms.sh` now attaches the worktree in detached HEAD state (`git worktree add -q --detach "$DIR" "origin/$BRANCH"`) and pushes commits via `HEAD:$BRANCH`. Detached HEAD allows multiple concurrent worktrees without local branch name collisions.
+- **Refs:** -

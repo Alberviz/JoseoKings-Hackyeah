@@ -26,7 +26,7 @@ update_copy() {
   git -C "$ROOT" fetch -q origin "$BRANCH" || die "cannot fetch origin/$BRANCH"
   if [ ! -e "$DIR/.git" ]; then
     git -C "$ROOT" worktree prune
-    git -C "$ROOT" worktree add -q -B "$LOCAL" "$DIR" "origin/$BRANCH" || die "cannot create $DIR"
+    git -C "$ROOT" worktree add -q --detach "$DIR" "origin/$BRANCH" || die "cannot create $DIR"
   fi
   # Explicit fetch and rebase (not `git pull`): `pull` can fail with "cannot rebase onto multiple branches".
   git -C "$DIR" fetch -q origin "$BRANCH" || die "cannot update the local copy"
@@ -62,6 +62,12 @@ cmd_send() {
   if [ -z "$body" ] && [ ! -t 0 ]; then body="$(cat)"; fi
   [ -n "$body" ] || die "--body is required (or pipe the text on stdin)"
 
+  local words
+  words="$(printf '%s' "$body" | wc -w)"
+  if [ "$words" -gt 50 ]; then
+    echo "comms: notice: body is $words words (>50). Follow telegraphic protocol: max 1-2 lines to save tokens." >&2
+  fi
+
   ensure_copy
   local stamp slug file
   stamp="$(date -u +%Y%m%d-%H%M%S)"
@@ -82,7 +88,7 @@ cmd_send() {
   # The comms branch has no code, so the code hooks (lint-staged) do not apply: HUSKY=0 skips them.
   HUSKY=0 git -C "$DIR" commit -q -m "docs(comms): $from to $to, $type" || die "commit failed"
   for attempt in 1 2 3; do
-    if git -C "$DIR" push -q origin "$LOCAL:$BRANCH" 2>/dev/null; then echo "sent: $file"; return 0; fi
+    if git -C "$DIR" push -q origin "HEAD:$BRANCH" 2>/dev/null; then echo "sent: $file"; return 0; fi
     ensure_copy
   done
   die "push failed after 3 tries (the message is committed locally in .comms/)"
@@ -94,18 +100,23 @@ cmd_open() {
   [ -n "$me" ] || die "usage: comms.sh open <name>"
   valid_name "$me" || die "unknown name '$me'"
   ensure_copy
-  local found=0 f base to
+  local found=0 f base to from type task subject
+  # Collect all answered message basenames once for fast O(1) checks
+  local answered
+  answered="$(grep -h "^re: " "$DIR"/messages/*.md 2>/dev/null | awk '{print $2}' | sort -u)"
   for f in "$DIR"/messages/*.md; do
     [ -e "$f" ] || continue
     base="$(basename "$f")"
     to="$(field "$f" to)"
     { [ "$to" = "$me" ] || [ "$to" = "all" ]; } || continue
     [ "$(field "$f" from)" = "$me" ] && continue
-    if grep -lq "^re: $base$" "$DIR"/messages/*.md 2>/dev/null; then continue; fi
+    if echo "$answered" | grep -qx "$base"; then continue; fi
     found=1
-    echo "=== $base"
-    echo "from: $(field "$f" from) | type: $(field "$f" type) | task: $(field "$f" task)"
-    echo "subject: $(field "$f" subject)"
+    from="$(field "$f" from)"
+    type="$(field "$f" type)"
+    task="$(field "$f" task)"
+    subject="$(field "$f" subject)"
+    echo "[$task] $base | from: $from ($type) | $subject"
   done
   [ "$found" = 1 ] || echo "no open messages for $me"
 }
