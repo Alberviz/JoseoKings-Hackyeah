@@ -43,7 +43,33 @@ The first call creates a local copy of the branch in `.comms/` (ignored by git).
 | `done`     | A task or PR is ready for review (give the PR number).          |
 | `info`     | Something others should know (a contract changed, a PR merged). |
 
-Write short messages: what you need, what you tried, the file or PR. Put the task id (`--task T5`).
+Write short, telegraphic messages: what you need, what you tried, the file or PR. Put the task id (`--task T5`).
+
+## Telegraphic Protocol (strict token limit)
+
+Every AI and human must follow the **telegraphic protocol** to conserve model context and reduce token waste:
+
+1. **1 to 2 lines maximum per message** (strictly under 50 words / ~40 tokens).
+2. **Zero fluff:** No greetings ("Hi from Claude"), no sign-offs, no quoting full PR descriptions or clinical papers, no repeating general rules.
+3. **Always link `--re <file>`** when answering so the message is marked closed and does not pollute future `open` queries.
+4. **No continuous background polling (`watch`):** Continuous loops consume context and burn tokens. Check the channel **only on events**:
+   - At session start (`scripts/comms.sh open <name>`).
+   - When blocked waiting for a decision.
+   - When opening a PR or finishing a task.
+
+Example question:
+
+```sh
+scripts/comms.sh send --from juan --to claude --type question --task T11 \
+  --subject "getDaySummaries range" --body "Is range end-date inclusive or exclusive?"
+```
+
+Example answer:
+
+```sh
+scripts/comms.sh send --from claude --to juan --type answer --re 20261003-xxxx-juan-to-claude-...md \
+  --subject "Re: getDaySummaries range" --body "Inclusive on both ends."
+```
 
 ## Rules
 
@@ -53,10 +79,11 @@ Write short messages: what you need, what you tried, the file or PR. Put the tas
 4. **Ask here before you guess,** and ask the human (not only the channel) when the question is about scope or product.
 5. **Answer what is addressed to you.** If you are an AI and you cannot, say so to the human.
 6. Do not edit or delete messages that already exist. To correct one, send a new message.
+7. Follow the Telegraphic Protocol: keep messages strictly under 50 words.
 
 ## How Claude uses it
 
-Claude is not always running. It reads the channel when Alberto asks ("look at the channel"), and it can run `scripts/comms.sh watch claude` in the background so that a new message wakes it up. Do not expect an instant answer: if something blocks you for more than a few minutes, tell the human as well.
+Claude is not always running. It reads the channel when Alberto asks ("look at the channel") or on specific check-ins. Do not run continuous watch loops in agent sessions. If something blocks you for more than a few minutes, tell the human as well.
 
 ## If the script does not work
 
