@@ -1,4 +1,5 @@
 import { fireEvent, screen } from "@testing-library/react";
+import { APP_NAME } from "@/config/app";
 import { renderWithTheme } from "@/test/renderWithTheme";
 import type { DoctorReportData } from "@/lib/report/types";
 import { DoctorReportView } from "./DoctorReportView";
@@ -67,7 +68,7 @@ describe("DoctorReportView", () => {
   it("renders child nickname, period dates, previous consultation, and demo badge", () => {
     renderWithTheme(<DoctorReportView data={mockReportData} />);
 
-    expect(screen.getByText("CrohnCare · Consultation Summary")).toBeTruthy();
+    expect(screen.getByText(`${APP_NAME} · Consultation Summary`)).toBeTruthy();
     expect(screen.getByText("Lucas")).toBeTruthy();
     expect(screen.getByText(/From 2026-09-01 to 2026-10-01 \(31 days\)/)).toBeTruthy();
     expect(screen.getByText(/Previous consultation: 2026-08-15/)).toBeTruthy();

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { APP_NAME } from "@/config/app";
 import { useEffect } from "react";
 import { AppStateProvider } from "@/components/providers/AppStateProvider";
 import { sessionStore } from "@/hooks/useParentSession";
@@ -78,7 +79,7 @@ describe("DoctorReportPage", () => {
       </AppStateProvider>,
     );
 
-    expect(await findByText("CrohnCare · Consultation Summary")).toBeDefined();
+    expect(await findByText(`${APP_NAME} · Consultation Summary`)).toBeDefined();
     expect(await findByRole("link", { name: /Back to Parent Mode/i })).toBeDefined();
     expect(await findByRole("button", { name: "Save as PDF / Print" })).toBeDefined();
   });
