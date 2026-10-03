@@ -40,8 +40,8 @@ Juan keeps the current parent mode and asks for these changes:
 
 ## 4. Architecture (style-agnostic, can start now)
 
-- `src/types/economy.ts`: `EconomyState = { fire: number; coins: number; inventory: Record<ItemId, number>; equipped: ItemId[]; rewards: HomeReward[] }`, added to `AppState` with a migration that fills defaults for old data.
-- `src/lib/economy/`: pure functions with unit tests: `grantChest`, `buyItem` (never below zero coins), `giveFood` (fire up to 100, never down), `equip`/`unequip`, `claimReward`. Coins from plays are **derived from the logs** (idempotent, like `syncCompanion`), spending is stored.
+- `src/types/economy.ts`: `EconomyState = { fire; coinsSpent; inventory: { food }; ownedItemIds; equippedItemIds; specialRewards: SpecialReward[]; rewardClaims: RewardClaim[] }` (coins are derived from check-ins and mission logs minus `coinsSpent`), added to `AppState` with a migration that fills defaults for old data.
+- `src/lib/economy/`: pure functions with unit tests: `coinsEarned`, `coinBalance`, `buyItem` (never below zero coins), `giveFood` (fire up to 100, never down), `equipItem`/`unequipItem`, `claimReward`, `markClaimDone`, `setSpecialRewards`. Coins from plays are **derived from the logs** (idempotent, like `syncCompanion`), spending is stored.
 - `src/config/app.ts`: new routes for the Play flow and Shop; no hard-coded strings.
 - Screens live in `src/components/features/child-mode/<Screen>/` with the usual `.tsx` + `.style.ts` pair. Primitives in `src/components/ui` are changed only by Claude.
 - Timer: `useCountdown` hook (time passed in, testable, respects reduced motion) and a `RingTimer` component.
