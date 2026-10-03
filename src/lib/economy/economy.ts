@@ -2,14 +2,14 @@ import {
   CHECKIN_COINS,
   CHECKIN_SKIP_COINS,
   CHEST_COINS,
-  DEFAULT_TREATS,
+  DEFAULT_SPECIAL_REWARDS,
   FIRE_MAX,
   FOOD_FIRE,
   REST_COINS,
   SHOP_ITEMS,
-  TREAT_COST_MAX,
-  TREAT_COST_MIN,
-  TREAT_LABEL_MAX_LENGTH,
+  SPECIAL_REWARD_COST_MAX,
+  SPECIAL_REWARD_COST_MIN,
+  SPECIAL_REWARD_NAME_MAX_LENGTH,
 } from "@/config/economy";
 import type {
   AppState,
@@ -19,7 +19,7 @@ import type {
   MissionLog,
   ShopItem,
   ShopItemId,
-  Treat,
+  SpecialReward,
 } from "@/types";
 
 export type EconomySource = Pick<AppState, "checkIns" | "missionLogs" | "economy">;
@@ -30,12 +30,26 @@ export type BuyResult =
 
 export type GiveFoodResult = { ok: true; economy: EconomyState } | { ok: false; reason: "no-food" };
 
-export type RedeemResult =
-  { ok: true; economy: EconomyState } | { ok: false; reason: "not-enough-fire" | "unknown-treat" };
+export type ClaimResult =
+  { ok: true; economy: EconomyState } | { ok: false; reason: "not-enough-fire" | "unknown-reward" };
 
-export type SetTreatsResult =
+export type SetSpecialRewardsResult =
   | { ok: true; economy: EconomyState }
-  | { ok: false; reason: "invalid-label" | "invalid-cost" | "duplicate-id" };
+  | { ok: false; reason: "invalid-name" | "invalid-cost" | "duplicate-id" };
+
+export type ClaimOptions = {
+  /** Returns a new unique id. Tests inject a deterministic one. */
+  generateId?: () => string;
+  now?: Date;
+};
+
+/** A random UUID so claim ids stay unique across devices. The fallback is only for runtimes without crypto. */
+export function generateClaimId(): string {
+  if (typeof globalThis.crypto !== "undefined" && "randomUUID" in globalThis.crypto) {
+    return globalThis.crypto.randomUUID();
+  }
+  return `claim-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 export function createDefaultEconomy(): EconomyState {
   return {
@@ -44,8 +58,8 @@ export function createDefaultEconomy(): EconomyState {
     inventory: { food: 0 },
     ownedItemIds: [],
     equippedItemIds: [],
-    treats: DEFAULT_TREATS.map((treat) => ({ ...treat })),
-    redemptions: [],
+    specialRewards: DEFAULT_SPECIAL_REWARDS.map((reward) => ({ ...reward })),
+    rewardClaims: [],
   };
 }
 
@@ -143,46 +157,79 @@ export function unequipItem(economy: EconomyState, itemId: string): EconomyState
   return { ...economy, equippedItemIds: economy.equippedItemIds.filter((id) => id !== itemId) };
 }
 
-/** The only place where fire goes down: the child chooses to spend it. */
-export function redeemTreat(economy: EconomyState, treatId: string, today: DateKey): RedeemResult {
-  const treat = economy.treats.find((t) => t.id === treatId);
-  if (!treat) {
-    return { ok: false, reason: "unknown-treat" };
+/** The only place where fire goes down: the child chooses to claim a special reward. */
+export function claimReward(
+  economy: EconomyState,
+  rewardId: string,
+  today: DateKey,
+  options: ClaimOptions = {},
+): ClaimResult {
+  const { generateId = generateClaimId, now = new Date() } = options;
+  const reward = economy.specialRewards.find((r) => r.id === rewardId);
+  if (!reward) {
+    return { ok: false, reason: "unknown-reward" };
   }
-  if (economy.fire < treat.fireCost) {
+  if (economy.fire < reward.fireCost) {
     return { ok: false, reason: "not-enough-fire" };
   }
   return {
     ok: true,
     economy: {
       ...economy,
-      fire: economy.fire - treat.fireCost,
-      redemptions: [
-        ...economy.redemptions,
-        { id: `redemption-${economy.redemptions.length + 1}`, treatId, date: today },
+      fire: economy.fire - reward.fireCost,
+      rewardClaims: [
+        ...economy.rewardClaims,
+        {
+          id: generateId(),
+          rewardId,
+          date: today,
+          createdAt: now.toISOString(),
+          status: "requested",
+        },
       ],
     },
   };
 }
 
-export function setTreats(economy: EconomyState, treats: readonly Treat[]): SetTreatsResult {
-  const cleaned: Treat[] = [];
-  for (const treat of treats) {
-    const label = treat.label.trim();
-    if (label.length < 1 || label.length > TREAT_LABEL_MAX_LENGTH) {
-      return { ok: false, reason: "invalid-label" };
+/** A parent confirms the reward was given. Fire does not change. Unknown or already done: unchanged. */
+export function markClaimDone(
+  economy: EconomyState,
+  claimId: string,
+  today: DateKey,
+): EconomyState {
+  const claim = economy.rewardClaims.find((c) => c.id === claimId);
+  if (!claim || claim.status === "done") {
+    return economy;
+  }
+  return {
+    ...economy,
+    rewardClaims: economy.rewardClaims.map((c) =>
+      c.id === claimId ? { ...c, status: "done", doneAt: today } : c,
+    ),
+  };
+}
+
+export function setSpecialRewards(
+  economy: EconomyState,
+  rewards: readonly SpecialReward[],
+): SetSpecialRewardsResult {
+  const cleaned: SpecialReward[] = [];
+  for (const reward of rewards) {
+    const name = reward.name.trim();
+    if (name.length < 1 || name.length > SPECIAL_REWARD_NAME_MAX_LENGTH) {
+      return { ok: false, reason: "invalid-name" };
     }
     if (
-      !Number.isInteger(treat.fireCost) ||
-      treat.fireCost < TREAT_COST_MIN ||
-      treat.fireCost > TREAT_COST_MAX
+      !Number.isInteger(reward.fireCost) ||
+      reward.fireCost < SPECIAL_REWARD_COST_MIN ||
+      reward.fireCost > SPECIAL_REWARD_COST_MAX
     ) {
       return { ok: false, reason: "invalid-cost" };
     }
-    if (cleaned.some((c) => c.id === treat.id)) {
+    if (cleaned.some((c) => c.id === reward.id)) {
       return { ok: false, reason: "duplicate-id" };
     }
-    cleaned.push({ id: treat.id, label, fireCost: treat.fireCost });
+    cleaned.push({ id: reward.id, name, fireCost: reward.fireCost });
   }
-  return { ok: true, economy: { ...economy, treats: cleaned } };
+  return { ok: true, economy: { ...economy, specialRewards: cleaned } };
 }

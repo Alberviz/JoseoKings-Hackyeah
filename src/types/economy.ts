@@ -8,25 +8,34 @@ export type ShopItem =
   | { id: ShopItemId; kind: "consumable"; price: number }
   | { id: ShopItemId; kind: "wearable"; slot: ShopSlot; price: number };
 
-/** A reward the family agrees on. The child spends fire to ask for it. */
-export type Treat = {
+/** A special reward the family agrees on. The child spends fire to claim it. */
+export type SpecialReward = {
   id: string;
-  /** Short label, 1 to 40 characters. */
-  label: string;
-  /** Fire the child spends to redeem it, an integer from 1 to 100. */
+  /** Short name, 1 to 40 characters. */
+  name: string;
+  /** Fire the child spends to claim it, an integer from 1 to 100. */
   fireCost: number;
 };
 
-export type TreatRedemption = {
+export type RewardClaimStatus = "requested" | "done";
+
+export type RewardClaim = {
+  /** Unique across devices (random UUID), so claims can travel between devices without clashing. */
   id: string;
-  treatId: string;
-  /** Local calendar day of the redemption. */
+  rewardId: string;
+  /** Local calendar day of the claim. */
   date: DateKey;
+  /** ISO timestamp of the claim. */
+  createdAt: string;
+  /** "requested" when the child claims it, "done" when a parent confirms it was given. */
+  status: RewardClaimStatus;
+  /** Local calendar day a parent marked it done. */
+  doneAt?: DateKey;
 };
 
 /**
  * Coins are earned from completed missions (derived, never stored) and spent in the shop.
- * Fire only goes down when the child redeems a treat. It never decays.
+ * Fire only goes down when the child claims a special reward. It never decays.
  */
 export type EconomyState = {
   fire: number;
@@ -34,6 +43,6 @@ export type EconomyState = {
   inventory: { food: number };
   ownedItemIds: ShopItemId[];
   equippedItemIds: ShopItemId[];
-  treats: Treat[];
-  redemptions: TreatRedemption[];
+  specialRewards: SpecialReward[];
+  rewardClaims: RewardClaim[];
 };

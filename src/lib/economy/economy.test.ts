@@ -18,13 +18,14 @@ import type {
 } from "@/types";
 import {
   buyItem,
+  claimReward,
   coinBalance,
   coinsEarned,
   createDefaultEconomy,
   equipItem,
   giveFood,
-  redeemTreat,
-  setTreats,
+  markClaimDone,
+  setSpecialRewards,
   unequipItem,
 } from "./economy";
 
@@ -197,31 +198,65 @@ describe("equip and unequip", () => {
   });
 });
 
-describe("redeemTreat", () => {
+describe("claimReward", () => {
+  const today = "2026-10-03";
+  const now = new Date("2026-10-03T12:00:00.000Z");
+
   it("needs enough fire", () => {
     const economy = { ...createDefaultEconomy(), fire: 49 };
-    expect(redeemTreat(economy, "choose-dinner", "2026-10-03")).toEqual({
+    expect(claimReward(economy, "choose-dinner", today)).toEqual({
       ok: false,
       reason: "not-enough-fire",
     });
-    expect(redeemTreat(economy, "nope", "2026-10-03")).toEqual({
+    expect(claimReward(economy, "nope", today)).toEqual({
       ok: false,
-      reason: "unknown-treat",
+      reason: "unknown-reward",
     });
   });
 
-  it("spends fire and records the redemption", () => {
+  it("spends fire and records a requested claim with a generated id", () => {
     const economy = { ...createDefaultEconomy(), fire: 70 };
-    const result = redeemTreat(economy, "choose-dinner", "2026-10-03");
+    const result = claimReward(economy, "choose-dinner", today, {
+      generateId: () => "claim-1",
+      now,
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.economy.fire).toBe(20);
-    expect(result.economy.redemptions).toHaveLength(1);
-    expect(result.economy.redemptions[0]).toMatchObject({
-      treatId: "choose-dinner",
-      date: "2026-10-03",
-    });
+    expect(result.economy.rewardClaims).toEqual([
+      {
+        id: "claim-1",
+        rewardId: "choose-dinner",
+        date: today,
+        createdAt: "2026-10-03T12:00:00.000Z",
+        status: "requested",
+      },
+    ]);
     expect(economy.fire).toBe(70);
+  });
+
+  it("uses unique ids by default", () => {
+    const economy = { ...createDefaultEconomy(), fire: 100 };
+    const a = claimReward(economy, "phone-minutes", today);
+    expect(a.ok).toBe(true);
+    if (!a.ok) return;
+    const b = claimReward(a.economy, "phone-minutes", today);
+    expect(b.ok).toBe(true);
+    if (!b.ok) return;
+    const ids = b.economy.rewardClaims.map((c) => c.id);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it("markClaimDone confirms a claim without touching fire", () => {
+    const economy = { ...createDefaultEconomy(), fire: 60 };
+    const claimed = claimReward(economy, "phone-minutes", today, { generateId: () => "c1", now });
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok) return;
+    const done = markClaimDone(claimed.economy, "c1", "2026-10-04");
+    expect(done.fire).toBe(claimed.economy.fire);
+    expect(done.rewardClaims[0]).toMatchObject({ status: "done", doneAt: "2026-10-04" });
+    expect(markClaimDone(claimed.economy, "missing", "2026-10-04")).toBe(claimed.economy);
+    expect(markClaimDone(done, "c1", "2026-10-05")).toBe(done);
   });
 
   it("fire is not changed by buying, equipping or earning coins", () => {
@@ -232,27 +267,29 @@ describe("redeemTreat", () => {
   });
 });
 
-describe("setTreats", () => {
+describe("setSpecialRewards", () => {
   const economy = createDefaultEconomy();
 
-  it("trims labels and accepts valid treats", () => {
-    const result = setTreats(economy, [{ id: "a", label: "  Movie night ", fireCost: 30 }]);
-    expect(result.ok && result.economy.treats).toEqual([
-      { id: "a", label: "Movie night", fireCost: 30 },
+  it("trims names and accepts valid rewards", () => {
+    const result = setSpecialRewards(economy, [{ id: "a", name: "  Movie night ", fireCost: 30 }]);
+    expect(result.ok && result.economy.specialRewards).toEqual([
+      { id: "a", name: "Movie night", fireCost: 30 },
     ]);
   });
 
-  it("rejects bad labels", () => {
-    expect(setTreats(economy, [{ id: "a", label: "   ", fireCost: 10 }])).toEqual({
+  it("rejects bad names", () => {
+    expect(setSpecialRewards(economy, [{ id: "a", name: "   ", fireCost: 10 }])).toEqual({
       ok: false,
-      reason: "invalid-label",
+      reason: "invalid-name",
     });
-    expect(setTreats(economy, [{ id: "a", label: "x".repeat(41), fireCost: 10 }]).ok).toBe(false);
+    expect(setSpecialRewards(economy, [{ id: "a", name: "x".repeat(41), fireCost: 10 }]).ok).toBe(
+      false,
+    );
   });
 
   it("rejects bad costs", () => {
     for (const fireCost of [0, -5, 101, 2.5, Number.NaN]) {
-      expect(setTreats(economy, [{ id: "a", label: "Ok", fireCost }])).toEqual({
+      expect(setSpecialRewards(economy, [{ id: "a", name: "Ok", fireCost }])).toEqual({
         ok: false,
         reason: "invalid-cost",
       });
@@ -260,9 +297,9 @@ describe("setTreats", () => {
   });
 
   it("rejects duplicate ids", () => {
-    const result = setTreats(economy, [
-      { id: "a", label: "One", fireCost: 10 },
-      { id: "a", label: "Two", fireCost: 20 },
+    const result = setSpecialRewards(economy, [
+      { id: "a", name: "One", fireCost: 10 },
+      { id: "a", name: "Two", fireCost: 20 },
     ]);
     expect(result).toEqual({ ok: false, reason: "duplicate-id" });
   });
@@ -276,7 +313,7 @@ describe("storage migration", () => {
     const loaded = loadState();
     expect(loaded.child?.nickname).toBe("Lucas");
     expect(loaded.economy).toEqual(createDefaultEconomy());
-    expect(loaded.economy.treats[0].id).toBe("choose-dinner");
+    expect(loaded.economy.specialRewards[0].id).toBe("choose-dinner");
     localStorage.clear();
   });
 

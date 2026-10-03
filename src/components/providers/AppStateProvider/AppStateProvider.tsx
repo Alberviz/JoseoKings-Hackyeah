@@ -15,13 +15,14 @@ import {
   buyItem,
   equipItem as equipEconomyItem,
   giveFood,
-  redeemTreat as redeemEconomyTreat,
-  setTreats as setEconomyTreats,
+  claimReward as claimEconomyReward,
+  markClaimDone as markEconomyClaimDone,
+  setSpecialRewards as setEconomySpecialRewards,
   unequipItem as unequipEconomyItem,
   type BuyResult,
   type GiveFoodResult,
-  type RedeemResult,
-  type SetTreatsResult,
+  type ClaimResult,
+  type SetSpecialRewardsResult,
 } from "@/lib/economy";
 import { todayKey } from "@/lib/dates";
 import {
@@ -38,7 +39,7 @@ import type {
   MissionLog,
   ParentLog,
   ParentSettings,
-  Treat,
+  SpecialReward,
 } from "@/types";
 
 export type AppStateActions = {
@@ -54,9 +55,11 @@ export type AppStateActions = {
   giveFood: () => GiveFoodResult;
   equipShopItem: (itemId: string) => void;
   unequipShopItem: (itemId: string) => void;
-  /** The only action that lowers fire: the child chooses to spend it. */
-  redeemTreat: (treatId: string) => RedeemResult;
-  setTreats: (treats: Treat[]) => SetTreatsResult;
+  /** The only action that lowers fire: the child chooses to spend it on a special reward. */
+  claimReward: (rewardId: string) => ClaimResult;
+  /** A parent confirms the reward was given. Fire does not change. */
+  markClaimDone: (claimId: string) => void;
+  setSpecialRewards: (rewards: SpecialReward[]) => SetSpecialRewardsResult;
   setSettings: (settings: ParentSettings) => void;
   setChild: (child: ChildProfile) => void;
   loadDemo: (demoState: AppState) => void;
@@ -319,11 +322,11 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     [store],
   );
 
-  const redeemTreat = useCallback(
-    (treatId: string): RedeemResult => {
-      let result: RedeemResult = { ok: false, reason: "unknown-treat" };
+  const claimReward = useCallback(
+    (rewardId: string): ClaimResult => {
+      let result: ClaimResult = { ok: false, reason: "unknown-reward" };
       store.updateState((prev) => {
-        result = redeemEconomyTreat(prev.economy, treatId, todayKey());
+        result = claimEconomyReward(prev.economy, rewardId, todayKey());
         return result.ok ? { ...prev, economy: result.economy } : prev;
       });
       return result;
@@ -331,11 +334,21 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     [store],
   );
 
-  const setTreats = useCallback(
-    (treats: Treat[]): SetTreatsResult => {
-      let result: SetTreatsResult = { ok: false, reason: "invalid-label" };
+  const markClaimDone = useCallback(
+    (claimId: string) => {
+      store.updateState((prev) => ({
+        ...prev,
+        economy: markEconomyClaimDone(prev.economy, claimId, todayKey()),
+      }));
+    },
+    [store],
+  );
+
+  const setSpecialRewards = useCallback(
+    (rewards: SpecialReward[]): SetSpecialRewardsResult => {
+      let result: SetSpecialRewardsResult = { ok: false, reason: "invalid-name" };
       store.updateState((prev) => {
-        result = setEconomyTreats(prev.economy, treats);
+        result = setEconomySpecialRewards(prev.economy, rewards);
         return result.ok ? { ...prev, economy: result.economy } : prev;
       });
       return result;
@@ -394,8 +407,9 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       giveFood: giveFoodToCompanion,
       equipShopItem,
       unequipShopItem,
-      redeemTreat,
-      setTreats,
+      claimReward,
+      markClaimDone,
+      setSpecialRewards,
       setSettings,
       setChild,
       loadDemo,
@@ -407,8 +421,9 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       giveFoodToCompanion,
       equipShopItem,
       unequipShopItem,
-      redeemTreat,
-      setTreats,
+      claimReward,
+      markClaimDone,
+      setSpecialRewards,
       addCheckIn,
       addMissionLog,
       saveParentLog,

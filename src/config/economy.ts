@@ -1,4 +1,4 @@
-import type { ShopItem, Treat } from "@/types";
+import type { ShopItem, SpecialReward } from "@/types";
 
 /*
  * Coins reward the act, never the answer. Amounts never depend on what the child
@@ -18,9 +18,9 @@ export const FOOD_FIRE = 10;
 
 export const FIRE_MAX = 100;
 
-export const TREAT_LABEL_MAX_LENGTH = 40;
-export const TREAT_COST_MIN = 1;
-export const TREAT_COST_MAX = FIRE_MAX;
+export const SPECIAL_REWARD_NAME_MAX_LENGTH = 40;
+export const SPECIAL_REWARD_COST_MIN = 1;
+export const SPECIAL_REWARD_COST_MAX = FIRE_MAX;
 
 export const SHOP_ITEMS = [
   { id: "food", kind: "consumable", price: 5 },
@@ -29,8 +29,11 @@ export const SHOP_ITEMS = [
   { id: "hat", kind: "wearable", slot: "head", price: 10 },
 ] as const satisfies readonly ShopItem[];
 
-export const DEFAULT_TREATS = [
-  { id: "choose-dinner", label: "Choose dinner", fireCost: 50 },
-] as const satisfies readonly Treat[];
+export const DEFAULT_SPECIAL_REWARDS = [
+  { id: "choose-dinner", name: "Choose today's dinner", fireCost: 50 },
+  { id: "kart-day", name: "Kart day", fireCost: 100 },
+  { id: "phone-minutes", name: "30 more phone minutes", fireCost: 30 },
+  { id: "board-games", name: "Board games marathon", fireCost: 60 },
+] as const satisfies readonly SpecialReward[];
 
 export type ShopItemConfig = (typeof SHOP_ITEMS)[number];

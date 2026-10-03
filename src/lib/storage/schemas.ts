@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { FIRE_MAX, TREAT_COST_MAX, TREAT_COST_MIN, TREAT_LABEL_MAX_LENGTH } from "@/config/economy";
+import {
+  FIRE_MAX,
+  SPECIAL_REWARD_COST_MAX,
+  SPECIAL_REWARD_COST_MIN,
+  SPECIAL_REWARD_NAME_MAX_LENGTH,
+} from "@/config/economy";
 import { isDateKey } from "@/lib/dates";
 import { createDefaultEconomy } from "@/lib/economy";
 import type {
@@ -21,8 +26,8 @@ import type {
   ParentLog,
   ParentSettings,
   SchoolDay,
-  Treat,
-  TreatRedemption,
+  RewardClaim,
+  SpecialReward,
 } from "@/types";
 
 export const childProfileSchema: z.ZodType<ChildProfile> = z.object({
@@ -127,16 +132,19 @@ export const consultationSchema: z.ZodType<Consultation> = z.object({
 
 export const shopItemIdSchema = z.enum(["food", "glasses", "t-shirt", "hat"]);
 
-export const treatSchema: z.ZodType<Treat> = z.object({
+export const specialRewardSchema: z.ZodType<SpecialReward> = z.object({
   id: z.string(),
-  label: z.string().min(1).max(TREAT_LABEL_MAX_LENGTH),
-  fireCost: z.number().int().min(TREAT_COST_MIN).max(TREAT_COST_MAX),
+  name: z.string().min(1).max(SPECIAL_REWARD_NAME_MAX_LENGTH),
+  fireCost: z.number().int().min(SPECIAL_REWARD_COST_MIN).max(SPECIAL_REWARD_COST_MAX),
 });
 
-export const treatRedemptionSchema: z.ZodType<TreatRedemption> = z.object({
+export const rewardClaimSchema: z.ZodType<RewardClaim> = z.object({
   id: z.string(),
-  treatId: z.string(),
+  rewardId: z.string(),
   date: dateKeySchema,
+  createdAt: z.string(),
+  status: z.enum(["requested", "done"]),
+  doneAt: dateKeySchema.optional(),
 });
 
 /** Old saves have no economy, and corrupt economy data resets to defaults without touching the rest. */
@@ -147,8 +155,8 @@ export const economyStateSchema: z.ZodType<EconomyState> = z
     inventory: z.object({ food: z.number().int().nonnegative() }),
     ownedItemIds: z.array(shopItemIdSchema),
     equippedItemIds: z.array(shopItemIdSchema),
-    treats: z.array(treatSchema),
-    redemptions: z.array(treatRedemptionSchema),
+    specialRewards: z.array(specialRewardSchema),
+    rewardClaims: z.array(rewardClaimSchema),
   })
   .catch(() => createDefaultEconomy());
 
