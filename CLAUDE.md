@@ -14,7 +14,7 @@
 ## Before changing things
 
 - For changes to shared code, the stack, the folder layout or the scope: propose a short plan and wait for Alberto's OK.
-- Record any decision the team must follow in `docs/DECISIONS.md` (English, one line). Personal context, discarded ideas and errors go to Alberto's Obsidian vault (see below), not to the repo.
+- Record any decision the team must follow in `docs/DECISIONS.md` (English, one line). Errors worth sharing go to `ERRORS.md` (append only, same rules as everyone). Personal context and discarded ideas go to Alberto's Obsidian vault (see below).
 - Read the code for the current state; do not trust memory. For Next.js APIs read `node_modules/next/dist/docs/` (this is Next.js 16).
 
 ## Reviewing a teammate's PR
@@ -33,6 +33,7 @@ Check, in this order:
 3. The component pattern (`.tsx` + `.style.ts`, theme tokens, `$` transient props, `"use client"`).
 4. Correctness and edge cases (no GPS, no network, slow vision API, empty data).
 5. Accessibility (labels, 48 px targets, focus).
+6. `ERRORS.md`: changes are append-only, and errors the author clearly hit are logged.
 
 Give Alberto a short list of concrete findings with `file:line`. Do not rewrite their PR. Post comments with `gh pr review` only when Alberto asks. Never merge; Alberto merges.
 

@@ -24,7 +24,7 @@ What we build (and nothing else):
 - **Pillar A, urgent restroom map**: nearest accessible restroom by walking time, walking route, 2/4/6-minute rings, offline, plus an access card in Polish.
 - **Pillar B, menu reader**: photo of a restaurant menu, then a traffic light per dish based on the trigger foods the user marked in their local profile.
 
-The task list with the folders each task may touch is in [`docs/TASKS.md`](docs/TASKS.md). Team decisions are in [`docs/DECISIONS.md`](docs/DECISIONS.md).
+The task list with the folders each task may touch is in [`docs/TASKS.md`](docs/TASKS.md). Team decisions are in [`docs/DECISIONS.md`](docs/DECISIONS.md). Known errors and their fixes are in [`ERRORS.md`](ERRORS.md).
 
 ### Domain rules (never break these)
 
@@ -197,11 +197,23 @@ docs/                        # TASKS.md, DECISIONS.md
 
 Every 3-4 hours: integration checkpoint. Merge what is green, post three lines in the team chat: done / next / blocked.
 
+### Errors: `ERRORS.md`
+
+[`ERRORS.md`](ERRORS.md) is the shared error log. It is mandatory:
+
+1. **Before debugging**, search `ERRORS.md` for the error message. It may already be solved.
+2. **When you hit an error** that took more than 10 minutes, can happen again, or affects other people (build, deps, config, APIs, hooks, CI, deploy), **add an entry at the end of the file** using the template there. If it is not fixed yet, use status `open` so others know.
+3. **Commit the entry in the same PR** as the fix (`docs(errors): add E7 maplibre SSR crash` or inside your fix commit).
+4. Append only: never edit or delete other people's entries.
+
+This is the one shared file anyone may edit without approval, as long as they only append.
+
 ### What you can do without asking
 
 - Create, edit and delete files inside your task's folders.
 - Add components, hooks, `lib` functions and tests for your task.
 - Add the dependencies listed for your task in `docs/TASKS.md` (with `pnpm add`).
+- Append entries to `ERRORS.md`.
 
 ### What needs Alberto's approval first (ask in the issue or PR)
 
@@ -223,6 +235,7 @@ If you need a new UI primitive or shared type, propose it in your PR description
 - Send health data to a server, add analytics or tracking.
 - Write medical claims in UI copy.
 - Invent results: if a command fails or you could not test something, say it in the PR.
+- Hide an error: if you hit one worth logging, it goes in `ERRORS.md`.
 
 ### Definition of done
 
@@ -231,6 +244,7 @@ If you need a new UI primitive or shared type, propose it in your PR description
 - [ ] Every `.tsx` only composes components; styles in the sibling `.style.ts`.
 - [ ] Pure logic in `src/lib` has unit tests.
 - [ ] New env vars are listed in `.env.example`.
+- [ ] Errors you hit during the task are logged in `ERRORS.md`.
 - [ ] The PR template is filled, with a screenshot for UI changes.
 
 ---

@@ -1,0 +1,2 @@
+# Append-only log: on conflicts keep both sides.
+ERRORS.md merge=union

@@ -22,4 +22,5 @@
 - [ ] Everything is in English (code, comments, UI copy, this PR)
 - [ ] No API keys, no health data sent to a server
 - [ ] New env vars are listed in `.env.example`
+- [ ] Errors I hit are logged at the end of `ERRORS.md` (append only)
 - [ ] I did not change shared files (`src/theme`, `src/components/ui`, `src/types`, configs) without approval

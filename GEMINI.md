@@ -18,6 +18,13 @@ You implement **one task from `docs/TASKS.md` at a time**, on its own branch, an
    ```
 4. Look at an existing component (for example `src/components/ui/Button/`) and copy its pattern.
 5. If the task needs a Next.js API you are not sure about, read the guide in `node_modules/next/dist/docs/` first. This is Next.js 16.
+6. Skim `ERRORS.md`, especially entries with status `open` and any that mention your task.
+
+## When you hit an error
+
+1. Search `ERRORS.md` for the error message first. If it is there, apply the fix.
+2. If it is new and took more than 10 minutes, can happen again, or affects others: **append an entry at the end of `ERRORS.md`** using its template (`Who: <name> (Gemini)` or `(Antigravity)`). Use status `open` if not fixed yet.
+3. Include the entry in your PR. Never edit other people's entries.
 
 ## While you code
 
@@ -38,7 +45,7 @@ Suggest the change in words and let the human decide; do not do it "just to unbl
 
 ## Finish
 
-1. `pnpm check` must pass. Paste the summary in the PR.
+1. `pnpm check` must pass. Paste the summary in the PR. Errors you hit are logged in `ERRORS.md`.
 2. `git push -u origin <branch>` and `gh pr create --fill`.
 3. Fill every section of the PR template, write `Closes #<issue>`, add a screenshot at 360 px for UI changes.
 4. Tell the human the PR link and that Alberto will review it.

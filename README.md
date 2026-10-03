@@ -17,6 +17,7 @@ Open http://localhost:3000.
 - Rules and workflow (humans and AI agents): [`AGENTS.md`](AGENTS.md)
 - Tasks: [`docs/TASKS.md`](docs/TASKS.md)
 - Decisions: [`docs/DECISIONS.md`](docs/DECISIONS.md)
+- Known errors and fixes: [`ERRORS.md`](ERRORS.md)
 - Gemini / Antigravity notes: [`GEMINI.md`](GEMINI.md) · Claude Code notes: [`CLAUDE.md`](CLAUDE.md)
 
 Run `pnpm check` before every push.
