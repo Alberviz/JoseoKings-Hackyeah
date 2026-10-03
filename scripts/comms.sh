@@ -123,11 +123,12 @@ cmd_log() {
   done
 }
 
-# Prints a line every time a new message for <name> arrives. Meant to run in the background.
+# Prints a line every time a new message for <name> arrives (messages that already exist when it starts are
+# skipped; set COMMS_WATCH_ALL=1 to see them). Meant to run in the background.
 cmd_watch() {
   local me="${1:-${COMMS_NAME:-}}" every="${2:-30}"
   [ -n "$me" ] || die "usage: comms.sh watch <name> [seconds]"
-  local seen=""
+  local seen="" first=1
   while true; do
     # A failed update (network, race) must not end the watch: try again next round.
     if ! ( ensure_copy ) 2>/dev/null; then sleep "$every"; continue; fi
@@ -140,8 +141,11 @@ cmd_watch() {
       [ "$(field "$f" from)" = "$me" ] && continue
       case " $seen " in *" $base "*) continue ;; esac
       seen="$seen $base"
+      # First round: messages that already exist are not "new" (unless COMMS_WATCH_ALL=1).
+      [ "$first" = 1 ] && [ "${COMMS_WATCH_ALL:-0}" != 1 ] && continue
       echo "NEW $base | from $(field "$f" from) | $(field "$f" type) | $(field "$f" subject)"
     done
+    first=0
     sleep "$every"
   done
 }
