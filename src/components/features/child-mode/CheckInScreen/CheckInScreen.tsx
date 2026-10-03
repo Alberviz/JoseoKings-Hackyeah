@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Companion } from "@/components/features/companion";
-import { Button, Heading, LinkButton, Screen, Stack, Text } from "@/components/ui";
+import { Button, Heading, LinkButton, ProgressBar, Screen, Stack, Text } from "@/components/ui";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { ROUTES } from "@/config/app";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
@@ -10,16 +10,18 @@ import { CHILD_VISIBILITY_NOTE } from "@/content/disclaimers";
 import { useAppState } from "@/hooks/useAppState";
 import { todayKey } from "@/lib/dates";
 import type { CheckIn, CheckInAnswer, CheckInOption, CheckInQuestion } from "@/types";
+import { CheckInIcon, CheckInStar, CheckInTick } from "../CheckInIcons";
 import {
+  BackButton,
+  CheckInContainer,
   ChoiceGameButton,
   ChoiceIconBadge,
   ChoicesGrid,
   ChoiceText,
+  ChoiceTickSlot,
   EndCelebrationBox,
   GameActions,
-  GameStage,
-  NavSpacer,
-  NextStepRow,
+  LoadingBox,
   ParentReportNotice,
   PetContainer,
   PetGlow,
@@ -27,27 +29,15 @@ import {
   PetRoom,
   ProgressHeader,
   ProgressLabel,
-  ProgressTrack,
-  ProgressFill,
+  ProgressTopRow,
   RestTodayButton,
   SelectedChoiceNote,
   SpeechBubble,
   SpeechHint,
   SpeechText,
   StarsBadge,
+  TopRowSpacer,
 } from "./CheckInScreen.style";
-
-const ICON_MAP: Record<string, string> = {
-  "belly-calm": "OK",
-  "belly-rumble": "~",
-  "belly-sore": "!",
-  "energy-high": "+++",
-  "energy-medium": "++",
-  "energy-low": "+",
-  "play-active": ">>",
-  "play-breaks": "<>",
-  "play-resting": "..",
-};
 
 function skippedAnswers(questions: CheckInQuestion[]): Record<string, CheckInAnswer> {
   return Object.fromEntries(questions.map((q) => [q.id, "skipped" as const]));
@@ -70,8 +60,6 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
   const currentQuestion = questions[currentStep];
   const selectedAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
   const selectedOption = currentQuestion?.options.find((o) => o.value === selectedAnswer);
-  const progressPercent =
-    questions.length === 0 ? 0 : Math.round(((currentStep + 1) / questions.length) * 100);
 
   const saveCheckIn = (finalAnswers: Record<string, CheckInAnswer>, skipped: boolean) => {
     const checkInRecord: CheckIn = {
@@ -132,9 +120,9 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
   if (!isReady) {
     return (
       <Screen>
-        <GameStage>
+        <LoadingBox>
           <Text tone="muted">Loading check-in...</Text>
-        </GameStage>
+        </LoadingBox>
       </Screen>
     );
   }
@@ -142,9 +130,11 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
   if (isCompleted) {
     return (
       <Screen>
-        <GameStage>
+        <CheckInContainer>
           <EndCelebrationBox>
-            <StarsBadge aria-hidden="true">*</StarsBadge>
+            <StarsBadge>
+              <CheckInStar />
+            </StarsBadge>
             <Companion
               pose="cheer"
               size="lg"
@@ -171,7 +161,7 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
               Back home
             </LinkButton>
           </EndCelebrationBox>
-        </GameStage>
+        </CheckInContainer>
       </Screen>
     );
   }
@@ -179,26 +169,37 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
   if (!currentQuestion) {
     return (
       <Screen>
-        <GameStage>
+        <CheckInContainer>
           <Text>No check-in questions yet.</Text>
           <LinkButton href={ROUTES.home} variant="secondary">
             Back home
           </LinkButton>
-        </GameStage>
+        </CheckInContainer>
       </Screen>
     );
   }
 
   return (
     <Screen>
-      <GameStage>
+      <CheckInContainer>
         <ProgressHeader aria-label={`Question ${currentStep + 1} of ${questions.length}`}>
-          <ProgressLabel>
-            Question {currentStep + 1} of {questions.length}
-          </ProgressLabel>
-          <ProgressTrack>
-            <ProgressFill $percent={progressPercent} />
-          </ProgressTrack>
+          <ProgressTopRow>
+            {currentStep > 0 ? (
+              <BackButton type="button" onClick={handleBack}>
+                Previous
+              </BackButton>
+            ) : (
+              <TopRowSpacer aria-hidden="true" />
+            )}
+            <ProgressLabel>
+              Question {currentStep + 1} of {questions.length}
+            </ProgressLabel>
+          </ProgressTopRow>
+          <ProgressBar
+            value={currentStep + 1}
+            max={questions.length}
+            label={`Check-in progress, question ${currentStep + 1} of ${questions.length}`}
+          />
         </ProgressHeader>
 
         <PetRoom>
@@ -222,7 +223,6 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
         <ChoicesGrid role="radiogroup" aria-label={currentQuestion.prompt}>
           {currentQuestion.options.map((option: CheckInOption) => {
             const isSelected = selectedAnswer === option.value;
-            const iconChar = ICON_MAP[option.iconKey] || "*";
 
             return (
               <ChoiceGameButton
@@ -233,8 +233,13 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
                 $isSelected={isSelected}
                 onClick={() => handleSelectOption(option.value)}
               >
-                <ChoiceIconBadge aria-hidden="true">{iconChar}</ChoiceIconBadge>
+                <ChoiceIconBadge aria-hidden="true">
+                  <CheckInIcon iconKey={option.iconKey} />
+                </ChoiceIconBadge>
                 <ChoiceText>{option.label}</ChoiceText>
+                <ChoiceTickSlot aria-hidden="true">
+                  {isSelected ? <CheckInTick /> : null}
+                </ChoiceTickSlot>
               </ChoiceGameButton>
             );
           })}
@@ -245,30 +250,21 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
         ) : null}
 
         <GameActions>
-          <NextStepRow>
-            {currentStep > 0 ? (
-              <Button type="button" variant="secondary" onClick={handleBack}>
-                Previous
-              </Button>
-            ) : (
-              <NavSpacer aria-hidden="true" />
-            )}
-
-            <Button
-              type="button"
-              variant="primary"
-              disabled={selectedAnswer === undefined}
-              onClick={handleNext}
-            >
-              {currentStep < questions.length - 1 ? "Next question" : "Save today's check-in"}
-            </Button>
-          </NextStepRow>
+          <Button
+            type="button"
+            variant="primary"
+            fullWidth
+            disabled={selectedAnswer === undefined}
+            onClick={handleNext}
+          >
+            {currentStep < questions.length - 1 ? "Next question" : "Save today's check-in"}
+          </Button>
 
           <RestTodayButton type="button" onClick={handleSkipToday}>
             I don&apos;t feel like it today
           </RestTodayButton>
         </GameActions>
-      </GameStage>
+      </CheckInContainer>
     </Screen>
   );
 }
