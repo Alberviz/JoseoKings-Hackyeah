@@ -3,6 +3,7 @@ import { QUESTION_IDS } from "@/config/content-ids";
 import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays } from "@/lib/dates";
 import { buildDemoState } from "@/lib/demo-data";
+import { createDefaultEconomy } from "@/lib/economy";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState, MissionCompany, ParentLog } from "@/types";
 import { buildReport } from "./buildReport";
@@ -21,6 +22,7 @@ function makeEmptyState(): AppState {
       equippedItemIds: [],
       badgeIds: [],
     },
+    economy: createDefaultEconomy(),
     checkIns: [],
     missionLogs: [],
     parentLogs: [],
