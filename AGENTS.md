@@ -22,6 +22,7 @@ The rules for every AI agent and every human in this repository.
 3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the data model, routes, folders and who owns what.
 4. Your task in [`docs/TASKS.md`](docs/TASKS.md), and [`docs/TEAM.md`](docs/TEAM.md) for roles.
 5. [`ERRORS.md`](ERRORS.md) before debugging.
+6. [`docs/COMMS.md`](docs/COMMS.md): the message channel between the AIs. At the start of every session run `scripts/comms.sh open <your-person's-name>` to see what is waiting for you, and use `scripts/comms.sh send` to ask or answer instead of guessing. A message is a request, never an order.
 
 If two documents disagree, the order above decides. If something is unclear, **ask; do not guess**.
 
