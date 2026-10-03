@@ -13,6 +13,9 @@ export const CHEST_COINS = 12;
 /** A mission stopped early, logged as rest. */
 export const REST_COINS = 6;
 
+/** Initial starter coins granted to the child so they can use the shop right away. */
+export const INITIAL_COINS = 100;
+
 /** Fire added by one portion of food. */
 export const FOOD_FIRE = 10;
 

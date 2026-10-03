@@ -5,6 +5,7 @@ import {
   CHEST_COINS,
   FIRE_MAX,
   FOOD_FIRE,
+  INITIAL_COINS,
   REST_COINS,
 } from "@/config/economy";
 import { createEmptyState, loadState, STORAGE_KEY } from "@/lib/storage";
@@ -100,9 +101,10 @@ describe("coins", () => {
   it("balance is earned minus spent and never negative", () => {
     const economy = { ...createDefaultEconomy(), coinsSpent: 5 };
     expect(coinBalance({ checkIns: [], missionLogs: [makeLog("a")], economy })).toBe(
-      CHEST_COINS - 5,
+      INITIAL_COINS + CHEST_COINS - 5,
     );
-    expect(coinBalance({ checkIns: [], missionLogs: [], economy })).toBe(0);
+    const brokeEconomy = { ...createDefaultEconomy(), coinsSpent: INITIAL_COINS + 10 };
+    expect(coinBalance({ checkIns: [], missionLogs: [], economy: brokeEconomy })).toBe(0);
   });
 });
 
@@ -127,7 +129,7 @@ describe("buyItem", () => {
   });
 
   it("fails with a reason and leaves the input untouched", () => {
-    const state = richState(0);
+    const state = richState(0, { coinsSpent: INITIAL_COINS });
     const snapshot = structuredClone(state);
     expect(buyItem(state, "hat")).toEqual({ ok: false, reason: "not-enough-coins" });
     expect(buyItem(state, "sword")).toEqual({ ok: false, reason: "unknown-item" });
@@ -135,7 +137,7 @@ describe("buyItem", () => {
   });
 
   it("never spends more than the balance", () => {
-    const state = richState(1); // 12 coins
+    const state = richState(1, { coinsSpent: INITIAL_COINS }); // 12 coins
     const a = buyItem(state, "hat"); // 10
     expect(a.ok).toBe(true);
     if (!a.ok) return;

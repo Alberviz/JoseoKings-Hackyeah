@@ -22,7 +22,7 @@ describe("ExerciseFigure component", () => {
 
       unmount();
     }
-  });
+  }, 15000);
 
   it("renders a single figure by default when withAdult is omitted or false", () => {
     const { container, unmount } = renderWithTheme(

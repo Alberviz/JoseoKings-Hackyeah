@@ -29,6 +29,7 @@ describe("Companion poses definition", () => {
       "balance",
       "strength",
       "cheer",
+      "eat",
     ];
     for (const pose of requiredPoses) {
       expect(COMPANION_POSES).toContain(pose);
@@ -186,6 +187,12 @@ describe("Companion component", () => {
 
     rerender(<Companion pose="cheer" />);
     expect(container.querySelector("#dragon-smile-cheer")).not.toBeNull();
+  });
+
+  it("renders eat pose with flame puff and eat smile", () => {
+    const { container } = renderWithTheme(<Companion pose="eat" animated={true} />);
+    expect(screen.getByTestId("companion-flame-puff")).toBeDefined();
+    expect(container.querySelector("#dragon-smile-eat")).not.toBeNull();
   });
 });
 

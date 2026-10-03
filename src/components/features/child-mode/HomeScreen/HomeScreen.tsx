@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, ROUTES } from "@/config/app";
 import { FIRE_MAX } from "@/config/economy";
@@ -61,6 +61,7 @@ import {
 export function HomeScreen() {
   const router = useRouter();
   const { state, isReady } = useAppState();
+  const [companionPose, setCompanionPose] = useState<"idle" | "cheer">("idle");
 
   // If no child is configured, redirect to parent setup.
   // If device is parent-only, redirect straight to parent mode.
@@ -150,7 +151,16 @@ export function HomeScreen() {
       {/* 2. Middle: Large Centered Companion Mascot */}
       <DragonStage aria-label="Mascot Stage">
         <DragonWrapper>
-          <Companion pose="idle" equippedItemIds={equippedItemIds} name={companionName} size="lg" />
+          <Companion
+            pose={companionPose}
+            equippedItemIds={equippedItemIds}
+            name={companionName}
+            size="lg"
+            onTap={() => {
+              setCompanionPose("cheer");
+              setTimeout(() => setCompanionPose("idle"), 1200);
+            }}
+          />
         </DragonWrapper>
       </DragonStage>
 

@@ -11,6 +11,7 @@ import {
   ActionsContainer,
   FireStatusRow,
   FireValueBadge,
+  FloatingFirePuff,
   FoodCountBadge,
   FoodRoot,
   NoticeBanner,
@@ -71,6 +72,8 @@ function AppleIcon() {
 export function FoodScreen() {
   const { state, actions, isReady } = useAppState();
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [isEating, setIsEating] = useState(false);
+  const [floatingFire, setFloatingFire] = useState(false);
 
   if (!isReady) {
     return (
@@ -88,7 +91,11 @@ export function FoodScreen() {
   const handleGiveFood = () => {
     const result = actions.giveFood();
     if (result.ok) {
+      setIsEating(true);
+      setFloatingFire(true);
       setFeedback("Yum! Dragon fire increased!");
+      setTimeout(() => setIsEating(false), 1800);
+      setTimeout(() => setFloatingFire(false), 1800);
     } else if (result.reason === "no-food") {
       setFeedback("You have no food left! Visit the shop to buy more.");
     }
@@ -111,7 +118,21 @@ export function FoodScreen() {
         </Stack>
 
         <Stage>
-          <Companion pose="idle" equippedItemIds={equippedItemIds} name={companionName} size="lg" />
+          <Companion
+            pose={isEating ? "eat" : "idle"}
+            equippedItemIds={equippedItemIds}
+            name={companionName}
+            size="lg"
+            onTap={() => {
+              if (!isEating) {
+                setIsEating(true);
+                setTimeout(() => setIsEating(false), 1800);
+              }
+            }}
+          />
+          {floatingFire && (
+            <FloatingFirePuff data-testid="floating-fire-puff">🔥 +10 Fire!</FloatingFirePuff>
+          )}
         </Stage>
 
         <StatsCard aria-label="Food and fire status">

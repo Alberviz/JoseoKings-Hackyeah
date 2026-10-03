@@ -5,6 +5,7 @@ export const COMPANION_POSES = [
   "balance",
   "strength",
   "cheer",
+  "eat",
 ] as const;
 
 export const companionPoses = COMPANION_POSES;

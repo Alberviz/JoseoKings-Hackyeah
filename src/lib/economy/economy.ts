@@ -5,6 +5,7 @@ import {
   DEFAULT_SPECIAL_REWARDS,
   FIRE_MAX,
   FOOD_FIRE,
+  INITIAL_COINS,
   REST_COINS,
   SHOP_ITEMS,
   SPECIAL_REWARD_COST_MAX,
@@ -96,7 +97,7 @@ export function coinsEarned(source: Pick<AppState, "checkIns" | "missionLogs">):
 }
 
 export function coinBalance(state: EconomySource): number {
-  return Math.max(0, coinsEarned(state) - state.economy.coinsSpent);
+  return Math.max(0, INITIAL_COINS + coinsEarned(state) - state.economy.coinsSpent);
 }
 
 export function buyItem(state: EconomySource, itemId: string): BuyResult {

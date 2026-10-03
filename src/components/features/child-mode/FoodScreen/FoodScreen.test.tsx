@@ -79,6 +79,10 @@ describe("FoodScreen (Task V6)", () => {
     const giveFoodBtn = await screen.findByRole("button", { name: /Give food/i });
     fireEvent.click(giveFoodBtn);
 
+    // Shows eating flame puff and floating fire badge
+    expect(await screen.findByTestId("floating-fire-puff")).toBeDefined();
+    expect(screen.getByTestId("companion-flame-puff")).toBeDefined();
+
     // Fire should now be 30
     expect(await screen.findByText(/30 \/ 100/i)).toBeDefined();
     // Food count should now be 0
