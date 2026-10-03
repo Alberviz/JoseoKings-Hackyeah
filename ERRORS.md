@@ -95,5 +95,5 @@ Before debugging something, search this file first: it may already be solved.
 - **Status:** fixed
 - **Symptom:** On narrow mobile viewports (< 400px), tables require horizontal scrolling on screen, which could clip content if printed without `@media print` overrides.
 - **Cause:** Table columns exceed 390px on small screens.
-- **Fix:** `DoctorReportView.style.ts` uses `@media print` with `@page { size: A4 portrait; margin: 10mm; }`, disables container clipping (`overflow-x: visible !important`), hides action buttons via `.no-print`, and adopts `theme.colors.*` design tokens. Tested real printing on desktop Chrome and phone viewport (390x844).
-- **Refs:** T11
+- **Fix:** `DoctorReportView.style.ts` uses `@media print` with `@page { size: A4 portrait; margin: 10mm; }`, disables container clipping (`overflow-x: visible !important`), hides action buttons via `.no-print`, and adopts `theme.colors.*` design tokens. Tested real printing on desktop Chrome and phone-sized viewport (emulated 390x844; real physical phone test remains for Alberto in T16).
+- **Refs:** T11, T16
