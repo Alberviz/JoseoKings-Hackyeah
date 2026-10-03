@@ -1,4 +1,23 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+
+const floatUpFade = keyframes`
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.7);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-24px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-44px) scale(0.8);
+  }
+`;
 
 export const FoodRoot = styled.div`
   display: flex;
@@ -15,11 +34,32 @@ export const TopBar = styled.header`
 `;
 
 export const Stage = styled.section`
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: ${({ theme }) => theme.spacing.md} 0;
+`;
+
+export const FloatingFirePuff = styled.div`
+  position: absolute;
+  top: 15%;
+  right: 22%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: ${({ theme }) => theme.colors.accent};
+  color: #ffffff;
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  box-shadow: 2px 2px 0 ${({ theme }) => theme.colors.ink};
+  pointer-events: none;
+  animation: ${floatUpFade} 1.6s ease-out forwards;
 `;
 
 export const StatsCard = styled.section`

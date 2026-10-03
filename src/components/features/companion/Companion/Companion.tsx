@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ThemeContext } from "styled-components";
 import { theme as defaultTheme } from "@/theme/theme";
 import { ITEM_IDS } from "@/config/content-ids";
@@ -13,7 +13,10 @@ import {
   AnimatedBreatheG,
   AnimatedCheerArmsG,
   AnimatedCheerG,
+  AnimatedEatG,
+  AnimatedEmberCircle,
   AnimatedEyesG,
+  AnimatedFlameG,
   AnimatedHeadG,
   AnimatedIdleG,
   AnimatedLeftWingG,
@@ -38,6 +41,7 @@ export type CompanionProps = {
   size?: CompanionSize;
   name?: string;
   animated?: boolean;
+  onTap?: () => void;
 };
 
 export function Companion({
@@ -46,6 +50,7 @@ export function Companion({
   size = "md",
   name = "Your companion",
   animated = true,
+  onTap,
 }: CompanionProps) {
   const currentTheme = useContext(ThemeContext) || defaultTheme;
 
@@ -76,6 +81,16 @@ export function Companion({
   const cheekColor = colors.dragonCheek;
   const eyeColor = colors.dragonEye;
 
+  const [tapped, setTapped] = useState(false);
+
+  const handleClick = () => {
+    if (onTap) {
+      onTap();
+    }
+    setTapped(true);
+    setTimeout(() => setTapped(false), 600);
+  };
+
   // Choose the outer animation wrapper based on pose
   const PoseAnimationWrapper =
     pose === "idle"
@@ -88,7 +103,9 @@ export function Companion({
             ? AnimatedBalanceG
             : pose === "strength"
               ? AnimatedStrengthG
-              : AnimatedCheerG;
+              : pose === "eat"
+                ? AnimatedEatG
+                : AnimatedCheerG;
 
   const accessibleLabel = `${name} (${pose} pose)`;
 
@@ -97,15 +114,15 @@ export function Companion({
       viewBox="0 0 200 200"
       $size={size}
       $animated={animated}
+      $interactive={Boolean(onTap)}
+      $tapped={tapped}
+      onClick={onTap ? handleClick : undefined}
       data-animated={animated ? "true" : "false"}
       role="img"
       aria-label={accessibleLabel}
       data-testid="companion-svg"
     >
-      <PoseAnimationWrapper
-        key={pose === "cheer" ? "pose-cheer" : `pose-${pose}`}
-        $animated={animated}
-      >
+      <PoseAnimationWrapper key={`pose-${pose}`} $animated={animated}>
         {/* --- Back Layer: Cape Item --- */}
         {hasCape && (
           <SvgG data-testid="companion-cape">
@@ -542,10 +559,10 @@ export function Companion({
             <SvgEllipse cx="128" cy="74" rx="6" ry="4" fill={cheekColor} opacity="0.6" />
 
             {/* Friendly Smile & Tiny Cute White Fangs */}
-            {pose === "cheer" ? (
-              <SvgG id="dragon-smile-cheer">
+            {pose === "cheer" || pose === "eat" ? (
+              <SvgG id={pose === "eat" ? "dragon-smile-eat" : "dragon-smile-cheer"}>
                 <SvgPath
-                  d="M 91 80 Q 100 92 109 80 Z"
+                  d="M 91 80 Q 100 93 109 80 Z"
                   fill={eyeColor}
                   stroke={eyeColor}
                   strokeWidth="1.5"
@@ -577,6 +594,60 @@ export function Companion({
                   strokeWidth="0.8"
                 />
               </SvgG>
+            )}
+
+            {/* Eating flame puff and ember particles */}
+            {pose === "eat" && animated && (
+              <AnimatedFlameG
+                $animated={animated}
+                id="dragon-flame-puff"
+                data-testid="companion-flame-puff"
+              >
+                {/* Outer fire flame */}
+                <SvgPath
+                  d="M 100 80 Q 86 70 88 54 Q 94 44 100 32 Q 106 44 112 54 Q 114 70 100 80 Z"
+                  fill={colors.accent || "#FF7A59"}
+                  opacity="0.92"
+                />
+                {/* Mid flame */}
+                <SvgPath
+                  d="M 100 78 Q 92 68 93 58 Q 97 50 100 42 Q 103 50 107 58 Q 108 68 100 78 Z"
+                  fill={colors.highlight || "#FFB800"}
+                />
+                {/* Hot core */}
+                <SvgEllipse cx="100" cy="73" rx="3.5" ry="5.5" fill="#FFFFFF" opacity="0.95" />
+                {/* Floating embers */}
+                <AnimatedEmberCircle
+                  cx="100"
+                  cy="74"
+                  r="2.5"
+                  fill="#FFB800"
+                  $dx="-12px"
+                  $dx2="-20px"
+                  $dx3="-28px"
+                  $animated={animated}
+                />
+                <AnimatedEmberCircle
+                  cx="100"
+                  cy="74"
+                  r="2"
+                  fill="#FF7A59"
+                  $dx="12px"
+                  $dx2="20px"
+                  $dx3="26px"
+                  $animated={animated}
+                />
+                <AnimatedEmberCircle
+                  cx="100"
+                  cy="74"
+                  r="1.5"
+                  fill="#FFFFFF"
+                  $dx="3px"
+                  $dx2="5px"
+                  $dx3="7px"
+                  $animated={animated}
+                />
+              </AnimatedFlameG>
             )}
           </SvgG>
 

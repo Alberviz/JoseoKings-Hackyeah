@@ -11,10 +11,13 @@ const sizeMap: Record<CompanionSize, string> = {
 
 const idleBodyBreathe = keyframes`
   0%, 100% {
-    transform: translateY(0px);
+    transform: translateY(0px) rotate(0deg);
   }
-  50% {
-    transform: translateY(-3px);
+  35% {
+    transform: translateY(-3.5px) rotate(-0.5deg);
+  }
+  70% {
+    transform: translateY(-1px) rotate(0.5deg);
   }
 `;
 
@@ -28,10 +31,13 @@ const idleBellyBreathe = keyframes`
 `;
 
 const idleBlink = keyframes`
-  0%, 90%, 100% {
+  0%, 75%, 82%, 90%, 100% {
     transform: scaleY(1);
   }
-  95% {
+  78% {
+    transform: scaleY(0.08);
+  }
+  86% {
     transform: scaleY(0.08);
   }
 `;
@@ -181,11 +187,99 @@ const strengthPulse = keyframes`
   }
 `;
 
+// --- Keyframes for Eating and Flame Puff ---
+
+const eatMunchSquash = keyframes`
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  15% {
+    transform: translateY(3px) scale(1.03, 0.96);
+  }
+  30% {
+    transform: translateY(-2px) scale(0.98, 1.02);
+  }
+  45% {
+    transform: translateY(2px) scale(1.02, 0.98);
+  }
+  60% {
+    transform: translateY(-6px) scale(0.96, 1.05);
+  }
+  75% {
+    transform: translateY(-4px) scale(1.03, 0.98);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+`;
+
+const flamePuffGrow = keyframes`
+  0%, 42% {
+    transform: scale(0) translateY(0);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.7) translateY(-4px);
+    opacity: 0.95;
+  }
+  72% {
+    transform: scale(1.25) translateY(-14px);
+    opacity: 1;
+  }
+  88% {
+    transform: scale(1) translateY(-22px);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(0.3) translateY(-32px);
+    opacity: 0;
+  }
+`;
+
+const emberSparkle = keyframes`
+  0%, 45% {
+    transform: scale(0) translate(0, 0);
+    opacity: 0;
+  }
+  62% {
+    transform: scale(1.4) translate(var(--dx, 8px), -12px);
+    opacity: 1;
+  }
+  85% {
+    transform: scale(0.9) translate(var(--dx2, 14px), -24px);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) translate(var(--dx3, 20px), -36px);
+    opacity: 0;
+  }
+`;
+
+const tapBounce = keyframes`
+  0% {
+    transform: scale(1, 1);
+  }
+  30% {
+    transform: scale(1.08, 0.92) translateY(3px);
+  }
+  60% {
+    transform: scale(0.94, 1.06) translateY(-8px);
+  }
+  85% {
+    transform: scale(1.02, 0.98) translateY(1px);
+  }
+  100% {
+    transform: scale(1, 1) translateY(0);
+  }
+`;
+
 // --- Styled SVG Components ---
 
 export const StyledCompanionSvg = styled.svg<{
   $size: CompanionSize;
   $animated?: boolean;
+  $interactive?: boolean;
+  $tapped?: boolean;
 }>`
   display: block;
   flex-shrink: 0;
@@ -193,6 +287,12 @@ export const StyledCompanionSvg = styled.svg<{
   height: ${({ $size }) => sizeMap[$size]};
   max-width: 100%;
   overflow: visible;
+  ${({ $interactive }) => $interactive && `cursor: pointer;`}
+  ${({ $tapped }) =>
+    $tapped &&
+    css`
+      animation: ${tapBounce} 0.6s ease-in-out;
+    `}
 
   ${({ $animated }) =>
     $animated === false &&
@@ -384,6 +484,48 @@ export const AnimatedStrengthG = styled.g<{ $animated?: boolean }>`
   transform-box: fill-box;
   transform-origin: 50% 90%;
   animation: ${strengthPulse} 2.4s ease-in-out infinite;
+
+  ${({ $animated }) => $animated === false && `animation: none !important;`}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+export const AnimatedEatG = styled.g<{ $animated?: boolean }>`
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ${eatMunchSquash} 1.8s ease-in-out forwards;
+
+  ${({ $animated }) => $animated === false && `animation: none !important;`}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+export const AnimatedFlameG = styled.g<{ $animated?: boolean }>`
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ${flamePuffGrow} 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+
+  ${({ $animated }) => $animated === false && `animation: none !important;`}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+export const AnimatedEmberCircle = styled.circle<{
+  $dx?: string;
+  $dx2?: string;
+  $dx3?: string;
+  $animated?: boolean;
+}>`
+  --dx: ${({ $dx }) => $dx || "8px"};
+  --dx2: ${({ $dx2 }) => $dx2 || "14px"};
+  --dx3: ${({ $dx3 }) => $dx3 || "20px"};
+  animation: ${emberSparkle} 1.8s ease-out forwards;
 
   ${({ $animated }) => $animated === false && `animation: none !important;`}
 
