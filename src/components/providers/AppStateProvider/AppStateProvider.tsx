@@ -38,6 +38,8 @@ export type AppStateActions = {
   setSettings: (settings: ParentSettings) => void;
   setChild: (child: ChildProfile) => void;
   loadDemo: (demoState: AppState) => void;
+  /** Replaces the whole state with an imported backup (already validated). Keeps its isDemo flag. */
+  importState: (imported: AppState) => void;
   clearAll: () => void;
 };
 
@@ -113,6 +115,19 @@ function createAppStateStore() {
         state: nextState,
         isReady: true,
       };
+      saveState(nextState);
+      notify();
+    },
+    importState: (imported: AppState) => {
+      const nextState: AppState = {
+        ...imported,
+        companion: syncCompanion({
+          checkIns: imported.checkIns,
+          missionLogs: imported.missionLogs,
+          companion: imported.companion,
+        }),
+      };
+      snapshot = { state: nextState, isReady: true };
       saveState(nextState);
       notify();
     },
@@ -274,6 +289,13 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     [store],
   );
 
+  const importState = useCallback(
+    (imported: AppState) => {
+      store.importState(imported);
+    },
+    [store],
+  );
+
   const clearAll = useCallback(() => {
     store.clearAll();
   }, [store]);
@@ -290,6 +312,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       setSettings,
       setChild,
       loadDemo,
+      importState,
       clearAll,
     }),
     [
@@ -303,6 +326,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       setSettings,
       setChild,
       loadDemo,
+      importState,
       clearAll,
     ],
   );
