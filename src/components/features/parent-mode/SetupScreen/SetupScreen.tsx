@@ -260,9 +260,7 @@ export function SetupScreen() {
                 >
                   Complete setup
                 </Button>
-                <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-                  Back to child mode
-                </LinkButton>
+                {/* No "Back to child mode" here: before the setup there is no child, so "/" would send the family right back to this screen. */}
               </Stack>
             </Stack>
           </SetupForm>
