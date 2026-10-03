@@ -1,6 +1,6 @@
 # Child mode v2: plan
 
-Status: **draft for Alberto's OK** (2026-10-03). Owner: Claude (lead) with Fable 5.1 (Álvaro's AI). This plan replaces the "beta frozen" rule of `HANDOFF.md` section 2b for the child interface only. Parent mode and the doctor report stay as they are.
+Status: **approved by Alberto (2026-10-03)**. Owner: Claude (lead) with Fable 5.1 (Álvaro's AI). The scope decision is recorded in `docs/DECISIONS.md` (row "The child interface v2 is built in full"). Parent mode and the doctor report change only as listed in section 2b.
 
 ## 1. Goal
 
@@ -13,9 +13,9 @@ Sources of truth, in order: `docs/PRODUCT.md` section 5 (rules) > Alberto's deci
 - The child **chooses** who plays: Alone, Family or Someone else. It is not random.
 - "How are you feeling?" (Calm / Strong / Amazing) before and "How do you feel after playing?" (Exhausted / Chill / Great) after are **extra chips**. They never replace the three core check-in questions (`belly-comfort`, `energy`, `play-pace`) and never change a reward. The 1-2-3 dots only choose which gentle mission is shown.
 - **Chest after every play**, always +12 coins (placeholder), whatever was answered.
-- **Fire** is a bar from 0 to 100. It only goes up (Food raises it). It is never lost, never decays, never shown as a score.
+- **Fire** is a bar from 0 to 100. Food raises it. It is never lost and never decays; it goes down only when the child chooses to spend it on a reward from home. It is never shown as a score.
 - **Coins** come from playing. They buy items in the Shop.
-- Shop (prices in the sketch): Food 5, Glasses 7, T-shirt 10, Hat 10 coins. **Choose dinner** costs 50 fire and is a real-life treat that the parents define.
+- Shop (prices in the sketch): Food 5, Glasses 7, T-shirt 10, Hat 10 coins. Rewards from home (for example Choose dinner) cost fire, spent by the child, and are defined by the parents; a claim is a request the parents confirm.
 - Customize shows owned items, a tick on the ones worn.
 - The dragon is never sad, sick or angry. No streaks.
 
@@ -28,7 +28,7 @@ Juan keeps the current parent mode and asks for these changes:
 - Daily log: date, sleep hours, physical activity (None / Light / Moderate / High), school (Went / Left early / Missed / No school), med taken (Yes / No / Partly / N/A), extra notes (optional), Save, Back to parent mode. This already exists; align the labels.
 - Today's diet: "What did <name> eat on <date>?" with Breakfast, Lunch, Snack and Dinner, each a text field or a "Nothing" toggle, extra notes, Save. Leaving without saving asks for confirmation.
 - Special rewards: list of rewards the parents create (examples: Choose today's dinner, Kart's day, 30 more phone minutes, Board games marathon). Edit and Delete are disabled until a reward is selected. "Create new reward" opens a dialog with Name and Price (in fire); Create stays disabled until both are filled, so empty rewards are impossible.
-- Generate resume: From and To dates and "Download PDF" (the existing doctor report, printed for that range).
+- Generate resume: the default period is since the last consultation; parents may change From and To. "Download PDF" prints the existing doctor report for that range.
 
 ## 3. Open decisions (block the visual work, not the logic)
 
@@ -36,12 +36,12 @@ Juan keeps the current parent mode and asks for these changes:
 2. **Palette** (Alberto, with Baitiare's study).
 3. **Dragon art**: the final illustration and its colour variants.
 4. Does Food have its own screen (feed the dragon, fire goes up)? Assumed yes.
-5. Where parents define the "Choose dinner" treats (parent settings). Assumed yes, simple text list.
+5. Parents define rewards from home (name and fire price) in the parent Special rewards screen. Decided.
 
 ## 4. Architecture (style-agnostic, can start now)
 
-- `src/types/economy.ts`: `EconomyState = { fire: number; coins: number; inventory: Record<ItemId, number>; equipped: ItemId[]; treats: Treat[] }`, added to `AppState` with a migration that fills defaults for old data.
-- `src/lib/economy/`: pure functions with unit tests: `grantChest`, `buyItem` (never below zero coins), `giveFood` (fire up to 100, never down), `equip`/`unequip`, `redeemTreat`. Coins from plays are **derived from the logs** (idempotent, like `syncCompanion`), spending is stored.
+- `src/types/economy.ts`: `EconomyState = { fire: number; coins: number; inventory: Record<ItemId, number>; equipped: ItemId[]; rewards: HomeReward[] }`, added to `AppState` with a migration that fills defaults for old data.
+- `src/lib/economy/`: pure functions with unit tests: `grantChest`, `buyItem` (never below zero coins), `giveFood` (fire up to 100, never down), `equip`/`unequip`, `claimReward`. Coins from plays are **derived from the logs** (idempotent, like `syncCompanion`), spending is stored.
 - `src/config/app.ts`: new routes for the Play flow and Shop; no hard-coded strings.
 - Screens live in `src/components/features/child-mode/<Screen>/` with the usual `.tsx` + `.style.ts` pair. Primitives in `src/components/ui` are changed only by Claude.
 - Timer: `useCountdown` hook (time passed in, testable, respects reduced motion) and a `RingTimer` component.
