@@ -17,13 +17,13 @@ Two-minute read for anyone jumping back in. Sources: `docs/WATCH_INTEGRATION.md`
 
 ## What is built
 
-| Piece                                                                                    | State                                                                                                                                                                                                                                                  |
-| :--------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Supabase** `mycrohnie-watch` (ref `khziifyuhqitlzntesbu`, **eu-central-1**, org Atlas) | Schema applied (`watch_mvp_schema`) and copied to `supabase/migrations/`. Demo subject **`demo-child-1`**. Checked 2026-10-04 01:33: 4 070 `watch_samples` rows and 1 collector run. A read from the repo's gitignored `.env.local` returned HTTP 200. |
-| **`watch-collector`** (`Projects/watch-collector`)                                       | Collect loop: 48 h lookback, idempotent upsert to `watch_samples` + `collector_runs`. Commands: `auth`, `probe`, `collect`, `collect:dry`, `collect:once`. **`npm test`** (normalisation) passing. **Supabase connectivity verified 2026-10-04.**      |
-| **Google OAuth / live collect**                                                          | Consent saved. Probe returns 403: the token's project (`272841921982`) does not have the Fitness API enabled. It is enabled on `hackyeah-510522`, which has a service account only. Need a Desktop OAuth client in that project, then auth again.      |
-| **Mycrohnie app pipeline steps 2–5**                                                     | Ingest, `daily.ts`, `statistics.ts`, jobs on Vercel, parent/doctor UI — **to do** per `WATCH_INTEGRATION.md`.                                                                                                                                          |
-| **Analysis algorithms (research §3.0 MVP set)**                                          | Written in `watch-collector/src/analysis` (A0–A3, A9, A10a, A12, A13, A14, 3.V). `node --test`: 17 passing, re-run 2026-10-04. Local only. The 1 000-dataset false-alarm runs were not executed.                                                       |
+| Piece                                                                                    | State                                                                                                                                                                                                                                                          |
+| :--------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Supabase** `mycrohnie-watch` (ref `khziifyuhqitlzntesbu`, **eu-central-1**, org Atlas) | Schema applied (`watch_mvp_schema`) and copied to `supabase/migrations/`. Demo subject **`demo-child-1`**. Checked 2026-10-04 01:33: 4 070 `watch_samples` rows and 1 collector run. A read from the repo's gitignored `.env.local` returned HTTP 200.         |
+| **`watch-collector`** (`Projects/watch-collector`)                                       | Collect loop: 48 h lookback, idempotent upsert to `watch_samples` + `collector_runs`. Commands: `auth`, `probe`, `collect`, `collect:dry`, `collect:once`. **`npm test`** (normalisation) passing. **Supabase connectivity verified 2026-10-04.**              |
+| **Google OAuth / live collect**                                                          | Fitness API on project `272841921982` works. Probe and one collect succeeded (4 070 rows, Xiaomi phones, no heart rate, no sleep). Alberto (01:56): **Google Health is connected and working**; not wired into the collector yet. See `docs/HANDOFF-WATCH.md`. |
+| **Mycrohnie app pipeline steps 2–5**                                                     | Ingest, `daily.ts`, `statistics.ts`, jobs on Vercel, parent/doctor UI — **to do** per `WATCH_INTEGRATION.md`.                                                                                                                                                  |
+| **Analysis algorithms (research §3.0 MVP set)**                                          | Written in `watch-collector/src/analysis` (A0–A3, A9, A10a, A12, A13, A14, 3.V). `node --test`: 17 passing, re-run 2026-10-04. Local only. The 1 000-dataset false-alarm runs were not executed.                                                               |
 
 **MVP demo assumption:** treat watch data as reliable for the hackathon; keep validity flags anyway.
 
@@ -53,9 +53,9 @@ From proposal §5, research §2.2, and §3.OUT — do not resurrect these in sli
 
 ## What is next (in order)
 
-1. **W0 — Google Fit gate (Álvaro):** create a Desktop OAuth client in project `hackyeah-510522` (the service account cannot read a person's Fit data) and send the new client id and secret. Then auth and probe again.
-2. **Live collect (whoever runs the laptop):** `npm run collect` → verify rows in `watch_samples` and `collector_runs`.
-3. **Analysis MVP:** code is in `watch-collector/src/analysis` and the tests pass. Still to do: the 1 000-dataset false-alarm check, and A7 (lagged Spearman) if someone is free. Then copy the pure functions into Mycrohnie `src/lib/wearables/`.
+1. **Google Health (Alberto says it works):** confirm the streams, then point the collector at them. Do not redo the Fitness OAuth.
+2. **Live collect:** `npm run collect:once` in `watch-collector`, then check `watch_samples`.
+3. **Analysis MVP:** code is in `watch-collector/src/analysis` and the tests pass. Still to do: the 1 000-dataset false-alarm check, and A7 if someone is free. Then copy the pure functions into Mycrohnie `src/lib/wearables/`.
 4. **`daily.ts` + tests** in Mycrohnie (`src/lib/wearables/`) — raw minutes → `daily_metrics`.
 5. **`statistics.ts` + tests** — same job as analyse; store `analysis_runs`.
 6. **`/api/ingest`** — PWA posts check-ins, logs, missions (demo: one ingest token / env).
