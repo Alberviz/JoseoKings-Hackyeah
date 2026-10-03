@@ -112,12 +112,12 @@ Before debugging something, search this file first: it may already be solved.
 ### E8 · Parent PIN gate test times out when the machine is busy
 
 - **Date:** 2026-10-03 23:07
-- **Who:** Álvaro (Claude in Cursor)
-- **Task:** M3 (seen while running `pnpm check`, not caused by it)
-- **Status:** open
+- **Who:** Álvaro (Claude in Cursor), fixed by Alberto (Antigravity)
+- **Task:** M3 / feat/device-role-setup
+- **Status:** fixed
 - **Symptom:** `src/components/features/parent-mode/parent-mode.test.tsx:155`: `expect(mockPush).toHaveBeenCalledWith(ROUTES.parent)` fails inside `waitFor` during the full `pnpm check`. The same file passes when run alone. In a second full run, `DailyLog/DailyLogScreen.test.tsx` "saves a daily log and a consultation date" failed the same way and passed alone.
 - **Cause:** same as E7: the PIN check (PBKDF2) is slow under load and `waitFor` uses the default 1 s timeout.
-- **Fix:** not applied (not my test). Suggested: give that `waitFor` a 5 s timeout, as in E7.
+- **Fix:** applied 5 s timeout (`{ timeout: 5000 }`) to `waitFor` in `parent-mode.test.tsx` and `DailyLog/DailyLogScreen.test.tsx`.
 - **Refs:** E7, T10
 
 ### E9 · `comms-local is already used by worktree` when running comms.sh
