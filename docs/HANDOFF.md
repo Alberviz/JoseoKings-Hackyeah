@@ -2,7 +2,7 @@
 
 Snapshot of the team's state for anyone (human or AI) who joins or restarts a session. Keep it short and update it at each checkpoint. It does not replace `AGENTS.md` (rules), `docs/PRODUCT.md` (the product) or `docs/DECISIONS.md` (confirmed decisions).
 
-Last update: 2026-10-03, afternoon (concept agreed, repo reorganised).
+Last update: 2026-10-03, 18:15 (beta scope frozen).
 
 ---
 
@@ -18,6 +18,24 @@ Last update: 2026-10-03, afternoon (concept agreed, repo reorganised).
 - **Paused and not linked:** the restroom map and the menu reader. Their code stays in the repo and must not be edited.
 - **Defaults pending Alberto's decision:** see `PRODUCT.md` section 9 (pitch story, when parents see what the child marked, energy indicator, wording of the confidence labels).
 - **Shared code already in place:** `src/types/` (the data model) and `ROUTES` in `src/config/app.ts`. No feature code yet.
+
+## 2b. Beta scope (decided by Alberto, 2026-10-03)
+
+The app stops at **beta**. After that we pause and decide what is next. **Scope is frozen: no new features, only what is listed here.**
+
+Beta means one complete loop that works end to end on a phone:
+set up the family (profile, PIN) -> child home -> daily check-in -> a guided mission -> reward -> parent summary, daily log, food diary, patterns and the doctor report, all behind the PIN.
+
+| Done on main                                                                                                           | Still to do for beta                                                                                   | Owner          |
+| :--------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- | :------------- |
+| Profile and PIN, check-in, parent summary, patterns, food diary, doctor report, rewards, content with verified sources | **T5b** the Kraków dragon art inside `Companion`                                                       | Baitiare       |
+|                                                                                                                        | **T6** child home (check-in, missions, parent door; no FEED, no MEDICINES)                             | Baitiare       |
+|                                                                                                                        | **T8** missions: engine in `src/lib/missions/` (Juan) and screens (Baitiare)                           | Juan, Baitiare |
+|                                                                                                                        | **T12** daily log and consultations                                                                    | Álvaro         |
+|                                                                                                                        | **T16** Vercel deploy and a test on two real phones (HTTPS needed, see E5)                             | Alberto        |
+|                                                                                                                        | **T15** the Customize screen: only if it is ready; otherwise the home does not show a Customize button | Farouk         |
+
+Rules while the freeze lasts: every navigation item must point to a route that exists; open a PR as soon as something works, even small; merge `main` into your branch before each PR. When the list above is done, nobody starts anything new: report `done` on the channel and wait.
 
 ## 3. Official rules for the open task "Sport & Healthcare"
 
