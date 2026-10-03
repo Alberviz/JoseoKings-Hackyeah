@@ -225,9 +225,22 @@ This is the one shared file anyone may edit without approval, as long as they on
 
 If you need a new UI primitive or shared type, propose it in your PR description and keep a local version in your feature folder until it is approved.
 
+### Hotfixes: the only direct pushes to `main`
+
+Alberto and Claude may push straight to `main`, **only for a hotfix**: the build is broken on `main`, the deployed app is down, or something blocks the demo. Everything else goes through a PR.
+
+A hotfix must:
+
+1. Be the smallest change that fixes the problem. No features, no refactors.
+2. Pass `pnpm check` locally before the push.
+3. Add an entry to `ERRORS.md` in the same commit (status `fixed`).
+4. Be announced to the team in the chat right after the push.
+
+Teammates never push to `main`, not even for a hotfix: they report the problem to Alberto.
+
 ### Never
 
-- Push to `main` or merge your own PR.
+- Push to `main` (unless it is a hotfix by Alberto or Claude, see above) or merge your own PR.
 - Commit `.env.local`, API keys, tokens or real personal data.
 - Use `--no-verify`, `git push --force` on shared branches, or rewrite `main` history.
 - Use npm or yarn, or add a second lockfile.
