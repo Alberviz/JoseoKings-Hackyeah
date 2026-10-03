@@ -13,7 +13,7 @@ import {
 
 describe("Companion poses definition", () => {
   it("does not contain forbidden negative states in pose names", () => {
-    const forbiddenWords = ["sad", "sick", "tired", "hungry", "bored", "disappointed"];
+    const forbiddenWords = ["sad", "sick", "angry", "tired", "hungry", "bored", "disappointed"];
     for (const pose of COMPANION_POSES) {
       for (const forbidden of forbiddenWords) {
         expect(pose.toLowerCase()).not.toContain(forbidden);
@@ -109,6 +109,83 @@ describe("Companion component", () => {
     expect(container.querySelector("[data-testid='companion-cape']")).not.toBeNull();
     expect(container.querySelector("[data-testid='companion-goggles']")).not.toBeNull();
     expect(container.querySelector("[data-testid='companion-body']")).not.toBeNull();
+  });
+
+  it("defaults animated prop to true and exposes data-animated='true'", () => {
+    renderWithTheme(<Companion pose="idle" />);
+    const svg = screen.getByRole("img");
+    expect(svg.getAttribute("data-animated")).toBe("true");
+  });
+
+  it("accepts animated={false} and exposes data-animated='false'", () => {
+    renderWithTheme(<Companion pose="idle" animated={false} />);
+    const svg = screen.getByRole("img");
+    expect(svg.getAttribute("data-animated")).toBe("false");
+  });
+
+  it("groups head elements so hat and goggles move inside the head container", () => {
+    const { container } = renderWithTheme(
+      <Companion pose="idle" equippedItemIds={[ITEM_IDS.hatExplorer, ITEM_IDS.gadgetGoggles]} />,
+    );
+
+    const headGroup = container.querySelector("[data-testid='companion-head']");
+    expect(headGroup).not.toBeNull();
+    expect(headGroup?.querySelector("[data-testid='companion-hat']")).not.toBeNull();
+    expect(headGroup?.querySelector("[data-testid='companion-goggles']")).not.toBeNull();
+  });
+
+  it("renders distinct animated groups for parts: belly, wings, tail, head", () => {
+    const { container } = renderWithTheme(<Companion pose="idle" />);
+    expect(container.querySelector("[data-testid='companion-belly']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='companion-wings']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='companion-tail']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='companion-head']")).not.toBeNull();
+  });
+
+  it("includes prefers-reduced-motion CSS rule disabling animations", () => {
+    renderWithTheme(<Companion pose="idle" />);
+    const styleTags = document.querySelectorAll("style");
+    let hasReducedMotionRule = false;
+    for (const style of styleTags) {
+      const text = style.textContent || "";
+      if (
+        text.includes("prefers-reduced-motion") &&
+        (text.includes("animation:none") || text.includes("animation: none"))
+      ) {
+        hasReducedMotionRule = true;
+        break;
+      }
+      if (style.sheet) {
+        const rules = Array.from(style.sheet.cssRules).map((r) => r.cssText);
+        if (
+          rules.some(
+            (r) =>
+              r.includes("prefers-reduced-motion") &&
+              (r.includes("animation: none") || r.includes("animation:none")),
+          )
+        ) {
+          hasReducedMotionRule = true;
+          break;
+        }
+      }
+    }
+    expect(hasReducedMotionRule).toBe(true);
+  });
+
+  it("renders cheer pose with cheer smile and cheer arms", () => {
+    const { container } = renderWithTheme(<Companion pose="cheer" />);
+    expect(container.querySelector("#dragon-smile-cheer")).not.toBeNull();
+    expect(container.querySelector("[data-testid='companion-wings']")).not.toBeNull();
+    const wingLeft = container.querySelector("[data-testid='companion-wing-left']");
+    expect(wingLeft).not.toBeNull();
+  });
+
+  it("updates when transitioning from idle to cheer pose", () => {
+    const { container, rerender } = renderWithTheme(<Companion pose="idle" />);
+    expect(container.querySelector("#dragon-smile-friendly")).not.toBeNull();
+
+    rerender(<Companion pose="cheer" />);
+    expect(container.querySelector("#dragon-smile-cheer")).not.toBeNull();
   });
 });
 
