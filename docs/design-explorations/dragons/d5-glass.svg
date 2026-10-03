@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Stained glass baby dragon">
+  <rect width="200" height="200" fill="#1a1f2e"/>
+  <g stroke="#0e1118" stroke-width="3.2" stroke-linejoin="round">
+    <path d="M100 40 L128 70 L150 120 L120 160 L80 160 L50 120 L72 70 Z" fill="#6ec6b0"/>
+    <path d="M100 40 L118 78 L100 110 L82 78 Z" fill="#f2c14e"/>
+    <path d="M72 70 L50 120 L82 130 Z" fill="#e07a5f"/>
+    <path d="M128 70 L150 120 L118 130 Z" fill="#e07a5f"/>
+    <path d="M82 130 L100 155 L118 130 Z" fill="#81b29a"/>
+    <circle cx="90" cy="95" r="6" fill="#1a1f2e"/>
+    <circle cx="110" cy="95" r="6" fill="#1a1f2e"/>
+    <path d="M92 112 Q100 120 108 112" fill="none" stroke="#1a1f2e" stroke-width="2.5"/>
+  </g>
+</svg>

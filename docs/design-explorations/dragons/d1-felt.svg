@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Felt friend baby dragon">
+  <rect width="200" height="200" fill="#f3ebe1"/>
+  <!-- body -->
+  <ellipse cx="100" cy="118" rx="54" ry="46" fill="#e8b89a"/>
+  <ellipse cx="100" cy="118" rx="40" ry="34" fill="#f0c9b0"/>
+  <!-- head -->
+  <circle cx="100" cy="72" r="42" fill="#e8b89a"/>
+  <circle cx="100" cy="76" r="30" fill="#f0c9b0"/>
+  <!-- horns soft -->
+  <ellipse cx="78" cy="42" rx="10" ry="16" fill="#d49a78" transform="rotate(-18 78 42)"/>
+  <ellipse cx="122" cy="42" rx="10" ry="16" fill="#d49a78" transform="rotate(18 122 42)"/>
+  <!-- eyes -->
+  <circle cx="86" cy="72" r="7" fill="#3a2f2a"/>
+  <circle cx="114" cy="72" r="7" fill="#3a2f2a"/>
+  <circle cx="88" cy="70" r="2.5" fill="#fff"/>
+  <circle cx="116" cy="70" r="2.5" fill="#fff"/>
+  <!-- smile -->
+  <path d="M88 88 Q100 98 112 88" fill="none" stroke="#3a2f2a" stroke-width="3" stroke-linecap="round"/>
+  <!-- wings felt -->
+  <path d="M48 110 Q28 90 46 78 Q58 96 62 112 Z" fill="#c9ddd2"/>
+  <path d="M152 110 Q172 90 154 78 Q142 96 138 112 Z" fill="#c9ddd2"/>
+  <!-- feet -->
+  <ellipse cx="82" cy="158" rx="14" ry="8" fill="#d49a78"/>
+  <ellipse cx="118" cy="158" rx="14" ry="8" fill="#d49a78"/>
+</svg>

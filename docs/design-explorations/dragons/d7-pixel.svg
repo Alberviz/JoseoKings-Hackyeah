@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" shape-rendering="crispEdges" role="img" aria-label="Tiny pixel baby dragon">
+  <rect width="160" height="160" fill="#0f1b2d"/>
+  <!-- simple friendly pixel dragon, no IP -->
+  <g transform="translate(32 28)">
+    <rect x="24" y="8" width="16" height="8" fill="#7bdff2"/>
+    <rect x="56" y="8" width="16" height="8" fill="#7bdff2"/>
+    <rect x="16" y="16" width="64" height="40" fill="#6ec6b0"/>
+    <rect x="24" y="24" width="8" height="8" fill="#0f1b2d"/>
+    <rect x="56" y="24" width="8" height="8" fill="#0f1b2d"/>
+    <rect x="32" y="40" width="32" height="8" fill="#0f1b2d"/>
+    <rect x="8" y="56" width="80" height="40" fill="#6ec6b0"/>
+    <rect x="0" y="64" width="16" height="24" fill="#39ff14"/>
+    <rect x="80" y="64" width="16" height="24" fill="#39ff14"/>
+    <rect x="24" y="96" width="16" height="16" fill="#f2c14e"/>
+    <rect x="56" y="96" width="16" height="16" fill="#f2c14e"/>
+  </g>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Sticker arcade baby dragon">
+  <rect width="200" height="200" fill="#fff7fb"/>
+  <g transform="translate(8 6)">
+    <ellipse cx="92" cy="118" rx="58" ry="48" fill="#fff" stroke="#222" stroke-width="5"/>
+    <ellipse cx="92" cy="118" rx="50" ry="40" fill="#ffb4a2"/>
+    <circle cx="92" cy="70" r="44" fill="#fff" stroke="#222" stroke-width="5"/>
+    <circle cx="92" cy="70" r="38" fill="#ffb4a2"/>
+    <circle cx="78" cy="68" r="7" fill="#222"/>
+    <circle cx="106" cy="68" r="7" fill="#222"/>
+    <circle cx="80" cy="66" r="2.5" fill="#fff"/>
+    <circle cx="108" cy="66" r="2.5" fill="#fff"/>
+    <path d="M78 86 Q92 98 106 86" fill="none" stroke="#222" stroke-width="4" stroke-linecap="round"/>
+    <path d="M40 108 Q18 86 40 70 Q52 92 58 112 Z" fill="#7bdff2" stroke="#222" stroke-width="4"/>
+    <path d="M144 108 Q166 86 144 70 Q132 92 126 112 Z" fill="#7bdff2" stroke="#222" stroke-width="4"/>
+    <ellipse cx="70" cy="36" rx="9" ry="14" fill="#ffd6a5" stroke="#222" stroke-width="3"/>
+    <ellipse cx="114" cy="36" rx="9" ry="14" fill="#ffd6a5" stroke="#222" stroke-width="3"/>
+  </g>
+</svg>

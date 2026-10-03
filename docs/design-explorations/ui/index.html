@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CrohnCare design explorations — Álvaro batch 1</title>
+    <style>
+      :root {
+        --phone-w: 390px;
+        --phone-h: 844px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #111;
+        color: #f5f5f5;
+      }
+      header {
+        padding: 20px 24px 8px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      header h1 {
+        margin: 0 0 8px;
+        font-size: 1.35rem;
+      }
+      header p {
+        margin: 0;
+        opacity: 0.75;
+        line-height: 1.45;
+        max-width: 70ch;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 16px 24px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .tabs button {
+        min-height: 48px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid #444;
+        background: #222;
+        color: #fff;
+        cursor: pointer;
+      }
+      .tabs button[aria-selected="true"] {
+        background: #f2c14e;
+        color: #111;
+        border-color: #f2c14e;
+      }
+      .stage {
+        display: flex;
+        justify-content: center;
+        padding: 12px 16px 40px;
+      }
+      .phone {
+        width: var(--phone-w);
+        height: var(--phone-h);
+        border-radius: 36px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      }
+      .screen {
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        padding: 28px 20px 20px;
+      }
+      .screen.active {
+        display: flex;
+      }
+      .hud {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .pill {
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 14px;
+        font-weight: 700;
+      }
+      .dragon-wrap {
+        flex: 1;
+        display: grid;
+        place-items: center;
+      }
+      .dragon-wrap img {
+        width: 180px;
+        height: 180px;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .btn {
+        min-height: 52px;
+        border: 0;
+        border-radius: 16px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn.secondary {
+        min-height: 48px;
+        font-weight: 600;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+      .chip {
+        min-height: 48px;
+        border-radius: 14px;
+        border: 2px solid transparent;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      h2 {
+        margin: 0 0 8px;
+        font-size: 1.25rem;
+      }
+      .muted {
+        opacity: 0.8;
+        margin: 0 0 14px;
+        line-height: 1.4;
+      }
+      .ring {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        border: 10px solid currentColor;
+        display: grid;
+        place-items: center;
+        margin: 20px auto;
+        font-size: 1.6rem;
+        font-weight: 800;
+      }
+      .chest {
+        font-size: 4rem;
+        text-align: center;
+        margin: 24px 0;
+      }
+      .shop-item,
+      .inv-item {
+        min-height: 48px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+      }
+
+      /* D1 Felt */
+      .pack-d1 {
+        background: #f3ebe1;
+        color: #3a2f2a;
+      }
+      .pack-d1 .pill.fire {
+        background: #f0c9b0;
+      }
+      .pack-d1 .pill.coin {
+        background: #e7d7a8;
+      }
+      .pack-d1 .btn.primary {
+        background: #e07a5f;
+        color: #fff;
+      }
+      .pack-d1 .btn.secondary,
+      .pack-d1 .chip,
+      .pack-d1 .shop-item,
+      .pack-d1 .inv-item {
+        background: #e8ddd2;
+        color: #3a2f2a;
+      }
+
+      /* D2 Linocut */
+      .pack-d2 {
+        background: #f4efe4;
+        color: #1c2740;
+        font-family: Georgia, "Times New Roman", serif;
+      }
+      .pack-d2 .pill {
+        border: 2.5px solid #1c2740;
+        background: transparent;
+      }
+      .pack-d2 .btn.primary {
+        background: #1c2740;
+        color: #f4efe4;
+      }
+      .pack-d2 .btn.secondary,
+      .pack-d2 .chip,
+      .pack-d2 .shop-item,
+      .pack-d2 .inv-item {
+        background: transparent;
+        border: 2.5px solid #1c2740;
+        color: #1c2740;
+      }
+
+      /* D3 Sticker */
+      .pack-d3 {
+        background: linear-gradient(165deg, #fff7fb, #e8f4ff);
+        color: #222;
+        font-family: "Trebuchet MS", sans-serif;
+      }
+      .pack-d3 .pill.fire {
+        background: #ffd59e;
+        box-shadow: 3px 3px 0 #222;
+      }
+      .pack-d3 .pill.coin {
+        background: #ffe56b;
+        box-shadow: 3px 3px 0 #222;
+      }
+      .pack-d3 .btn.primary {
+        background: #7bdff2;
+        box-shadow: 4px 4px 0 #222;
+      }
+      .pack-d3 .btn.secondary,
+      .pack-d3 .chip,
+      .pack-d3 .shop-item,
+      .pack-d3 .inv-item {
+        background: #fff;
+        border: 2px solid #222;
+        box-shadow: 3px 3px 0 #222;
+      }
+
+      /* D4 Graph crayon */
+      .pack-d4 {
+        background-color: #fbfcff;
+        background-image:
+          linear-gradient(#c5d4f0 1px, transparent 1px),
+          linear-gradient(90deg, #c5d4f0 1px, transparent 1px);
+        background-size: 24px 24px;
+        color: #1e2a44;
+        font-family: "Comic Sans MS", "Segoe Print", cursive;
+      }
+      .pack-d4 .pill.fire {
+        background: #ffb347;
+      }
+      .pack-d4 .pill.coin {
+        background: #ffe066;
+      }
+      .pack-d4 .btn.primary {
+        background: #ff6b6b;
+        color: #fff;
+        transform: rotate(-0.5deg);
+      }
+      .pack-d4 .btn.secondary,
+      .pack-d4 .chip {
+        background: #fff;
+        border: 3px solid #1e2a44;
+        transform: rotate(0.4deg);
+      }
+
+      /* D5 Glass */
+      .pack-d5 {
+        background: #1a1f2e;
+        color: #f7f3e8;
+        font-family: Georgia, serif;
+      }
+      .pack-d5 .pill.fire {
+        background: #e07a5f;
+      }
+      .pack-d5 .pill.coin {
+        background: #f2c14e;
+        color: #1a1f2e;
+      }
+      .pack-d5 .btn.primary {
+        background: #6ec6b0;
+        color: #102018;
+      }
+      .pack-d5 .btn.secondary,
+      .pack-d5 .chip,
+      .pack-d5 .shop-item,
+      .pack-d5 .inv-item {
+        background: #2a3348;
+        color: #f7f3e8;
+        border: 2px solid #0e1118;
+      }
+
+      /* D7 Pixel */
+      .pack-d7 {
+        background: #0f1b2d;
+        color: #d6f3ff;
+        font-family: "Courier New", monospace;
+        image-rendering: pixelated;
+      }
+      .pack-d7 .pill.fire {
+        background: #ff7a18;
+        color: #1a0b00;
+      }
+      .pack-d7 .pill.coin {
+        background: #ffd400;
+        color: #1a0b00;
+      }
+      .pack-d7 .btn.primary {
+        background: #39ff14;
+        color: #062000;
+      }
+      .pack-d7 .btn.secondary,
+      .pack-d7 .chip,
+      .pack-d7 .shop-item,
+      .pack-d7 .inv-item {
+        background: #1c3354;
+        border: 3px solid #d6f3ff;
+        color: #d6f3ff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Álvaro design explorations — batch 1</h1>
+      <p>
+        Open locally from <code>docs/design-explorations/ui/index.html</code>. Extra feeling chips are chrome only —
+        official check-in stays belly-comfort / energy / play-pace. Fire only goes up. Rewards never depend on answers.
+      </p>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Style packs">
+      <button type="button" role="tab" aria-selected="true" data-pack="d1">D1 Felt</button>
+      <button type="button" role="tab" aria-selected="false" data-pack="d2">D2 Linocut</button>
+      <button type="button" role="tab" aria-selected="false" data-pack="d3">D3 Sticker</button>
+      <button type="button" role="tab" aria-selected="false" data-pack="d4">D4 Crayon</button>
+      <button type="button" role="tab" aria-selected="false" data-pack="d5">D5 Glass</button>
+      <button type="button" role="tab" aria-selected="false" data-pack="d7">D7 Pixel</button>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Screens">
+      <button type="button" role="tab" aria-selected="true" data-screen="home">Home</button>
+      <button type="button" role="tab" aria-selected="false" data-screen="company">Company</button>
+      <button type="button" role="tab" aria-selected="false" data-screen="feel-before">Feel before</button>
+      <button type="button" role="tab" aria-selected="false" data-screen="mission">Mission</button>
+      <button type="button" role="tab" aria-selected="false" data-screen="feel-after">Feel after</button>
+      <button type="button" role="tab" aria-selected="false" data-screen="chest">Chest</button>
+      <button type="button" role="tab" aria-selected="false" data-screen="shop">Shop</button>
+      <button type="button" role="tab" aria-selected="false" data-screen="customize">Customize</button>
+    </div>
+
+    <div class="stage">
+      <div class="phone pack-d1" id="phone">
+        <section class="screen active" data-screen="home">
+          <div class="hud">
+            <div class="pill fire" aria-label="Fire 75">🔥 75</div>
+            <div class="pill coin" aria-label="Coins 100">🪙 100</div>
+          </div>
+          <div class="dragon-wrap">
+            <img id="dragonImg" src="../dragons/d1-felt.svg" alt="Companion dragon" />
+          </div>
+          <div class="stack">
+            <button class="btn primary" type="button">PLAY</button>
+            <div class="row">
+              <button class="btn secondary" type="button">Shop</button>
+              <button class="btn secondary" type="button">Food</button>
+              <button class="btn secondary" type="button">Customize</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="company">
+          <h2>Who is playing?</h2>
+          <p class="muted">You choose. Alone, with family, or with someone else.</p>
+          <div class="stack">
+            <button class="btn secondary" type="button">Alone</button>
+            <button class="btn secondary" type="button">Family</button>
+            <button class="btn secondary" type="button">Someone else</button>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="feel-before">
+          <h2>How are you feeling?</h2>
+          <p class="muted">Optional chrome — not the official check-in questions.</p>
+          <div class="stack">
+            <button class="chip" type="button">Calm</button>
+            <button class="chip" type="button">Strong</button>
+            <button class="chip" type="button">Amazing</button>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="mission">
+          <h2>Dragon Breathing</h2>
+          <p class="muted">A short gentle routine with your companion.</p>
+          <div class="ring" aria-label="Timer one minute">1:00</div>
+          <button class="btn primary" type="button">We did it!</button>
+        </section>
+
+        <section class="screen" data-screen="feel-after">
+          <h2>How do you feel after playing?</h2>
+          <p class="muted">Any answer can open the same chest.</p>
+          <div class="stack">
+            <button class="chip" type="button">Exhausted</button>
+            <button class="chip" type="button">Chill</button>
+            <button class="chip" type="button">Great</button>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="chest">
+          <h2>Treasure!</h2>
+          <p class="muted">Same reward every time you play.</p>
+          <div class="chest" aria-hidden="true">🧰</div>
+          <button class="btn primary" type="button">+12 coins</button>
+        </section>
+
+        <section class="screen" data-screen="shop">
+          <h2>Shop</h2>
+          <div class="stack">
+            <div class="shop-item"><span>Food</span><strong>5 coins</strong></div>
+            <div class="shop-item"><span>Glasses</span><strong>7 coins</strong></div>
+            <div class="shop-item"><span>T-shirt</span><strong>10 coins</strong></div>
+            <div class="shop-item"><span>Hat</span><strong>10 coins</strong></div>
+            <div class="shop-item"><span>Choose dinner</span><strong>50 fire</strong></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="customize">
+          <h2>Customize</h2>
+          <div class="dragon-wrap">
+            <img src="../dragons/d1-felt.svg" alt="Dragon wearing items" id="dragonImg2" />
+          </div>
+          <div class="stack">
+            <div class="inv-item"><span>Glasses</span><span>✓</span></div>
+            <div class="inv-item"><span>Hat</span><span></span></div>
+            <div class="inv-item"><span>T-shirt</span><span>✓</span></div>
+            <div class="inv-item"><span>Scarf</span><span></span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const phone = document.getElementById("phone");
+      const dragonImg = document.getElementById("dragonImg");
+      const dragonImg2 = document.getElementById("dragonImg2");
+      const dragons = {
+        d1: "../dragons/d1-felt.svg",
+        d2: "../dragons/d2-linocut.svg",
+        d3: "../dragons/d3-sticker.svg",
+        d4: "../dragons/d1-felt.svg",
+        d5: "../dragons/d5-glass.svg",
+        d7: "../dragons/d7-pixel.svg",
+      };
+
+      document.querySelectorAll("[data-pack]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("[data-pack]").forEach((b) => b.setAttribute("aria-selected", "false"));
+          btn.setAttribute("aria-selected", "true");
+          const pack = btn.dataset.pack;
+          phone.className = "phone pack-" + pack;
+          const src = dragons[pack];
+          dragonImg.src = src;
+          dragonImg2.src = src;
+        });
+      });
+
+      document.querySelectorAll("[data-screen]").forEach((btn) => {
+        if (btn.tagName !== "BUTTON") return;
+        btn.addEventListener("click", () => {
+          const name = btn.dataset.screen;
+          document.querySelectorAll('.tabs [data-screen]').forEach((b) => b.setAttribute("aria-selected", "false"));
+          btn.setAttribute("aria-selected", "true");
+          phone.querySelectorAll(".screen").forEach((s) => s.classList.toggle("active", s.dataset.screen === name));
+        });
+      });
+    </script>
+  </body>
+</html>
