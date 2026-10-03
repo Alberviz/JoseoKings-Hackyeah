@@ -97,7 +97,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
           <SectionTitle id="section-overview">Overview & Metrics</SectionTitle>
           <StatsGrid>
             <StatCard>
-              <StatLabel>Check-in adherence rate</StatLabel>
+              <StatLabel>Check-in consistency</StatLabel>
               <StatValue>{adherencePercentage}%</StatValue>
               <StatDetail>
                 {data.metrics.checkInDaysCount} of {data.period.totalDays} days
@@ -107,7 +107,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
             <StatCard>
               <StatLabel>Care days</StatLabel>
               <StatValue>{data.metrics.careDaysCount}</StatValue>
-              <StatDetail>days active</StatDetail>
+              <StatDetail>days active (check-in or mission)</StatDetail>
             </StatCard>
 
             <StatCard>
