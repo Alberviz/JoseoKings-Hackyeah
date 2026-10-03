@@ -1,0 +1,5 @@
+# Conventional Commits in English, e.g. "feat(restroom-map): add walking-time sort"
+if ! head -1 "$1" | grep -qE '^(feat|fix|chore|docs|style|refactor|test|perf|build|ci|revert)(\([a-z0-9-]+\))?!?: .{3,}'; then
+  echo "Commit message must follow Conventional Commits, e.g. 'feat(restroom-map): add walking-time sort'."
+  exit 1
+fi
