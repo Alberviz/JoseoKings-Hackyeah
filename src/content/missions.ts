@@ -44,12 +44,12 @@ export const MISSIONS: Mission[] = [
         poseKey: "stretch",
       },
       {
-        text: "Gently hug one knee toward your chest and hold softly.",
+        text: "Gently bring one knee toward your chest without pressing against your belly.",
         durationSeconds: 20,
         poseKey: "stretch",
       },
       {
-        text: "Switch sides and gently hug your other knee.",
+        text: "Switch sides and gently bring your other knee toward your chest.",
         durationSeconds: 20,
         poseKey: "stretch",
       },
@@ -65,10 +65,10 @@ export const MISSIONS: Mission[] = [
     id: MISSION_IDS.flamingoBalance,
     title: "Flamingo Balance",
     kind: "balance",
-    parentNote: "Single-leg balance practice using a wall or chair for light support.",
+    parentNote: "Single-leg balance practice with a wall or chair for light support.",
     steps: [
       {
-        text: "Stand near a wall for support and lift one foot slightly.",
+        text: "Stand near a wall with a light hand for support, and lift one foot slightly.",
         durationSeconds: 20,
         poseKey: "balance",
       },
@@ -78,7 +78,7 @@ export const MISSIONS: Mission[] = [
         poseKey: "idle",
       },
       {
-        text: "Lift your other foot slightly while keeping your balance steady.",
+        text: "Lift your other foot slightly while keeping your light hand on the wall.",
         durationSeconds: 20,
         poseKey: "balance",
       },
@@ -94,20 +94,20 @@ export const MISSIONS: Mission[] = [
     id: MISSION_IDS.wallSit,
     title: "Wall Sit",
     kind: "strength",
-    parentNote: "A static bodyweight movement against a wall at a comfortable depth.",
+    parentNote: "A shallow, gentle wall slide with easy breathing.",
     steps: [
       {
-        text: "Lean your back flat against a wall and slide down a little bit.",
+        text: "Lean your back against a wall and slide down just a little bit, like on a tall stool. Keep breathing easily.",
         durationSeconds: 20,
         poseKey: "strength",
       },
       {
-        text: "Stand up, shake out your legs, and catch your breath.",
+        text: "Stand up, shake out your legs, and catch an easy breath.",
         durationSeconds: 15,
         poseKey: "idle",
       },
       {
-        text: "Lean against the wall again and hold a comfortable position.",
+        text: "Lean gently against the wall again and hold a high, comfortable position while breathing smoothly.",
         durationSeconds: 20,
         poseKey: "strength",
       },

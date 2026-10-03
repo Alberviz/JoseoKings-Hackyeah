@@ -11,14 +11,29 @@ NAMES="claude alberto juan baitiare alvaro farouk claudia all"
 
 die() { echo "comms: $*" >&2; exit 1; }
 
-ensure_copy() {
+# Everything that touches .comms/ runs under one lock, so two commands (for example `watch` and `send`)
+# never update the copy at the same time. Without flock the lock is skipped.
+LOCKFILE="$ROOT/.comms.lock"
+with_lock() {
+  if command -v flock >/dev/null 2>&1; then
+    ( flock 9; "$@" ) 9>"$LOCKFILE"
+  else
+    "$@"
+  fi
+}
+
+update_copy() {
   git -C "$ROOT" fetch -q origin "$BRANCH" || die "cannot fetch origin/$BRANCH"
   if [ ! -e "$DIR/.git" ]; then
     git -C "$ROOT" worktree prune
     git -C "$ROOT" worktree add -q -B "$LOCAL" "$DIR" "origin/$BRANCH" || die "cannot create $DIR"
   fi
-  git -C "$DIR" pull -q --rebase origin "$BRANCH" || die "cannot update the local copy"
+  # Explicit fetch and rebase (not `git pull`): `pull` can fail with "cannot rebase onto multiple branches".
+  git -C "$DIR" fetch -q origin "$BRANCH" || die "cannot update the local copy"
+  git -C "$DIR" rebase -q "origin/$BRANCH" || die "cannot rebase the local copy"
 }
+
+ensure_copy() { with_lock update_copy; }
 
 valid_name() { for n in $NAMES; do [ "$n" = "$1" ] && return 0; done; return 1; }
 
@@ -68,7 +83,7 @@ cmd_send() {
   HUSKY=0 git -C "$DIR" commit -q -m "docs(comms): $from to $to, $type" || die "commit failed"
   for attempt in 1 2 3; do
     if git -C "$DIR" push -q origin "$LOCAL:$BRANCH" 2>/dev/null; then echo "sent: $file"; return 0; fi
-    git -C "$DIR" pull -q --rebase origin "$BRANCH" || die "cannot rebase before pushing"
+    ensure_copy
   done
   die "push failed after 3 tries (the message is committed locally in .comms/)"
 }
@@ -114,7 +129,8 @@ cmd_watch() {
   [ -n "$me" ] || die "usage: comms.sh watch <name> [seconds]"
   local seen=""
   while true; do
-    ensure_copy
+    # A failed update (network, race) must not end the watch: try again next round.
+    if ! ( ensure_copy ) 2>/dev/null; then sleep "$every"; continue; fi
     for f in "$DIR"/messages/*.md; do
       [ -e "$f" ] || continue
       local base to
