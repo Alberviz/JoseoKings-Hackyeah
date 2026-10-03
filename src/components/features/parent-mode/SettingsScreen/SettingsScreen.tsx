@@ -242,7 +242,7 @@ export function SettingsScreen() {
           </Stack>
 
           <LinkButton href={ROUTES.parent} variant="secondary">
-            Back to parent summary
+            ← Back to parent summary
           </LinkButton>
 
           {/* Device role */}
