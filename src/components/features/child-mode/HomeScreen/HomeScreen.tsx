@@ -63,13 +63,18 @@ export function HomeScreen() {
   const { state, isReady } = useAppState();
   const [companionPose, setCompanionPose] = useState<"idle" | "cheer">("idle");
 
+  // If no child is configured, redirect to parent setup.
   // If device is parent-only, redirect straight to parent mode.
   useEffect(() => {
     if (!isReady) return;
+    if (!state.child) {
+      router.replace(ROUTES.parentSetup);
+      return;
+    }
     if (state.settings?.deviceRole === "parent") {
       router.replace(ROUTES.parent);
     }
-  }, [isReady, state.settings?.deviceRole, router]);
+  }, [isReady, state.child, state.settings?.deviceRole, router]);
 
   if (!isReady) {
     return (
@@ -79,14 +84,14 @@ export function HomeScreen() {
     );
   }
 
-  if (state.settings?.deviceRole === "parent") {
+  if (!state.child || state.settings?.deviceRole === "parent") {
     return null;
   }
 
   const deviceRole = state.settings?.deviceRole ?? "both";
   const isChildOnly = deviceRole === "child";
 
-  const companionName = state.companion?.name || state.child?.nickname || "Kraków Dragon";
+  const companionName = state.companion?.name || "Kraków Dragon";
   const equippedItemIds = state.economy?.equippedItemIds ?? [];
 
   const fire = state.economy?.fire ?? 0;
