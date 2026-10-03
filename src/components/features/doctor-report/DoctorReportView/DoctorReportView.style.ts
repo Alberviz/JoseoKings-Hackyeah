@@ -8,8 +8,8 @@ export const PrintGlobalStyle = createGlobalStyle`
     }
 
     body {
-      background: white !important;
-      color: #111111 !important;
+      background: ${({ theme }) => theme.colors.surface} !important;
+      color: ${({ theme }) => theme.colors.text} !important;
     }
 
     main {
@@ -51,7 +51,7 @@ export const ReportContainer = styled.article`
     border: none !important;
     border-radius: 0 !important;
     padding: 0 !important;
-    background: white !important;
+    background: ${({ theme }) => theme.colors.surface} !important;
     box-shadow: none !important;
     gap: 10px !important;
     font-size: 9.5pt !important;
@@ -66,7 +66,7 @@ export const ReportHeader = styled.header`
   padding-bottom: ${({ theme }) => theme.spacing.md};
 
   @media print {
-    border-bottom: 1.5px solid #333 !important;
+    border-bottom: 1.5px solid ${({ theme }) => theme.colors.text} !important;
     padding-bottom: 6px !important;
     gap: 3px !important;
   }
@@ -98,7 +98,7 @@ export const ReportTitle = styled.h1`
 
   @media print {
     font-size: 15pt !important;
-    color: #000000 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
   }
 `;
 
@@ -112,7 +112,7 @@ export const HeaderMetaRow = styled.div`
 
   @media print {
     font-size: 8.5pt !important;
-    color: #222222 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
     gap: 10px !important;
   }
 `;
@@ -128,7 +128,7 @@ export const StrongText = styled.strong`
   font-weight: ${({ theme }) => theme.fontWeight.bold};
 
   @media print {
-    color: #000000 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
   }
 `;
 
@@ -144,9 +144,9 @@ export const DemoBadge = styled.span`
   letter-spacing: 0.02em;
 
   @media print {
-    border: 1px solid #000 !important;
-    color: #000 !important;
-    background: #eeeeee !important;
+    border: 1px solid ${({ theme }) => theme.colors.text} !important;
+    color: ${({ theme }) => theme.colors.text} !important;
+    background: ${({ theme }) => theme.colors.background} !important;
     font-size: 7.5pt !important;
     padding: 1px 6px !important;
   }
@@ -182,7 +182,7 @@ export const SectionTitle = styled.h2`
 
   @media print {
     font-size: 11pt !important;
-    color: #000000 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
     margin-bottom: 2px !important;
   }
 `;
@@ -209,8 +209,8 @@ export const StatCard = styled.div`
 
   @media print {
     padding: 4px 6px !important;
-    background: #fafafa !important;
-    border: 1px solid #444 !important;
+    background: ${({ theme }) => theme.colors.surface} !important;
+    border: 1px solid ${({ theme }) => theme.colors.border} !important;
     border-radius: 4px !important;
     gap: 2px !important;
   }
@@ -223,7 +223,7 @@ export const StatLabel = styled.span`
 
   @media print {
     font-size: 7.5pt !important;
-    color: #333333 !important;
+    color: ${({ theme }) => theme.colors.textMuted} !important;
   }
 `;
 
@@ -235,7 +235,7 @@ export const StatValue = styled.span`
 
   @media print {
     font-size: 12pt !important;
-    color: #000000 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
   }
 `;
 
@@ -245,7 +245,7 @@ export const StatDetail = styled.span`
 
   @media print {
     font-size: 7pt !important;
-    color: #555555 !important;
+    color: ${({ theme }) => theme.colors.textMuted} !important;
   }
 `;
 
@@ -276,7 +276,7 @@ export const TotalMissionsHighlight = styled.strong`
   font-weight: ${({ theme }) => theme.fontWeight.bold};
 
   @media print {
-    color: #000000 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
   }
 `;
 
@@ -302,10 +302,10 @@ export const ActivityConfidenceCard = styled.div`
 
   @media print {
     padding: 4px 6px !important;
-    border: 1px solid #444 !important;
+    border: 1px solid ${({ theme }) => theme.colors.border} !important;
     border-radius: 4px !important;
     gap: 1px !important;
-    background: #fafafa !important;
+    background: ${({ theme }) => theme.colors.surface} !important;
   }
 `;
 
@@ -316,7 +316,7 @@ export const ActivityConfidenceLabel = styled.span`
 
   @media print {
     font-size: 8pt !important;
-    color: #111111 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
   }
 `;
 
@@ -327,7 +327,7 @@ export const ActivityConfidenceCount = styled.span`
 
   @media print {
     font-size: 10pt !important;
-    color: #000000 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
   }
 `;
 
@@ -363,7 +363,7 @@ export const Table = styled.table`
     font-size: 8pt !important;
 
     tbody tr:nth-child(even) {
-      background: #f9f9f9 !important;
+      background: ${({ theme }) => theme.colors.background} !important;
     }
   }
 `;
@@ -372,7 +372,7 @@ export const TableHead = styled.thead`
   background: ${({ theme }) => theme.colors.primarySoft};
 
   @media print {
-    background: #eeeeee !important;
+    background: ${({ theme }) => theme.colors.primarySoft} !important;
   }
 `;
 
@@ -394,8 +394,8 @@ export const TableHeaderCell = styled.th`
 
   @media print {
     padding: 2px 4px !important;
-    border: 1px solid #444 !important;
-    color: #000000 !important;
+    border: 1px solid ${({ theme }) => theme.colors.border} !important;
+    color: ${({ theme }) => theme.colors.text} !important;
     font-weight: 700 !important;
   }
 `;
@@ -406,8 +406,8 @@ export const TableCell = styled.td`
 
   @media print {
     padding: 2px 4px !important;
-    border: 1px solid #444 !important;
-    color: #000000 !important;
+    border: 1px solid ${({ theme }) => theme.colors.border} !important;
+    color: ${({ theme }) => theme.colors.text} !important;
   }
 `;
 
@@ -418,8 +418,8 @@ export const TableEmptyCell = styled.td`
 
   @media print {
     padding: 6px !important;
-    border: 1px solid #444 !important;
-    color: #333333 !important;
+    border: 1px solid ${({ theme }) => theme.colors.border} !important;
+    color: ${({ theme }) => theme.colors.textMuted} !important;
   }
 `;
 
@@ -431,7 +431,7 @@ export const SectionNote = styled.p`
 
   @media print {
     font-size: 7.5pt !important;
-    color: #333333 !important;
+    color: ${({ theme }) => theme.colors.textMuted} !important;
   }
 `;
 
@@ -447,8 +447,8 @@ export const DisclaimerBanner = styled.aside`
   page-break-inside: avoid;
 
   @media print {
-    background: #fafafa !important;
-    border: 1px solid #333 !important;
+    background: ${({ theme }) => theme.colors.background} !important;
+    border: 1px solid ${({ theme }) => theme.colors.border} !important;
     border-radius: 4px !important;
     padding: 6px 8px !important;
     gap: 2px !important;
@@ -461,7 +461,7 @@ export const DisclaimerTitle = styled.span`
   color: ${({ theme }) => theme.colors.primary};
 
   @media print {
-    color: #000000 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
     font-size: 8pt !important;
   }
 `;
@@ -473,7 +473,7 @@ export const DisclaimerText = styled.p`
   line-height: 1.4;
 
   @media print {
-    color: #222222 !important;
+    color: ${({ theme }) => theme.colors.text} !important;
     font-size: 7.5pt !important;
     line-height: 1.25 !important;
   }
