@@ -48,7 +48,7 @@ function missionLog(date: string, suffix = "a"): MissionLog {
 }
 
 function claim(date: string): LinkRewardClaim {
-  return { id: `rc-${date}`, rewardId: "rw-dinner", date, createdAt: `${date}T18:00:00.000Z` };
+  return { id: `rc-${date}`, rewardId: "rw-dinner", date, status: "requested" };
 }
 
 const pairing: PairingPayload = {
@@ -58,8 +58,8 @@ const pairing: PairingPayload = {
   nickname: "Lucas",
   allowedMissionIds: [MISSION_IDS.dragonBreathing, MISSION_IDS.bedStretch],
   specialRewards: [
-    { id: "rw-dinner", name: "Choose today's dinner", cost: 50 },
-    { id: "rw-board", name: "Board games night", cost: 80 },
+    { id: "rw-dinner", label: "Choose today's dinner", fireCost: 50 },
+    { id: "rw-board", label: "Board games night", fireCost: 80 },
   ],
   createdAt: "2026-10-03T20:00:00.000Z",
 };
@@ -155,7 +155,11 @@ describe("pairing code", () => {
     );
     const tooMany = {
       ...pairing,
-      specialRewards: Array.from({ length: 9 }, (_, i) => ({ id: `r${i}`, name: "x", cost: 1 })),
+      specialRewards: Array.from({ length: 9 }, (_, i) => ({
+        id: `r${i}`,
+        label: "x",
+        fireCost: 1,
+      })),
     };
     expect(() => encodePairing(tooMany)).toThrow();
   });
@@ -282,5 +286,22 @@ describe("merge", () => {
     const { state } = mergeShare(target, payload);
     expect(state.parentLogs).toEqual([{ date: "2026-10-01" }]);
     expect(state.nickname).toBe("Lucas");
+  });
+
+  it("never resets a claim the parents already marked as done", () => {
+    const done: LinkRewardClaim = {
+      ...claim("2026-10-02"),
+      status: "done",
+      doneDate: "2026-10-03",
+    };
+    const target: ShareMergeTarget = { ...empty, rewardClaims: [done] };
+    const payload = buildSharePayload(
+      { familyId: FAMILY_ID, checkIns: [], missionLogs: [], rewardClaims: [claim("2026-10-02")] },
+      "2026-10-01",
+      "2026-10-03",
+    );
+    const { state, summary } = mergeShare(target, payload);
+    expect(summary.rewardClaimsAdded).toBe(0);
+    expect(state.rewardClaims).toEqual([done]);
   });
 });

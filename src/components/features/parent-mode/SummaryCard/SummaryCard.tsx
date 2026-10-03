@@ -138,6 +138,9 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
               <LinkButton href={ROUTES.parentSettings} variant="secondary" fullWidth>
                 Settings
               </LinkButton>
+              <LinkButton href={ROUTES.parentLink} variant="secondary" fullWidth>
+                Family link
+              </LinkButton>
             </NavGrid>
           </Stack>
         </Card>

@@ -11,21 +11,24 @@ import {
 } from "./types";
 import type { LinkSpecialReward } from "./types";
 
-/** Reward names are short on purpose: they travel in a QR and show on a child's screen. */
-export const SPECIAL_REWARD_NAME_MAX = 32;
+/** Reward labels are short on purpose: they travel in a QR and show on a child's screen. */
+export const SPECIAL_REWARD_LABEL_MAX = 40;
+export const SPECIAL_REWARD_FIRE_MIN = 1;
+export const SPECIAL_REWARD_FIRE_MAX = 100;
 export const SPECIAL_REWARDS_MAX = 8;
 
 export const linkSpecialRewardSchema: z.ZodType<LinkSpecialReward> = z.object({
   id: z.string().min(1),
-  name: z.string().min(1).max(SPECIAL_REWARD_NAME_MAX),
-  cost: z.number().int().nonnegative(),
+  label: z.string().min(1).max(SPECIAL_REWARD_LABEL_MAX),
+  fireCost: z.number().int().min(SPECIAL_REWARD_FIRE_MIN).max(SPECIAL_REWARD_FIRE_MAX),
 });
 
 export const linkRewardClaimSchema: z.ZodType<LinkRewardClaim> = z.object({
   id: z.string().min(1),
   rewardId: z.string().min(1),
   date: dateKeySchema,
-  createdAt: z.string(),
+  status: z.enum(["requested", "done"]),
+  doneDate: dateKeySchema.optional(),
 });
 
 export const pairingPayloadSchema: z.ZodType<PairingPayload> = z.object({

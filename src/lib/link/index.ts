@@ -1,6 +1,7 @@
 export * from "./bytes";
 export * from "./compress";
 export * from "./crypto";
+export * from "./familyLink";
 export * from "./frames";
 export * from "./merge";
 export * from "./pairing";

@@ -11,20 +11,29 @@ export const PAIRING_PREFIX = "CCP1:";
 /** Prefix of a data frame (child to parent). Always encrypted with the family key. */
 export const SHARE_PREFIX = "CCD1:";
 
-/** A reward the parents defined at home ("Choose today's dinner"). Name and price only. */
+/**
+ * A reward the parents defined at home ("Choose today's dinner"). Label and price only.
+ * Same fields as `SpecialReward` in the economy state, so the two map 1:1.
+ */
 export type LinkSpecialReward = {
   id: string;
-  name: string;
-  /** Price in the child's currency. Never depends on what the child answered. */
-  cost: number;
+  label: string;
+  /** Fire the child spends to light it, 1 to 100. Never depends on what the child answered. */
+  fireCost: number;
 };
 
-/** The child asked for a reward from home. A request the parents confirm, never a promise. */
+/**
+ * The child asked for a reward from home. A request the parents confirm, never a promise.
+ * The child device only ever creates "requested"; "done" is set on the parent device and is never
+ * overwritten by a later share (merge adds unknown ids, never replaces known ones).
+ */
 export type LinkRewardClaim = {
   id: string;
   rewardId: string;
+  /** Local day on the child device. */
   date: DateKey;
-  createdAt: string;
+  status: "requested" | "done";
+  doneDate?: DateKey;
 };
 
 /**

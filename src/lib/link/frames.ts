@@ -78,6 +78,18 @@ export class FrameCollector {
     return { prefix: this.prefix, body };
   }
 
+  /** The complete frames in order, rebuilt as scanned text. Throws while frames are missing. */
+  frames(): string[] {
+    if (!this.isComplete() || this.prefix === null || this.total === null) {
+      throw new LinkError("incomplete", "Some frames are still missing.");
+    }
+    const list: string[] = [];
+    for (let i = 1; i <= this.total; i += 1) {
+      list.push(`${this.prefix}${i}/${this.total}:${this.chunks.get(i) ?? ""}`);
+    }
+    return list;
+  }
+
   reset(): void {
     this.chunks.clear();
     this.prefix = null;
