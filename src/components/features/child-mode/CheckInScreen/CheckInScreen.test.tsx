@@ -1,87 +1,110 @@
-import { fireEvent, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { ThemeProvider } from "styled-components";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppStateProvider } from "@/components/providers/AppStateProvider";
+import { QUESTION_IDS } from "@/config/content-ids";
+import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
 import { renderWithTheme } from "@/test/renderWithTheme";
+import { theme } from "@/theme/theme";
 import { CheckInScreen } from "./CheckInScreen";
-import { POU_CHECKIN_QUESTIONS } from "./questions";
 
-describe("CheckInScreen (Pou-style Companion)", () => {
-  it("renders the status meters, companion, and initial prompt", () => {
-    renderWithTheme(<CheckInScreen questions={POU_CHECKIN_QUESTIONS} />);
+function ProviderWrapper({ children }: { children: ReactNode }) {
+  return (
+    <ThemeProvider theme={theme}>
+      <AppStateProvider>{children}</AppStateProvider>
+    </ThemeProvider>
+  );
+}
 
-    expect(screen.getByText("Tummy")).toBeTruthy();
-    expect(screen.getByText("Battery")).toBeTruthy();
-    expect(screen.getByText("Play")).toBeTruthy();
-    expect(screen.getByText("Capy")).toBeTruthy();
-    expect(screen.getByText("How is your belly feeling right now?")).toBeTruthy();
-    expect(screen.getByRole("radio", { name: /Calm and peaceful/i })).toBeTruthy();
-    expect(screen.getByRole("radio", { name: /Uncomfortable, needs care/i })).toBeTruthy();
+describe("CheckInScreen", () => {
+  beforeEach(() => {
+    localStorage.clear();
   });
 
-  it("advances through meters and saves check-in", () => {
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it("renders progress, companion, and the first official prompt", async () => {
+    renderWithTheme(
+      <ProviderWrapper>
+        <CheckInScreen questions={CHECK_IN_QUESTIONS} />
+      </ProviderWrapper>,
+    );
+
+    await screen.findByText("Question 1 of 3");
+    expect(screen.getByText("How is your belly feeling today?")).toBeTruthy();
+    expect(screen.getByRole("radio", { name: /Calm and comfortable/i })).toBeTruthy();
+    expect(screen.getByRole("radio", { name: /Sore or uncomfortable/i })).toBeTruthy();
+  });
+
+  it("advances through questions and saves check-in", async () => {
     const handleComplete = vi.fn();
 
     renderWithTheme(
-      <CheckInScreen questions={POU_CHECKIN_QUESTIONS} onComplete={handleComplete} />,
+      <ProviderWrapper>
+        <CheckInScreen questions={CHECK_IN_QUESTIONS} onComplete={handleComplete} />
+      </ProviderWrapper>,
     );
 
-    // Step 1: Belly
-    fireEvent.click(screen.getByRole("radio", { name: /Uncomfortable, needs care/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Next meter/i }));
+    await screen.findByText("Question 1 of 3");
 
-    // Step 2: Battery
-    expect(screen.getByText("What's your energy battery level today?")).toBeTruthy();
-    fireEvent.click(screen.getByRole("radio", { name: /Half battery/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Next meter/i }));
+    fireEvent.click(screen.getByRole("radio", { name: /Sore or uncomfortable/i }));
+    expect(screen.getByText(/You chose: Sore or uncomfortable/i)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Next question/i }));
 
-    // Step 3: Play
-    expect(screen.getByText("How did your body want to move today?")).toBeTruthy();
-    fireEvent.click(screen.getByRole("radio", { name: /Took cozy breaks/i }));
+    expect(screen.getByText("How is your energy today?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("radio", { name: /Medium energy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Next question/i }));
+
+    expect(screen.getByText("How did you feel like moving today?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("radio", { name: /Taking breaks to rest/i }));
     fireEvent.click(screen.getByRole("button", { name: /Save today's check-in/i }));
 
-    // End celebration
-    expect(screen.getByRole("heading", { name: /Meters Recharged!/i })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /Check-in saved/i })).toBeTruthy();
     expect(screen.getByText(/What your parents can see/i)).toBeTruthy();
-    expect(screen.getByRole("link", { name: /Back to Companion/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Back home/i })).toBeTruthy();
 
-    expect(handleComplete).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(handleComplete).toHaveBeenCalledTimes(1);
+    });
     expect(handleComplete).toHaveBeenCalledWith(
       expect.objectContaining({
         notToday: false,
         answers: {
-          belly_comfort: 2,
-          energy_level: 1,
-          daily_pace: 1,
+          [QUESTION_IDS.bellyComfort]: 2,
+          [QUESTION_IDS.energy]: 1,
+          [QUESTION_IDS.playPace]: 1,
         },
       }),
     );
   });
 
-  it("switches questions directly when tapping a top status meter", () => {
-    renderWithTheme(<CheckInScreen questions={POU_CHECKIN_QUESTIONS} />);
-
-    // Tap directly on "Battery" meter
-    fireEvent.click(screen.getByRole("button", { name: /Battery meter/i }));
-    expect(screen.getByText("What's your energy battery level today?")).toBeTruthy();
-
-    // Tap directly on "Play" meter
-    fireEvent.click(screen.getByRole("button", { name: /Play meter/i }));
-    expect(screen.getByText("How did your body want to move today?")).toBeTruthy();
-  });
-
-  it("handles the 'Today I'd rather just rest' skip path", () => {
+  it("handles the not-today skip path with skipped answers", async () => {
     const handleComplete = vi.fn();
 
     renderWithTheme(
-      <CheckInScreen questions={POU_CHECKIN_QUESTIONS} onComplete={handleComplete} />,
+      <ProviderWrapper>
+        <CheckInScreen questions={CHECK_IN_QUESTIONS} onComplete={handleComplete} />
+      </ProviderWrapper>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Today I'd rather just rest/i }));
+    await screen.findByRole("button", { name: /I don't feel like it today/i });
+    fireEvent.click(screen.getByRole("button", { name: /I don't feel like it today/i }));
 
-    expect(screen.getByRole("heading", { name: /Care Day Saved!/i })).toBeTruthy();
-    expect(handleComplete).toHaveBeenCalledWith(
-      expect.objectContaining({
-        notToday: true,
-      }),
-    );
+    expect(screen.getByRole("heading", { name: /Care day saved/i })).toBeTruthy();
+    await waitFor(() => {
+      expect(handleComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          notToday: true,
+          answers: {
+            [QUESTION_IDS.bellyComfort]: "skipped",
+            [QUESTION_IDS.energy]: "skipped",
+            [QUESTION_IDS.playPace]: "skipped",
+          },
+        }),
+      );
+    });
   });
 });

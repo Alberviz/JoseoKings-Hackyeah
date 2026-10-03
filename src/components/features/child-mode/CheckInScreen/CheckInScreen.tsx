@@ -1,9 +1,14 @@
 "use client";
 
-import { useContext, useState } from "react";
-import { AppStateContext } from "@/components/providers/AppStateProvider";
+import { useState } from "react";
+import { Companion } from "@/components/features/companion";
 import { Button, Heading, LinkButton, Screen, Stack, Text } from "@/components/ui";
+import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { ROUTES } from "@/config/app";
+import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
+import { CHILD_VISIBILITY_NOTE } from "@/content/disclaimers";
+import { useAppState } from "@/hooks/useAppState";
+import { todayKey } from "@/lib/dates";
 import type { CheckIn, CheckInAnswer, CheckInOption, CheckInQuestion } from "@/types";
 import {
   ChoiceGameButton,
@@ -13,100 +18,71 @@ import {
   EndCelebrationBox,
   GameActions,
   GameStage,
-  GameStatusHeader,
-  MeterBarFill,
-  MeterBarTrack,
-  MeterButton,
-  MeterIcon,
-  MeterLabel,
   NavSpacer,
   NextStepRow,
   ParentReportNotice,
-  PetAvatarFace,
-  PetCheek,
-  PetCheeksRow,
   PetContainer,
-  PetEye,
-  PetEyesRow,
   PetGlow,
-  PetMouth,
   PetNameBadge,
   PetRoom,
+  ProgressHeader,
+  ProgressLabel,
+  ProgressTrack,
+  ProgressFill,
   RestTodayButton,
+  SelectedChoiceNote,
   SpeechBubble,
   SpeechHint,
   SpeechText,
   StarsBadge,
 } from "./CheckInScreen.style";
-import { POU_CHECKIN_QUESTIONS } from "./questions";
-
-const METER_CONFIG: Array<{ id: string; label: string; icon: string; color: string }> = [
-  { id: "belly_comfort", label: "Tummy", icon: "💚", color: "#1E7A46" },
-  { id: "energy_level", label: "Battery", icon: "⚡", color: "#F2B705" },
-  { id: "daily_pace", label: "Play", icon: "🎮", color: "#5B3FA8" },
-];
 
 const ICON_MAP: Record<string, string> = {
-  calm: "🟢",
-  uneasy: "🟡",
-  hurting: "🔴",
-  battery_full: "🔋",
-  battery_half: "🪫",
-  battery_low: "⚡",
-  pace_steady: "🏃",
-  pace_paused: "🚶",
-  pace_stopped: "🛋️",
+  "belly-calm": "OK",
+  "belly-rumble": "~",
+  "belly-sore": "!",
+  "energy-high": "+++",
+  "energy-medium": "++",
+  "energy-low": "+",
+  "play-active": ">>",
+  "play-breaks": "<>",
+  "play-resting": "..",
 };
 
-function answerToPercent(val: CheckInAnswer | undefined): number {
-  if (val === undefined || val === "skipped") return 0;
-  if (val === 0) return 100;
-  if (val === 1) return 55;
-  return 25;
+function skippedAnswers(questions: CheckInQuestion[]): Record<string, CheckInAnswer> {
+  return Object.fromEntries(questions.map((q) => [q.id, "skipped" as const]));
 }
 
-interface CheckInScreenProps {
+type CheckInScreenProps = {
   questions?: CheckInQuestion[];
   onComplete?: (checkIn: CheckIn) => void;
-}
+};
 
-export function CheckInScreen({
-  questions = POU_CHECKIN_QUESTIONS,
-  onComplete,
-}: CheckInScreenProps) {
+export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: CheckInScreenProps) {
+  const { state, actions, isReady } = useAppState();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, CheckInAnswer>>({});
   const [isCompleted, setIsCompleted] = useState(false);
   const [notToday, setNotToday] = useState(false);
-  const [petMood, setPetMood] = useState<"happy" | "calm" | "resting">("calm");
+  const [companionPose, setCompanionPose] = useState<"idle" | "cheer">("idle");
 
-  const appContext = useContext(AppStateContext);
-
+  const companionName = state.companion.name || "Your companion";
   const currentQuestion = questions[currentStep];
   const selectedAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
+  const selectedOption = currentQuestion?.options.find((o) => o.value === selectedAnswer);
+  const progressPercent =
+    questions.length === 0 ? 0 : Math.round(((currentStep + 1) / questions.length) * 100);
 
   const saveCheckIn = (finalAnswers: Record<string, CheckInAnswer>, skipped: boolean) => {
-    const todayKey = new Date().toISOString().split("T")[0];
     const checkInRecord: CheckIn = {
       id: crypto.randomUUID(),
-      date: todayKey,
+      date: todayKey(),
       answers: finalAnswers,
       notToday: skipped,
       createdAt: new Date().toISOString(),
     };
 
-    if (appContext) {
-      appContext.actions.addCheckIn(checkInRecord);
-    } else {
-      try {
-        const existing = localStorage.getItem("crohncare_checkins");
-        const list: CheckIn[] = existing ? JSON.parse(existing) : [];
-        list.push(checkInRecord);
-        localStorage.setItem("crohncare_checkins", JSON.stringify(list));
-      } catch {
-        // Storage blocked or unavailable
-      }
-    }
+    actions.addCheckIn(checkInRecord);
 
     if (onComplete) {
       onComplete(checkInRecord);
@@ -118,15 +94,15 @@ export function CheckInScreen({
   const handleSelectOption = (optionValue: number) => {
     if (!currentQuestion) return;
 
-    setPetMood("happy");
-    const updated = {
+    // Cheer for the act of answering, never for the value chosen.
+    setCompanionPose("cheer");
+    setAnswers({
       ...answers,
       [currentQuestion.id]: optionValue,
-    };
-    setAnswers(updated);
+    });
 
-    setTimeout(() => {
-      setPetMood("calm");
+    window.setTimeout(() => {
+      setCompanionPose("idle");
     }, 1200);
   };
 
@@ -146,42 +122,68 @@ export function CheckInScreen({
 
   const handleSkipToday = () => {
     setNotToday(true);
-    saveCheckIn(answers, true);
+    saveCheckIn(skippedAnswers(questions), true);
   };
 
-  const hasDiscomfortReported = Object.values(answers).some(
-    (ans) => typeof ans === "number" && ans > 0,
-  );
+  const bellyAnswer = answers[QUESTION_IDS.bellyComfort];
+  const hasDiscomfortReported =
+    typeof bellyAnswer === "number" && bellyAnswer >= DISCOMFORT_THRESHOLD;
+
+  if (!isReady) {
+    return (
+      <Screen>
+        <GameStage>
+          <Text tone="muted">Loading check-in...</Text>
+        </GameStage>
+      </Screen>
+    );
+  }
 
   if (isCompleted) {
     return (
       <Screen>
         <GameStage>
           <EndCelebrationBox>
-            <StarsBadge aria-hidden="true">🌟✨🐾</StarsBadge>
+            <StarsBadge aria-hidden="true">*</StarsBadge>
+            <Companion
+              pose="cheer"
+              size="lg"
+              name={companionName}
+              equippedItemIds={state.companion.equippedItemIds}
+            />
             <Stack gap="sm">
-              <Heading level={1}>{notToday ? "Care Day Saved!" : "Meters Recharged!"}</Heading>
+              <Heading level={1}>{notToday ? "Care day saved" : "Check-in saved"}</Heading>
               <Text tone="muted">
                 {notToday
-                  ? "Taking rest is just as important. Your companion is here with you."
-                  : "All your meters are updated for today. Great job keeping your companion active!"}
+                  ? "Resting is okay. Your companion is still with you."
+                  : "Thanks for checking in. Every answer gives the same reward."}
               </Text>
             </Stack>
 
             {hasDiscomfortReported && !notToday && (
               <ParentReportNotice role="status">
                 <Heading level={3}>What your parents can see</Heading>
-                <Text tone="muted">
-                  Your parents will see that your tummy felt sensitive or your battery was low, so
-                  they can take good care of you.
-                </Text>
+                <Text tone="muted">{CHILD_VISIBILITY_NOTE}</Text>
               </ParentReportNotice>
             )}
 
             <LinkButton href={ROUTES.home} variant="primary" fullWidth>
-              Back to Companion
+              Back home
             </LinkButton>
           </EndCelebrationBox>
+        </GameStage>
+      </Screen>
+    );
+  }
+
+  if (!currentQuestion) {
+    return (
+      <Screen>
+        <GameStage>
+          <Text>No check-in questions yet.</Text>
+          <LinkButton href={ROUTES.home} variant="secondary">
+            Back home
+          </LinkButton>
         </GameStage>
       </Screen>
     );
@@ -190,69 +192,37 @@ export function CheckInScreen({
   return (
     <Screen>
       <GameStage>
-        {/* Pou-style top status meters */}
-        <GameStatusHeader aria-label="Companion status meters">
-          {METER_CONFIG.map((meter, idx) => {
-            const val = answers[meter.id];
-            const pct = answerToPercent(val);
-            const isActive = currentStep === idx;
-            const isFilled = val !== undefined;
+        <ProgressHeader aria-label={`Question ${currentStep + 1} of ${questions.length}`}>
+          <ProgressLabel>
+            Question {currentStep + 1} of {questions.length}
+          </ProgressLabel>
+          <ProgressTrack>
+            <ProgressFill $percent={progressPercent} />
+          </ProgressTrack>
+        </ProgressHeader>
 
-            return (
-              <MeterButton
-                key={meter.id}
-                type="button"
-                $isActive={isActive}
-                $isFilled={isFilled}
-                onClick={() => setCurrentStep(idx)}
-                aria-label={`${meter.label} meter: ${pct}%`}
-              >
-                <MeterLabel>
-                  <MeterIcon aria-hidden="true">{meter.icon}</MeterIcon> {meter.label}
-                </MeterLabel>
-                <MeterBarTrack>
-                  <MeterBarFill $percent={pct} $color={meter.color} />
-                </MeterBarTrack>
-              </MeterButton>
-            );
-          })}
-        </GameStatusHeader>
-
-        {/* Center Pet Room with interactive character */}
         <PetRoom>
           <PetGlow />
-          <PetContainer
-            $cheer={petMood === "happy"}
-            onClick={() => setPetMood((prev) => (prev === "happy" ? "calm" : "happy"))}
-            role="img"
-            aria-label="Your friendly companion"
-          >
-            <PetAvatarFace $mood={petMood}>
-              <PetEyesRow>
-                <PetEye />
-                <PetEye />
-              </PetEyesRow>
-              <PetCheeksRow>
-                <PetCheek />
-                <PetCheek />
-              </PetCheeksRow>
-              <PetMouth $mood={petMood} />
-            </PetAvatarFace>
-            <PetNameBadge>Capy</PetNameBadge>
+          <PetContainer $cheer={companionPose === "cheer"}>
+            <Companion
+              pose={companionPose}
+              size="lg"
+              name={companionName}
+              equippedItemIds={state.companion.equippedItemIds}
+            />
+            <PetNameBadge>{companionName}</PetNameBadge>
           </PetContainer>
         </PetRoom>
 
-        {/* Pet Speech Bubble with the current check-in indicator */}
         <SpeechBubble>
           <SpeechText>{currentQuestion.prompt}</SpeechText>
-          <SpeechHint>Tap a choice to update your companion’s meter</SpeechHint>
+          <SpeechHint>Tap one choice. Every choice gives the same reward.</SpeechHint>
         </SpeechBubble>
 
-        {/* Game Choices */}
         <ChoicesGrid role="radiogroup" aria-label={currentQuestion.prompt}>
           {currentQuestion.options.map((option: CheckInOption) => {
             const isSelected = selectedAnswer === option.value;
-            const iconChar = ICON_MAP[option.iconKey] || "✨";
+            const iconChar = ICON_MAP[option.iconKey] || "*";
 
             return (
               <ChoiceGameButton
@@ -270,7 +240,10 @@ export function CheckInScreen({
           })}
         </ChoicesGrid>
 
-        {/* Game navigation footer */}
+        {selectedOption ? (
+          <SelectedChoiceNote role="status">You chose: {selectedOption.label}</SelectedChoiceNote>
+        ) : null}
+
         <GameActions>
           <NextStepRow>
             {currentStep > 0 ? (
@@ -287,12 +260,12 @@ export function CheckInScreen({
               disabled={selectedAnswer === undefined}
               onClick={handleNext}
             >
-              {currentStep < questions.length - 1 ? "Next meter" : "Save today's check-in"}
+              {currentStep < questions.length - 1 ? "Next question" : "Save today's check-in"}
             </Button>
           </NextStepRow>
 
           <RestTodayButton type="button" onClick={handleSkipToday}>
-            Today I&apos;d rather just rest
+            I don&apos;t feel like it today
           </RestTodayButton>
         </GameActions>
       </GameStage>
