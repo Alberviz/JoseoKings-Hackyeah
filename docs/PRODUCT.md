@@ -83,6 +83,8 @@ One installable PWA. One device, **two modes**: child mode (default) and parent 
 - **Stop early is rest, not failure.** It is logged as a rest session and gives the smaller reward.
 - **Fixed, predictable rewards.** No random loot boxes.
 - Rewards belong to the child (items, colours, a room). Parents never "give" them.
+- **Coins and fire (child interface v2).** Coins come from the act: a check-in (including "not today"), a mission (including rest) and the chest after play. They buy food and accessories in the shop. Fire rises when the child feeds the dragon. It never decays and the app never takes it away; it only goes down when the child chooses to spend it.
+- **Rewards from home** are a separate, optional layer that the family defines together: the parents create them (name and price in fire), the child can claim one, and a claim is a request the parents confirm when it happens. Prices never depend on what the child answered. The companion's items stay the child's and parents cannot touch them.
 
 ### 5.3 Confidence labels on activity
 
