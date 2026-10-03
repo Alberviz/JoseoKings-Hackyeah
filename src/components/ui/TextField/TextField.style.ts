@@ -15,9 +15,9 @@ const controlStyles = css<{ $hasError: boolean }>`
   min-height: ${({ theme }) => theme.touchTarget};
   padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
   background: ${({ theme }) => theme.colors.surface};
-  color: ${({ theme }) => theme.colors.text};
-  border: 2px solid
-    ${({ theme, $hasError }) => ($hasError ? theme.colors.urgent : theme.colors.border)};
+  color: ${({ theme }) => theme.colors.ink};
+  border: ${({ theme }) => theme.borderWidth} solid
+    ${({ theme, $hasError }) => ($hasError ? theme.colors.urgent : theme.colors.ink)};
   border-radius: ${({ theme }) => theme.radius.md};
   font: inherit;
 
