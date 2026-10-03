@@ -4,9 +4,9 @@ export type DayStripEntry = {
   date: DateKey;
   hasCheckIn: boolean;
   notToday: boolean;
-  bellyPain: number | null;
-  bathroom: number | null;
+  bellyComfort: number | null;
   energy: number | null;
+  playPace: number | null;
   hadMissions: boolean;
   hadDiscomfort: boolean;
   hasParentLog: boolean;

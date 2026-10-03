@@ -1,4 +1,4 @@
-import { QUESTION_IDS } from "@/config/content-ids";
+import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays, daysBetween, todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
@@ -69,27 +69,29 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
     const checkIn = checkInByDate.get(day);
     const parentLog = parentLogByDate.get(day);
 
-    const rawPain = checkIn?.answers?.[QUESTION_IDS.bellyPain];
-    const bellyPain = typeof rawPain === "number" && rawPain >= 0 && rawPain <= 4 ? rawPain : null;
-
-    const rawBathroom = checkIn?.answers?.[QUESTION_IDS.bathroom];
-    const bathroom =
-      typeof rawBathroom === "number" && rawBathroom >= 0 && rawBathroom <= 4 ? rawBathroom : null;
+    const rawBelly = checkIn?.answers?.[QUESTION_IDS.bellyComfort];
+    const bellyComfort =
+      typeof rawBelly === "number" && rawBelly >= 0 && rawBelly <= 2 ? rawBelly : null;
 
     const rawEnergy = checkIn?.answers?.[QUESTION_IDS.energy];
     const energy =
-      typeof rawEnergy === "number" && rawEnergy >= 0 && rawEnergy <= 4 ? rawEnergy : null;
+      typeof rawEnergy === "number" && rawEnergy >= 0 && rawEnergy <= 2 ? rawEnergy : null;
+
+    const rawPlayPace = checkIn?.answers?.[QUESTION_IDS.playPace];
+    const playPace =
+      typeof rawPlayPace === "number" && rawPlayPace >= 0 && rawPlayPace <= 2 ? rawPlayPace : null;
 
     const notToday = Boolean(checkIn?.notToday);
-    const hadDiscomfort = (bellyPain !== null && bellyPain >= 3) || notToday;
+    const hadDiscomfort =
+      (bellyComfort !== null && bellyComfort >= DISCOMFORT_THRESHOLD) || notToday;
 
     dayStrip.push({
       date: day,
       hasCheckIn: Boolean(checkIn),
       notToday,
-      bellyPain,
-      bathroom,
+      bellyComfort,
       energy,
+      playPace,
       hadMissions: missionDates.has(day),
       hadDiscomfort,
       hasParentLog: Boolean(parentLog),

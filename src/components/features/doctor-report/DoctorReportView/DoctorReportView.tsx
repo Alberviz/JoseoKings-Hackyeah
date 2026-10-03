@@ -179,9 +179,9 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
               <TableHead>
                 <TableRow>
                   <TableHeaderCell scope="col">Date</TableHeaderCell>
-                  <TableHeaderCell scope="col">Belly pain</TableHeaderCell>
-                  <TableHeaderCell scope="col">Bathroom</TableHeaderCell>
+                  <TableHeaderCell scope="col">Belly comfort</TableHeaderCell>
                   <TableHeaderCell scope="col">Energy</TableHeaderCell>
+                  <TableHeaderCell scope="col">Play pace</TableHeaderCell>
                   <TableHeaderCell scope="col">Care active</TableHeaderCell>
                 </TableRow>
               </TableHead>
@@ -205,9 +205,9 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                     return (
                       <TableRow key={entry.date}>
                         <TableCell>{entry.date}</TableCell>
-                        <TableCell>{formatScore(entry.bellyPain)}</TableCell>
-                        <TableCell>{formatScore(entry.bathroom)}</TableCell>
+                        <TableCell>{formatScore(entry.bellyComfort)}</TableCell>
                         <TableCell>{formatScore(entry.energy)}</TableCell>
+                        <TableCell>{formatScore(entry.playPace)}</TableCell>
                         <TableCell>{careActive}</TableCell>
                       </TableRow>
                     );

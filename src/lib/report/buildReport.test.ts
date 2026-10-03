@@ -156,9 +156,9 @@ describe("buildReport", () => {
         id: "ci-1",
         date: d1,
         answers: {
-          [QUESTION_IDS.bellyPain]: 3, // discomfort!
-          [QUESTION_IDS.bathroom]: 1,
-          [QUESTION_IDS.energy]: 2,
+          [QUESTION_IDS.bellyComfort]: 2, // discomfort!
+          [QUESTION_IDS.energy]: 1,
+          [QUESTION_IDS.playPace]: 2,
         },
         notToday: false,
         createdAt: `${d1}T10:00:00Z`,
@@ -167,9 +167,9 @@ describe("buildReport", () => {
         id: "ci-2",
         date: d2,
         answers: {
-          [QUESTION_IDS.bellyPain]: 1, // no discomfort
-          [QUESTION_IDS.bathroom]: 2,
-          [QUESTION_IDS.energy]: 3,
+          [QUESTION_IDS.bellyComfort]: 0, // no discomfort
+          [QUESTION_IDS.energy]: 0,
+          [QUESTION_IDS.playPace]: 1,
         },
         notToday: false,
         createdAt: `${d2}T10:00:00Z`,
@@ -178,7 +178,7 @@ describe("buildReport", () => {
         id: "ci-3",
         date: d3,
         answers: {
-          [QUESTION_IDS.bellyPain]: "skipped",
+          [QUESTION_IDS.bellyComfort]: "skipped",
         },
         notToday: true, // discomfort due to notToday!
         createdAt: `${d3}T10:00:00Z`,
@@ -187,7 +187,7 @@ describe("buildReport", () => {
         id: "ci-4",
         date: d4,
         answers: {
-          [QUESTION_IDS.bellyPain]: 4, // discomfort!
+          [QUESTION_IDS.bellyComfort]: 1, // discomfort! (threshold is 1)
         },
         notToday: false,
         createdAt: `${d4}T10:00:00Z`,
@@ -195,7 +195,7 @@ describe("buildReport", () => {
       {
         id: "ci-out",
         date: dOutside,
-        answers: { [QUESTION_IDS.bellyPain]: 4 },
+        answers: { [QUESTION_IDS.bellyComfort]: 2 },
         notToday: false,
         createdAt: `${dOutside}T10:00:00Z`,
       },
@@ -345,21 +345,21 @@ describe("buildReport", () => {
       {
         id: "ci-1",
         date: badDay1,
-        answers: { [QUESTION_IDS.bellyPain]: 3 },
+        answers: { [QUESTION_IDS.bellyComfort]: 1 },
         notToday: false,
         createdAt: `${badDay1}T10:00:00Z`,
       },
       {
         id: "ci-2",
         date: badDay2,
-        answers: { [QUESTION_IDS.bellyPain]: "skipped" },
+        answers: { [QUESTION_IDS.bellyComfort]: "skipped" },
         notToday: true,
         createdAt: `${badDay2}T10:00:00Z`,
       },
       {
         id: "ci-3",
         date: goodDay,
-        answers: { [QUESTION_IDS.bellyPain]: 1 },
+        answers: { [QUESTION_IDS.bellyComfort]: 0 },
         notToday: false,
         createdAt: `${goodDay}T10:00:00Z`,
       },
