@@ -57,7 +57,7 @@ Every job endpoint checks `Authorization: Bearer ${CRON_SECRET}` (the vapexperie
 
 ## 4. Data model (summary)
 
-Full DDL: `watch-collector/sql/schema.sql`.
+Full DDL: `watch-collector/sql/schema.sql`, applied on 2026-10-04 as migration `watch_mvp_schema` to the Supabase project `mycrohnie-watch` (ref `khziifyuhqitlzntesbu`, eu-central-1, organisation Atlas). The demo subject is `demo-child-1`.
 
 | Table                 | One row per                           | Written by |
 | :-------------------- | :------------------------------------ | :--------- |
