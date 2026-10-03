@@ -3,6 +3,19 @@
 # Backed by GitHub Issues (Buzones personales #70-#75 + Broadcast #76).
 set -euo pipefail
 
+if ! command -v gh >/dev/null 2>&1; then
+  if [ -x "/c/Program Files/GitHub CLI/gh.exe" ]; then
+    export PATH="$PATH:/c/Program Files/GitHub CLI"
+  fi
+fi
+
+if [ -z "${GH_TOKEN:-}" ]; then
+  GH_TOKEN="$(printf "protocol=https\nhost=github.com\n" | git credential fill 2>/dev/null | grep -E "^password=" | cut -d= -f2- || true)"
+  if [ -n "$GH_TOKEN" ]; then
+    export GH_TOKEN
+  fi
+fi
+
 NAMES="claude alberto lead-ai juan alvaro baitiare farouk claudia all broadcast"
 REPO="Alberviz/JoseoKings-Hackyeah"
 

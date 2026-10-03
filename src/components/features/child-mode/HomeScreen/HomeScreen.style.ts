@@ -102,6 +102,17 @@ export const CoinsPill = styled.div`
   box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
   min-height: 40px;
   box-sizing: border-box;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.highlight};
+  }
+
+  &:active {
+    transform: translateY(2px);
+    box-shadow: none;
+  }
 `;
 
 export const CoinIconWrapper = styled.span`
