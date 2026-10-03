@@ -269,7 +269,7 @@ The service worker is only registered in production builds; to test offline, run
 ## 6. Setup for a new teammate
 
 ```sh
-git clone git@github.com:alvarli678/JoseoKings-Hackyeah.git
+git clone git@github.com:Alberviz/JoseoKings-Hackyeah.git
 cd JoseoKings-Hackyeah
 pnpm install            # also installs the pre-commit hooks
 cp .env.example .env.local   # then ask Alberto for the keys
