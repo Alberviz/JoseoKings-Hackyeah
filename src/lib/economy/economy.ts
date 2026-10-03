@@ -1,8 +1,11 @@
 import {
+  CHECKIN_COINS,
+  CHECKIN_SKIP_COINS,
   CHEST_COINS,
   DEFAULT_TREATS,
   FIRE_MAX,
   FOOD_FIRE,
+  REST_COINS,
   SHOP_ITEMS,
   TREAT_COST_MAX,
   TREAT_COST_MIN,
@@ -10,6 +13,7 @@ import {
 } from "@/config/economy";
 import type {
   AppState,
+  CheckIn,
   DateKey,
   EconomyState,
   MissionLog,
@@ -18,7 +22,7 @@ import type {
   Treat,
 } from "@/types";
 
-export type EconomySource = Pick<AppState, "missionLogs" | "economy">;
+export type EconomySource = Pick<AppState, "checkIns" | "missionLogs" | "economy">;
 
 export type BuyResult =
   | { ok: true; economy: EconomyState }
@@ -49,19 +53,36 @@ export function findShopItem(itemId: string): ShopItem | undefined {
   return SHOP_ITEMS.find((item) => item.id === itemId);
 }
 
-/** Coins are derived from the logs, so recomputing never double counts. Rest sessions give no chest. */
-export function coinsEarned(missionLogs: readonly MissionLog[]): number {
-  const completed = new Set<string>();
-  for (const log of missionLogs) {
-    if (log.status === "completed") {
-      completed.add(log.id);
+/**
+ * Coins are derived from the records, so recomputing never double counts: one check-in per
+ * date and one mission log per id. The amount depends only on whether the child checked in
+ * fully or skipped, and whether a mission was completed or stopped early (rest).
+ */
+export function coinsEarned(source: Pick<AppState, "checkIns" | "missionLogs">): number {
+  const checkInByDate = new Map<string, CheckIn>();
+  for (const checkIn of source.checkIns) {
+    if (!checkInByDate.has(checkIn.date)) {
+      checkInByDate.set(checkIn.date, checkIn);
     }
   }
-  return completed.size * CHEST_COINS;
+  let total = 0;
+  for (const checkIn of checkInByDate.values()) {
+    total += checkIn.notToday ? CHECKIN_SKIP_COINS : CHECKIN_COINS;
+  }
+  const seenLogs = new Map<string, MissionLog>();
+  for (const log of source.missionLogs) {
+    if (!seenLogs.has(log.id)) {
+      seenLogs.set(log.id, log);
+    }
+  }
+  for (const log of seenLogs.values()) {
+    total += log.status === "completed" ? CHEST_COINS : REST_COINS;
+  }
+  return total;
 }
 
 export function coinBalance(state: EconomySource): number {
-  return Math.max(0, coinsEarned(state.missionLogs) - state.economy.coinsSpent);
+  return Math.max(0, coinsEarned(state) - state.economy.coinsSpent);
 }
 
 export function buyItem(state: EconomySource, itemId: string): BuyResult {

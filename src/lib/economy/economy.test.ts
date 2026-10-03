@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { CHEST_COINS, FIRE_MAX, FOOD_FIRE } from "@/config/economy";
+import {
+  CHECKIN_COINS,
+  CHECKIN_SKIP_COINS,
+  CHEST_COINS,
+  FIRE_MAX,
+  FOOD_FIRE,
+  REST_COINS,
+} from "@/config/economy";
 import { createEmptyState, loadState, STORAGE_KEY } from "@/lib/storage";
-import type { AppState, EconomyState, MissionLog, MissionCompany, MissionStatus } from "@/types";
+import type {
+  AppState,
+  CheckIn,
+  EconomyState,
+  MissionLog,
+  MissionCompany,
+  MissionStatus,
+} from "@/types";
 import {
   buyItem,
   coinBalance,
@@ -33,32 +47,61 @@ function makeLog(
 
 function richState(logCount = 10, economy: Partial<EconomyState> = {}) {
   return {
+    checkIns: [],
     missionLogs: Array.from({ length: logCount }, (_, i) => makeLog(`m-${i}`)),
     economy: { ...createDefaultEconomy(), ...economy },
   };
 }
 
+function makeCheckIn(date: string, notToday = false, answers: CheckIn["answers"] = {}): CheckIn {
+  return { id: `ci-${date}`, date, answers, notToday, createdAt: `${date}T10:00:00.000Z` };
+}
+
 describe("coins", () => {
-  it("gives the same chest for every company and ignores rest sessions", () => {
-    const logs = [
+  it("gives the same chest for every company and a smaller one for rest", () => {
+    const missionLogs = [
       makeLog("a", "completed", "alone"),
       makeLog("b", "completed", "family"),
       makeLog("c", "completed", "other"),
       makeLog("d", "rest"),
     ];
-    expect(coinsEarned(logs)).toBe(3 * CHEST_COINS);
+    expect(coinsEarned({ checkIns: [], missionLogs })).toBe(3 * CHEST_COINS + REST_COINS);
   });
 
-  it("is idempotent: the same log id never counts twice", () => {
-    const logs = [makeLog("a"), makeLog("a")];
-    expect(coinsEarned(logs)).toBe(CHEST_COINS);
-    expect(coinsEarned(logs)).toBe(coinsEarned(logs));
+  it("gives a full check-in more than a skipped one, and both count", () => {
+    expect(coinsEarned({ checkIns: [makeCheckIn("2026-10-01")], missionLogs: [] })).toBe(
+      CHECKIN_COINS,
+    );
+    expect(coinsEarned({ checkIns: [makeCheckIn("2026-10-01", true)], missionLogs: [] })).toBe(
+      CHECKIN_SKIP_COINS,
+    );
+    expect(CHECKIN_SKIP_COINS).toBeLessThan(CHECKIN_COINS);
+    expect(REST_COINS).toBeLessThan(CHEST_COINS);
+  });
+
+  it("does not depend on the answers", () => {
+    const low = makeCheckIn("2026-10-01", false, { "belly-comfort": 0, mood: 0 });
+    const high = makeCheckIn("2026-10-01", false, { "belly-comfort": 3, mood: "skipped" });
+    expect(coinsEarned({ checkIns: [low], missionLogs: [] })).toBe(
+      coinsEarned({ checkIns: [high], missionLogs: [] }),
+    );
+  });
+
+  it("is idempotent: one check-in per date and one log per id", () => {
+    const state = {
+      checkIns: [makeCheckIn("2026-10-01"), makeCheckIn("2026-10-01", true)],
+      missionLogs: [makeLog("a"), makeLog("a")],
+    };
+    expect(coinsEarned(state)).toBe(CHECKIN_COINS + CHEST_COINS);
+    expect(coinsEarned(state)).toBe(coinsEarned(state));
   });
 
   it("balance is earned minus spent and never negative", () => {
     const economy = { ...createDefaultEconomy(), coinsSpent: 5 };
-    expect(coinBalance({ missionLogs: [makeLog("a")], economy })).toBe(CHEST_COINS - 5);
-    expect(coinBalance({ missionLogs: [], economy })).toBe(0);
+    expect(coinBalance({ checkIns: [], missionLogs: [makeLog("a")], economy })).toBe(
+      CHEST_COINS - 5,
+    );
+    expect(coinBalance({ checkIns: [], missionLogs: [], economy })).toBe(0);
   });
 });
 
@@ -69,10 +112,7 @@ describe("buyItem", () => {
     if (!first.ok) return;
     expect(first.economy.inventory.food).toBe(1);
     expect(first.economy.coinsSpent).toBe(5);
-    const second = buyItem(
-      { missionLogs: richState().missionLogs, economy: first.economy },
-      "food",
-    );
+    const second = buyItem({ ...richState(), economy: first.economy }, "food");
     expect(second.ok && second.economy.inventory.food).toBe(2);
   });
 
@@ -81,7 +121,7 @@ describe("buyItem", () => {
     expect(first.ok).toBe(true);
     if (!first.ok) return;
     expect(first.economy.ownedItemIds).toEqual(["hat"]);
-    const again = buyItem({ missionLogs: richState().missionLogs, economy: first.economy }, "hat");
+    const again = buyItem({ ...richState(), economy: first.economy }, "hat");
     expect(again).toEqual({ ok: false, reason: "already-owned" });
   });
 
@@ -98,7 +138,7 @@ describe("buyItem", () => {
     const a = buyItem(state, "hat"); // 10
     expect(a.ok).toBe(true);
     if (!a.ok) return;
-    const b = buyItem({ missionLogs: state.missionLogs, economy: a.economy }, "glasses"); // 7 > 2
+    const b = buyItem({ ...state, economy: a.economy }, "glasses"); // 7 > 2
     expect(b).toEqual({ ok: false, reason: "not-enough-coins" });
   });
 });
