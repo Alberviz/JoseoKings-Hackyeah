@@ -1,3 +1,4 @@
+import { syncCompanion } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { appStateSchema } from "./schemas";
 
@@ -42,13 +43,20 @@ export function migrate(raw: unknown): unknown {
  * Loads the application state from localStorage.
  * If storage is empty or invalid, falls back safely to createEmptyState()
  * and preserves any corrupt raw payload under BACKUP_STORAGE_KEY.
+ * Never throws because storage is blocked, full or unavailable.
  */
 export function loadState(): AppState {
   if (typeof window === "undefined" || !window.localStorage) {
     return createEmptyState();
   }
 
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  let raw: string | null = null;
+  try {
+    raw = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return createEmptyState();
+  }
+
   if (!raw) {
     return createEmptyState();
   }
@@ -63,25 +71,57 @@ export function loadState(): AppState {
     }
 
     // Validation failed: save raw to backup and fall back to empty state
-    window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+    try {
+      window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+    } catch {
+      // Ignore errors if storage is full or blocked
+    }
     return createEmptyState();
   } catch {
     // Malformed JSON: save raw to backup and fall back to empty state
-    window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+    try {
+      window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+    } catch {
+      // Ignore errors if storage is full or blocked
+    }
     return createEmptyState();
   }
 }
 
 /**
  * Saves the application state to localStorage after schema validation.
+ * Returns true when saved, false if validation or storage failed.
+ * Never throws because storage is full, blocked or unavailable.
  */
-export function saveState(state: AppState): void {
+export function saveState(state: AppState): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return false;
+  }
+
+  try {
+    const validated = appStateSchema.parse(state);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Removes both the main state key and backup key from localStorage.
+ * Never throws.
+ */
+export function clearStorage(): void {
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
 
-  const validated = appStateSchema.parse(state);
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+  } catch {
+    // Ignore errors if localStorage is blocked
+  }
 }
 
 /**
@@ -93,11 +133,20 @@ export function exportBackup(state: AppState): string {
 }
 
 /**
- * Imports and validates state from a backup JSON string.
+ * Imports and validates state from a backup JSON string, recomputing
+ * companion rewards from the imported logs.
  * Throws an Error if the JSON is malformed or violates the AppState schema.
  */
 export function importBackup(jsonString: string): AppState {
   const parsed = JSON.parse(jsonString);
   const migrated = migrate(parsed);
-  return appStateSchema.parse(migrated);
+  const validated = appStateSchema.parse(migrated);
+  return {
+    ...validated,
+    companion: syncCompanion({
+      checkIns: validated.checkIns,
+      missionLogs: validated.missionLogs,
+      companion: validated.companion,
+    }),
+  };
 }
