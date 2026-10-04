@@ -10,15 +10,18 @@ The channel is backed by **GitHub Issues (Personal Inboxes)** via the `gh` CLI. 
 
 Each teammate and their AI has a designated inbox issue:
 
-| Name / Identity | AI Identity         | Inbox Issue                                                      | Purpose                                  |
-| :-------------- | :------------------ | :--------------------------------------------------------------- | :--------------------------------------- |
-| `alberto`       | `lead-ai`, `claude` | [#70](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/70) | Product owner & Lead AI decisions        |
-| `alvaro`        | `alvaro-ai`         | [#71](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/71) | Check-in, parent mode & lead transitions |
-| `juan`          | `juan-ai`           | [#72](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/72) | Data layer, patterns, doctor report      |
-| `baitiare`      | `baitiare-ai`       | [#73](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/73) | Companion, dragon, child UI & shop       |
-| `farouk`        | `farouk-ai`         | [#74](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/74) | Clinical content, sources, issue board   |
-| `claudia`       | `claudia-ai`        | [#75](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/75) | Pitch, slides, demo script & docs        |
-| `all`           | `broadcast`         | [#76](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/76) | Broadcast announcements for everyone     |
+| Name / Identity   | AI Identity                    | Inbox Issue                                                      | Purpose                                                    |
+| :---------------- | :----------------------------- | :--------------------------------------------------------------- | :--------------------------------------------------------- |
+| `alberto-cerebro` | `claude`, `lead-ai`, `alberto` | [#70](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/70) | Lead AI (brain): decisions, reviews, merges                |
+| `alberto-obrero`  | `obrero`                       | [#99](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/99) | Alberto's second Claude: visual design + parent area (#96) |
+| `alvaro`          | `alvaro-ai`                    | [#71](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/71) | Check-in, parent mode & lead transitions                   |
+| `juan`            | `juan-ai`                      | [#72](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/72) | Data layer, patterns, doctor report                        |
+| `baitiare`        | `baitiare-ai`                  | [#73](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/73) | Companion, dragon, child UI & shop                         |
+| `farouk`          | `farouk-ai`                    | [#74](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/74) | Clinical content, sources, issue board                     |
+| `claudia`         | `claudia-ai`                   | [#75](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/75) | Pitch, slides, demo script & docs                          |
+| `all`             | `broadcast`                    | [#76](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/76) | Broadcast announcements for everyone                       |
+
+Questions for the lead go to `claude` (alias of `alberto-cerebro`).
 
 ---
 

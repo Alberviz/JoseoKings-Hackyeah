@@ -1,9 +1,9 @@
 // Single source for design tokens. Never hard-code colors or sizes in .style.ts files.
 export const theme = {
   colors: {
-    // Clean, soft pastel sky look: pastel blue background, navy ink outlines, teal and coral.
-    paper: "#E6F4FF",
-    paperGrid: "transparent",
+    // Hand-made notebook look (decision 2026-10-03): cream paper, navy ink outlines, teal and coral.
+    paper: "#F6F0E2",
+    paperGrid: "rgba(31, 47, 107, 0.07)",
     ink: "#1F2F6B",
     primary: "#127782",
     primaryHover: "#0E5F69",
@@ -19,7 +19,7 @@ export const theme = {
     onUrgent: "#FFFFFF",
     success: "#1E7A46",
     successSoft: "#E3F3EA",
-    background: "#E6F4FF",
+    background: "#F6F0E2",
     surface: "#FFFDF6",
     // Soft hairline for the few places that need a quiet divider. Outlines use ink.
     border: "#D8CFB6",

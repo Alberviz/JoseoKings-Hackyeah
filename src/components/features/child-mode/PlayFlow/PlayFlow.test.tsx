@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -35,6 +35,7 @@ describe("PlayFlow (Task V5)", () => {
 
   afterEach(() => {
     localStorage.clear();
+    vi.useRealTimers();
   });
 
   it("Step 1: renders who plays options and companion, back button navigates home", async () => {
@@ -103,35 +104,59 @@ describe("PlayFlow (Task V5)", () => {
   });
 
   it("Step 4 & 5 & 6 & 7: complete alone game routine, confirm, mood, and open chest with +12 coins", async () => {
+    vi.useFakeTimers();
+
     renderWithTheme(
       <ProviderWrapper>
-        <PlayFlow />
+        <PlayFlow initialStep="exercise" initialCompany="alone" initialLevel={1} />
       </ProviderWrapper>,
     );
 
-    await screen.findByText("Who is playing?");
-    fireEvent.click(screen.getByRole("button", { name: /Alone/i }));
-
-    await screen.findByText("How are you feeling?");
-    fireEvent.click(screen.getByRole("button", { name: /Calm, level 1/i }));
-
-    await screen.findByText("Ready to play?");
-    fireEvent.click(screen.getByRole("button", { name: /Let's play/i }));
-
-    // Step 4: Exercise
-    expect(await screen.findByRole("timer")).toBeTruthy();
+    expect(screen.getByRole("timer")).toBeTruthy();
     expect(screen.getByTestId("exercise-figure-svg")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Rest now/i })).toBeTruthy();
 
-    // Advance through exercise steps
-    while (screen.queryByRole("button", { name: /Next step/i })) {
-      fireEvent.click(screen.getByRole("button", { name: /Next step/i }));
-    }
+    // Step 0: Verify button is initially disabled, advance to last 5s to see 'Almost there!' hint
+    const step1Btn = screen.getByRole("button", { name: /Next step/i });
+    expect((step1Btn as HTMLButtonElement).disabled).toBe(true);
+    act(() => {
+      vi.advanceTimersByTime(11000);
+    });
+    expect(screen.getByText("Almost there!")).toBeTruthy();
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect((step1Btn as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(step1Btn);
 
-    // Last step shows Done button
+    // Step 1: Disabled initially, advance 16s, click
+    const step2Btn = screen.getByRole("button", { name: /Next step/i });
+    expect((step2Btn as HTMLButtonElement).disabled).toBe(true);
+    act(() => {
+      vi.advanceTimersByTime(16000);
+    });
+    expect((step2Btn as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(step2Btn);
+
+    // Step 2: Disabled initially, advance 16s, click
+    const step3Btn = screen.getByRole("button", { name: /Next step/i });
+    expect((step3Btn as HTMLButtonElement).disabled).toBe(true);
+    act(() => {
+      vi.advanceTimersByTime(16000);
+    });
+    expect((step3Btn as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(step3Btn);
+
+    // Step 3: Done button initially disabled, advance 21s, click
     const doneBtn = screen.getByRole("button", { name: /Done/i });
-    expect(doneBtn).toBeTruthy();
+    expect((doneBtn as HTMLButtonElement).disabled).toBe(true);
+    act(() => {
+      vi.advanceTimersByTime(21000);
+    });
+    expect((doneBtn as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(doneBtn);
+
+    vi.useRealTimers();
 
     // Step 5: Confirmation (Alone -> I did it)
     expect(await screen.findByText("All done!")).toBeTruthy();
@@ -212,26 +237,48 @@ describe("PlayFlow (Task V5)", () => {
   });
 
   it("Step 5 with Someone else (other): asks partner to confirm", async () => {
+    vi.useFakeTimers();
+
     renderWithTheme(
       <ProviderWrapper>
         <PlayFlow />
       </ProviderWrapper>,
     );
 
-    await screen.findByText("Who is playing?");
+    expect(screen.getByText("Who is playing?")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Someone else/i }));
 
-    await screen.findByText("How are you feeling?");
+    expect(screen.getByText("How are you feeling?")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Amazing, level 3/i }));
 
-    await screen.findByText("Ready to play?");
+    expect(screen.getByText("Ready to play?")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Let's play/i }));
 
-    // Advance through exercise
-    while (screen.queryByRole("button", { name: /Next step/i })) {
-      fireEvent.click(screen.getByRole("button", { name: /Next step/i }));
-    }
+    // Step 0 (10s):
+    act(() => {
+      vi.advanceTimersByTime(11000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Next step/i }));
+
+    // Step 1 (20s):
+    act(() => {
+      vi.advanceTimersByTime(21000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Next step/i }));
+
+    // Step 2 (20s):
+    act(() => {
+      vi.advanceTimersByTime(21000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Next step/i }));
+
+    // Step 3 (20s - last step shows Done):
+    act(() => {
+      vi.advanceTimersByTime(21000);
+    });
     fireEvent.click(screen.getByRole("button", { name: /Done/i }));
+
+    vi.useRealTimers();
 
     // Someone else confirmation
     expect(await screen.findByText("Great teamwork!")).toBeTruthy();

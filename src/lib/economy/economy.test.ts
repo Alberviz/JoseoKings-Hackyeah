@@ -376,48 +376,39 @@ describe("dragon evolution and non-dropping stage rule", () => {
     expect(evo100.fireNeededForNext).toBe(0);
   });
 
-  it("stage dynamically retrocedes when the child spends fire on special rewards", () => {
-    // 1. Economy with 100 fire (Hero Dragon stage)
-    const economy: EconomyState = {
+  it("stage never drops when the child spends fire on special rewards (highestFire rule)", () => {
+    // 1. Start economy and give food until fire reaches 50 (Young Dragon stage)
+    let economy: EconomyState = {
       ...createDefaultEconomy(),
-      fire: 100,
-      highestFire: 100,
-      specialRewards: [
-        { id: "activity-50", name: "Special Activity", fireCost: 50 },
-        { id: "dinner-30", name: "Choose dinner", fireCost: 30 },
-      ],
+      inventory: { food: 5 },
     };
+    for (let i = 0; i < 5; i++) {
+      const fed = giveFood(economy);
+      expect(fed.ok).toBe(true);
+      if (fed.ok) economy = fed.economy;
+    }
+    expect(economy.fire).toBe(50);
+    expect(economy.highestFire).toBe(50);
 
-    // Verify it starts as Hero Dragon (stage 3)
-    const evoHero = getDragonEvolution(economy);
-    expect(evoHero.stage).toBe(3);
-    expect(evoHero.title).toBe("Hero Dragon");
+    // Verify it is Young Dragon (stage 2)
+    const evoBefore = getDragonEvolution(economy);
+    expect(evoBefore.stage).toBe(2);
+    expect(evoBefore.title).toBe("Young Dragon");
 
-    // 2. Child spends 50 fire to claim a special reward
-    const claimed50 = claimReward(economy, "activity-50", today, { now });
-    expect(claimed50.ok).toBe(true);
-    if (!claimed50.ok) return;
+    // 2. Child spends 30 fire to claim a special reward ("phone-minutes" = 30 fire)
+    const claimed = claimReward(economy, "phone-minutes", today, { now });
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok) return;
 
-    // Fire dropped from 100 to 50
-    expect(claimed50.economy.fire).toBe(50);
+    // Fire dropped from 50 to 20
+    expect(claimed.economy.fire).toBe(20);
+    // Highest fire stays 50
+    expect(claimed.economy.highestFire).toBe(50);
 
-    // Evolution retrocedes to Young Dragon (stage 2)
-    const evoYoung = getDragonEvolution(claimed50.economy);
-    expect(evoYoung.stage).toBe(2);
-    expect(evoYoung.title).toBe("Young Dragon");
-    expect(evoYoung.fireNeededForNext).toBe(50); // 100 - 50 = 50 to reach Hero again
-
-    // 3. Child spends another 30 fire -> fire drops to 20
-    const claimed30 = claimReward(claimed50.economy, "dinner-30", today, { now });
-    expect(claimed30.ok).toBe(true);
-    if (!claimed30.ok) return;
-
-    expect(claimed30.economy.fire).toBe(20);
-
-    // Evolution retrocedes to Baby Dragon (stage 1)
-    const evoBaby = getDragonEvolution(claimed30.economy);
-    expect(evoBaby.stage).toBe(1);
-    expect(evoBaby.title).toBe("Baby Dragon");
-    expect(evoBaby.fireNeededForNext).toBe(30); // 50 - 20 = 30 to reach Young
+    // CRITICAL: Stage MUST remain Stage 2 (Young Dragon) and NOT revert to Baby Dragon
+    const evoAfter = getDragonEvolution(claimed.economy);
+    expect(evoAfter.stage).toBe(2);
+    expect(evoAfter.title).toBe("Young Dragon");
+    expect(evoAfter.fireNeededForNext).toBe(50); // 100 - 50 = 50 needed to reach Hero
   });
 });

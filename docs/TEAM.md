@@ -12,7 +12,7 @@ Paste this as your first message to Claude Code, Gemini CLI, Antigravity or any 
 Read AGENTS.md, docs/PRODUCT.md, docs/ARCHITECTURE.md and the section of my task in docs/TASKS.md.
 I am <name> and my task is <T#>. Work only in the folders of that task, on its own branch.
 Follow the component pattern (.tsx + .style.ts), use the theme and src/components/ui.
-Never add medical advice, health data sent to a server, or a dependency that is not listed.
+Never add medical advice, health data sent to a server (except the watch pipeline of task W1 under the rules in AGENTS.md), or a dependency that is not listed.
 If something is unclear or needs a file outside my folders, stop and ask me.
 Read docs/COMMS.md and run `scripts/comms.sh open <my name>`: that is how you ask Claude and the other AIs questions. Then start `scripts/comms.sh watch <my name>` as a background monitor and keep it running all session, and answer Claude's messages promptly.
 ```

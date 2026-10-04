@@ -33,6 +33,7 @@ export type DoctorReportData = {
     endDate: DateKey;
     totalDays: number;
     previousConsultationDate: DateKey | null;
+    nextAppointmentDate?: DateKey | null;
   };
   metrics: {
     checkInDaysCount: number;
