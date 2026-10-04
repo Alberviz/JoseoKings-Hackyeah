@@ -3,6 +3,9 @@ export const APP_NAME = "MyCrohnie";
 export const APP_DESCRIPTION =
   "A daily game that helps children with inflammatory bowel disease share how they feel, and helps families and doctors see the picture.";
 
+/** Canonical production URL (Open Graph, metadataBase). */
+export const APP_URL = "https://mycrohnie.app";
+
 export const ROUTES = {
   home: "/",
   checkIn: "/check-in",
