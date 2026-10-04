@@ -4,9 +4,9 @@ import type { ParentSection } from "../sections";
 import { pressable } from "@/components/ui/Button/Button.style";
 
 const TAB_HEIGHT = "56px";
-const FLOAT_GAP = "12px";
+const FLOAT_GAP = "16px";
 // Tray = tabs + its padding and border; the spacer keeps page content above the floating bar.
-const TRAY_HEIGHT = `calc(${TAB_HEIGHT} + 15px)`;
+const TRAY_HEIGHT = `calc(${TAB_HEIGHT} + 17px)`;
 
 export const NavSpacer = styled.div`
   height: calc(${TRAY_HEIGHT} + ${FLOAT_GAP} * 2 + env(safe-area-inset-bottom));
@@ -23,7 +23,7 @@ export const NavBar = styled.nav`
   z-index: 20;
   display: flex;
   justify-content: center;
-  padding: 0 ${({ theme }) => theme.spacing.md} calc(${FLOAT_GAP} + env(safe-area-inset-bottom));
+  padding: 0 ${({ theme }) => theme.spacing.lg} calc(${FLOAT_GAP} + env(safe-area-inset-bottom));
   pointer-events: none;
 
   @media print {
@@ -32,17 +32,16 @@ export const NavBar = styled.nav`
 `;
 
 export const NavList = styled.ul`
-  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
-  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
   display: flex;
-  gap: 4px;
   width: 100%;
-  max-width: calc(${({ theme }) => theme.maxContentWidth} - 2 * ${({ theme }) => theme.spacing.md});
+  max-width: calc(${({ theme }) => theme.maxContentWidth} - 2 * ${({ theme }) => theme.spacing.lg});
   margin: 0;
-  padding: 5px;
+  padding: 6px ${({ theme }) => theme.spacing.sm};
   list-style: none;
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.leaf};
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
   pointer-events: auto;
 `;
 
@@ -53,11 +52,22 @@ export const NavItem = styled.li`
 
 type TabProps = { $isActive: boolean; $section: ParentSection };
 
-const tabStyles = ({
-  theme,
-  $isActive,
-  $section,
-}: TabProps & { theme: import("styled-components").DefaultTheme }) => `
+// Material 3 pattern: the indicator is a pill around the icon, the label sits below it.
+export const TabIconPill = styled.span<TabProps>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 32px;
+  border: ${({ theme }) => theme.borderWidth} solid
+    ${({ theme, $isActive }) => ($isActive ? theme.colors.ink : "transparent")};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  background: ${({ theme, $isActive, $section }) =>
+    $isActive ? theme.sections[$section].fill : "transparent"};
+  transition: transform 120ms ease;
+`;
+
+export const TabLink = styled(Link)<TabProps>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -65,23 +75,19 @@ const tabStyles = ({
   gap: 2px;
   width: 100%;
   min-height: ${TAB_HEIGHT};
-  padding: 3px 1px;
-  border: ${theme.borderWidth} solid ${$isActive ? theme.colors.ink : "transparent"};
-  border-radius: 16px;
-  background: ${$isActive ? theme.sections[$section].fill : "transparent"};
-  color: ${$isActive ? theme.colors.ink : theme.colors.textMuted};
-  font-family: inherit;
-  font-size: ${theme.fontSize.sm};
-  font-weight: ${$isActive ? theme.fontWeight.bold : theme.fontWeight.medium};
+  padding: 2px 0;
+  color: ${({ theme, $isActive }) => ($isActive ? theme.colors.ink : theme.colors.textMuted)};
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-weight: ${({ theme, $isActive }) =>
+    $isActive ? theme.fontWeight.bold : theme.fontWeight.medium};
   text-decoration: none;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
-`;
 
-export const TabLink = styled(Link)<TabProps>`
-  ${tabStyles}
+  &:active ${TabIconPill} {
+    transform: scale(0.92);
+  }
 `;
 
 // The Exit sheet floats just above the tray, with the same sticker look.
@@ -91,7 +97,7 @@ export const ExitPanel = styled.div`
   z-index: 19;
   display: flex;
   justify-content: center;
-  padding: 0 ${({ theme }) => theme.spacing.md};
+  padding: 0 ${({ theme }) => theme.spacing.lg};
   pointer-events: none;
 
   @media print {
@@ -105,7 +111,7 @@ export const ExitInner = styled.div`
   grid-auto-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.sm};
   width: 100%;
-  max-width: calc(${({ theme }) => theme.maxContentWidth} - 2 * ${({ theme }) => theme.spacing.md});
+  max-width: calc(${({ theme }) => theme.maxContentWidth} - 2 * ${({ theme }) => theme.spacing.lg});
   padding: ${({ theme }) => theme.spacing.sm};
   background: ${({ theme }) => theme.colors.surface};
   border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};

@@ -18,6 +18,7 @@ import {
   NavList,
   NavSpacer,
   SettingsLink,
+  TabIconPill,
   TabLink,
 } from "./ParentNav.style";
 import { ParentNavIcon, type ParentNavIconKey } from "./ParentNavIcons";
@@ -111,7 +112,9 @@ export function ParentNav() {
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => setExitOpenPath(null)}
                 >
-                  <ParentNavIcon iconKey={tab.icon} />
+                  <TabIconPill $isActive={isActive} $section={tab.section}>
+                    <ParentNavIcon iconKey={tab.icon} />
+                  </TabIconPill>
                   {tab.label}
                 </TabLink>
               </NavItem>
