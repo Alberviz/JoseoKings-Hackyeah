@@ -69,12 +69,17 @@ export type WatchMetricSummary = {
 };
 
 export type WatchReportSection = {
-  source: "Watch";
+  /** Always says the numbers were measured by the watch, for example "From the watch (Google Health)". */
+  source: string;
+  /** Labels of the devices the numbers came from, for example "Watch · Fitbit Charge 6". */
+  deviceLabels: string[];
+  /** Where the resting heart rate came from: our night readings, the watch's own daily value, or both. */
+  restingHrSource: "night-samples" | "watch-daily" | "mixed" | null;
   isDemo: boolean;
   /** Days in the period with at least one valid watch value. */
   validDays: number;
   steps: WatchMetricSummary;
-  /** Nocturnal resting heart rate, beats per minute. */
+  /** Resting heart rate, beats per minute (see restingHrSource). */
   restingHr: WatchMetricSummary;
   sleepHours: WatchMetricSummary;
   /** One point per day of the period, for the charts. */

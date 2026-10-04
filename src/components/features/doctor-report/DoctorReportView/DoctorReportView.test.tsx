@@ -46,7 +46,9 @@ const mockReportData: DoctorReportData = {
     { text: "Pizza", count: 2 },
   ],
   watch: {
-    source: "Watch",
+    source: "From the watch (Google Health)",
+    deviceLabels: ["Watch · Fitbit Charge 6"],
+    restingHrSource: "night-samples",
     isDemo: false,
     validDays: 20,
     steps: { n: 20, median: 5200, q1: 3900, q3: 6800 },
@@ -218,7 +220,22 @@ describe("DoctorReportView", () => {
     expect(screen.getByText("5200 steps")).toBeTruthy();
     expect(screen.getByText("3900 to 6800 steps")).toBeTruthy();
     expect(screen.getByText("61 bpm")).toBeTruthy();
-    expect(screen.getAllByText("Source: Watch").length).toBe(1);
+    expect(
+      screen.getAllByText("From the watch (Google Health): Watch · Fitbit Charge 6").length,
+    ).toBe(1);
+  });
+
+  it("says when the resting heart rate is the one reported by the watch", () => {
+    renderWithTheme(
+      <DoctorReportView
+        data={{
+          ...mockReportData,
+          watch: { ...mockReportData.watch, restingHrSource: "watch-daily" },
+        }}
+      />,
+    );
+    expect(screen.getAllByText("Resting HR (reported by the watch)").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Resting heart rate as reported by the watch\./)).toBeTruthy();
   });
 
   it("shows no-data text and a demo banner for the watch section", () => {
@@ -229,7 +246,9 @@ describe("DoctorReportView", () => {
           ...mockReportData,
           isDemo: false,
           watch: {
-            source: "Watch",
+            source: "From the watch (Google Health)",
+            deviceLabels: [],
+            restingHrSource: null,
             isDemo: true,
             validDays: 0,
             steps: empty,

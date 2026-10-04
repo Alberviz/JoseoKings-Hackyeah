@@ -24,7 +24,9 @@ describe("buildWatchSection", () => {
     const s = buildWatchSection(state([]), "2026-09-01", "2026-09-30");
     expect(s.validDays).toBe(0);
     expect(s.steps).toEqual({ n: 0, median: null, q1: null, q3: null });
-    expect(s.source).toBe("Watch");
+    expect(s.source).toBe("From the watch (Google Health)");
+    expect(s.deviceLabels).toEqual([]);
+    expect(s.restingHrSource).toBeNull();
   });
 
   it("computes median and quartiles over period days only", () => {
@@ -53,6 +55,39 @@ describe("buildWatchSection", () => {
     expect(s.restingHr.n).toBe(1);
     expect(s.sleepHours.n).toBe(1);
     expect(s.validDays).toBe(2);
+  });
+
+  it("names the devices used and says where the resting heart rate came from", () => {
+    const devices: WatchState["devices"] = [
+      { id: "w", kind: "watch", label: "Watch · Fitbit Charge 6", metrics: ["steps", "heartRate"] },
+      { id: "p", kind: "phone", label: "Phone · Pixel 8", metrics: ["steps"] },
+    ];
+    const watchOnly = (days: WatchDay[]): WatchState => ({
+      days,
+      lastSyncAt: null,
+      isDemo: false,
+      devices,
+      deviceSelection: { steps: "p", heartRate: null, sleep: null },
+    });
+    const s = buildWatchSection(
+      watchOnly([day("2026-09-01", { restingHrSource: "watch-daily", nightComplete: false })]),
+      "2026-09-01",
+      "2026-09-30",
+    );
+    expect(s.deviceLabels).toEqual(["Watch · Fitbit Charge 6", "Phone · Pixel 8"]);
+    expect(s.restingHrSource).toBe("watch-daily");
+    // the watch's own value counts even when our night checks did not pass
+    expect(s.restingHr.n).toBe(1);
+
+    const mixed = buildWatchSection(
+      watchOnly([
+        day("2026-09-01", { restingHrSource: "watch-daily" }),
+        day("2026-09-02", { restingHrSource: "night-samples" }),
+      ]),
+      "2026-09-01",
+      "2026-09-30",
+    );
+    expect(mixed.restingHrSource).toBe("mixed");
   });
 
   it("carries the demo flag", () => {

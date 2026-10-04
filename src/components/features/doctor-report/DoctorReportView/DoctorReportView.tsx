@@ -65,6 +65,13 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
     }
   };
 
+  const restingHrLabel =
+    data.watch.restingHrSource === "watch-daily"
+      ? "Resting HR (reported by the watch)"
+      : data.watch.restingHrSource === "mixed"
+        ? "Resting HR"
+        : "Nocturnal resting HR";
+
   const adherencePercentage = Math.round(
     data.metrics.checkInCompletionRate > 1
       ? data.metrics.checkInCompletionRate
@@ -204,7 +211,11 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         {/* Section 3: Watch data */}
         <ReportSection aria-labelledby="section-watch">
           <SectionTitle id="section-watch">Watch data</SectionTitle>
-          <SourceTag>Source: Watch</SourceTag>
+          <SourceTag>
+            {data.watch.deviceLabels.length > 0
+              ? `${data.watch.source}: ${data.watch.deviceLabels.join(", ")}`
+              : data.watch.source}
+          </SourceTag>
           {data.watch.isDemo && <DemoBadge>Demo data</DemoBadge>}
           {data.watch.validDays === 0 ? (
             <SectionNote>No data from the watch in this period.</SectionNote>
@@ -214,6 +225,12 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                 Median and middle half (interquartile range) of the days with enough data. Valid
                 days: {data.watch.validDays} of {data.period.totalDays}. Measured by the watch, not
                 checked clinically.
+                {data.watch.restingHrSource === "watch-daily"
+                  ? " Resting heart rate as reported by the watch."
+                  : null}
+                {data.watch.restingHrSource === "mixed"
+                  ? " Resting heart rate is from night readings on some days and as reported by the watch on others."
+                  : null}
               </SectionNote>
               <TableContainer>
                 <Table aria-label="Watch data summary">
@@ -229,7 +246,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                     {(
                       [
                         ["Steps per day", data.watch.steps, "steps"],
-                        ["Nocturnal resting HR", data.watch.restingHr, "bpm"],
+                        [restingHrLabel, data.watch.restingHr, "bpm"],
                         ["Sleep duration", data.watch.sleepHours, "h"],
                       ] as const
                     ).map(([label, metric, unit]) => (
@@ -251,7 +268,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                   markers={data.dayStrip.map((d) => d.hadDiscomfort)}
                 />
                 <DailyChart
-                  title="Nocturnal resting HR"
+                  title={restingHrLabel}
                   unit="bpm"
                   values={data.watch.series.map((p) => p.restingHr)}
                   markers={data.dayStrip.map((d) => d.hadDiscomfort)}

@@ -1,4 +1,5 @@
 import { addDays, daysBetween } from "@/lib/dates";
+import { resolveDeviceSelection } from "@/lib/wearables/devices";
 import { median, quartiles } from "@/lib/wearables/stats";
 import type { DateKey, ParentLog } from "@/types";
 import type { WatchState } from "@/types/watch";
@@ -28,15 +29,20 @@ export function buildWatchSection(
   const steps: number[] = [];
   const restingHr: number[] = [];
   const sleepHours: number[] = [];
+  const hrSources = new Set<"night-samples" | "watch-daily">();
   let validDays = 0;
   const byDate = new Map<DateKey, WatchDailyPoint>();
 
   for (const d of days) {
     const hasSteps = d.dayComplete && d.steps !== null;
-    const hasHr = d.nightComplete && d.restingHr !== null;
+    // The watch's own daily resting heart rate does not depend on our night checks.
+    const hasHr = d.restingHr !== null && (d.nightComplete || d.restingHrSource === "watch-daily");
     const hasSleep = d.nightComplete && d.sleepMinutes !== null;
     if (hasSteps) steps.push(d.steps as number);
-    if (hasHr) restingHr.push(d.restingHr as number);
+    if (hasHr) {
+      restingHr.push(d.restingHr as number);
+      hrSources.add(d.restingHrSource === "watch-daily" ? "watch-daily" : "night-samples");
+    }
     if (hasSleep) sleepHours.push((d.sleepMinutes as number) / 60);
     if (hasSteps || hasHr || hasSleep) validDays += 1;
     byDate.set(d.date, {
@@ -54,8 +60,17 @@ export function buildWatchSection(
     series.push(byDate.get(date) ?? { date, steps: null, restingHr: null, sleepHours: null });
   }
 
+  const devices = watch.devices ?? [];
+  const resolved = resolveDeviceSelection(devices, watch.deviceSelection);
+  const usedIds = new Set([resolved.steps, resolved.heartRate, resolved.sleep]);
+  const deviceLabels = devices.filter((dev) => usedIds.has(dev.id)).map((dev) => dev.label);
+  const restingHrSource =
+    hrSources.size === 2 ? "mixed" : hrSources.size === 1 ? [...hrSources][0] : null;
+
   return {
-    source: "Watch",
+    source: "From the watch (Google Health)",
+    deviceLabels: watch.isDemo ? [] : deviceLabels,
+    restingHrSource,
     isDemo: watch.isDemo,
     validDays,
     steps: summarise(steps, 0),
@@ -64,6 +79,28 @@ export function buildWatchSection(
     series,
   };
 }
+
+/** The loose shape of a daily log or a family observation, as far as the report reads it. */
+type BathroomEntry = {
+  date?: DateKey;
+  kind?: string;
+  valueText?: string;
+  valueNum?: number;
+  daytimeBathroomCount?: number;
+  daytimeVisits?: number;
+  daytimeCount?: number;
+  nighttimeBathroomCount?: number;
+  nighttimeVisits?: number;
+  nighttimeCount?: number;
+  looserStools?: boolean;
+  looserStoolsFlag?: boolean;
+  bloodVisible?: boolean;
+  bloodVisibleFlag?: boolean;
+  stoolFrequency?: unknown;
+  stoolNight?: string;
+  stoolConsistency?: string;
+  stoolBlood?: string;
+};
 
 type DayBathroomRecord = {
   daytime: number;
@@ -76,8 +113,8 @@ type DayBathroomRecord = {
 /** Day counts and clinical observations from family entries in the period. */
 export function buildObservedSection(
   periodLogs: ParentLog[],
-  dailyLogs: any[] = [],
-  parentObservations: any[] = [],
+  dailyLogs: BathroomEntry[] = [],
+  parentObservations: BathroomEntry[] = [],
 ): ObservedSection {
   const count = (pick: (p: ParentLog) => boolean) => periodLogs.filter(pick).length;
 
@@ -170,11 +207,7 @@ export function buildObservedSection(
     ) {
       rec.looser = true;
     }
-    if (
-      d.bloodVisible === true ||
-      d.bloodVisibleFlag === true ||
-      d.stoolBlood === "visible"
-    ) {
+    if (d.bloodVisible === true || d.bloodVisibleFlag === true || d.stoolBlood === "visible") {
       rec.blood = true;
     }
   }
@@ -253,8 +286,7 @@ export function buildObservedSection(
     daysLogged > 0 ? Math.round((totalDaytime / daysLogged) * 10) / 10 : null;
   const avgNighttimePerDay =
     daysLogged > 0 ? Math.round((totalNighttime / daysLogged) * 10) / 10 : null;
-  const avgVisitsPerDay =
-    daysLogged > 0 ? Math.round((totalVisits / daysLogged) * 10) / 10 : null;
+  const avgVisitsPerDay = daysLogged > 0 ? Math.round((totalVisits / daysLogged) * 10) / 10 : null;
 
   const bathroom: BathroomObservedSummary = {
     totalDaytime,
