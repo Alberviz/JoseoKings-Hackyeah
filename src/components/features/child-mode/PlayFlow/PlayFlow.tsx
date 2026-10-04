@@ -352,6 +352,7 @@ export function PlayFlow({
   const [isChestOpened, setIsChestOpened] = useState(initialChestOpened);
 
   const hasSavedRef = useRef(false);
+  const startedAtRef = useRef<number | null>(null);
 
   const handleOpenChest = () => {
     setIsChestOpened(true);
@@ -385,6 +386,7 @@ export function PlayFlow({
   const handleStartGame = () => {
     setExerciseStepIndex(0);
     setIsRest(false);
+    startedAtRef.current = Date.now();
     setStep("exercise");
   };
 

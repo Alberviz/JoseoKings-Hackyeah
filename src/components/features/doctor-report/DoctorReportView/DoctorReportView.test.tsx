@@ -30,11 +30,70 @@ const mockReportData: DoctorReportData = {
       { company: "alone", label: "Done on their own", count: 5 },
       { company: "other", label: "Done with someone", count: 2 },
     ],
+    byCorroboration: [
+      { method: "wearable", label: "Wearable verified", count: 10 },
+      { method: "motion", label: "Motion sensor verified", count: 4 },
+      { method: "none", label: "Self-reported only", count: 1 },
+    ],
+    corroborationTotals: {
+      wearable: 10,
+      motion: 4,
+      none: 1,
+    },
   },
   foodsOnDiscomfortDays: [
     { text: "Milk", count: 3 },
     { text: "Pizza", count: 2 },
   ],
+  wearable: {
+    source: "From the wearable (Google Health)",
+    deviceLabels: ["Wearable · Fitbit Charge 6"],
+    restingHrSource: "night-samples",
+    restingHrNights: { dense: 4, sparse: 14 },
+    sparseGapMin: 30,
+    restingHrMethodText:
+      "lowest 30-minute average on 4 nights; lowest average of 3 readings in a row (wearable recorded about every 30 min) on 14 nights",
+    methodNote: [
+      "The figures are simple fixed calculations done on this device from what the wearable recorded.",
+      "Published studies of wearable data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
+    ],
+    isDemo: false,
+    validDays: 20,
+    steps: { n: 20, median: 5200, q1: 3900, q3: 6800 },
+    restingHr: { n: 18, median: 61, q1: 58, q3: 64 },
+    sleepHours: { n: 18, median: 7.8, q1: 7.2, q3: 8.4 },
+    series: [
+      { date: "2026-09-01", steps: 5000, restingHr: 60, sleepHours: 8 },
+      { date: "2026-09-02", steps: null, restingHr: null, sleepHours: null },
+    ],
+  },
+  crossComparison: [
+    {
+      source: "Child",
+      signal: "Belly comfort answer",
+      metric: "Steps",
+      n: 20,
+      rho: -0.42,
+      low: -0.7,
+      high: -0.08,
+    },
+  ],
+  observed: {
+    loggedDays: 22,
+    school: { attended: 15, leftEarly: 1, missed: 1, noSchool: 5 },
+    medication: { yes: 20, partly: 0, no: 1, notApplicable: 1 },
+    bathroom: {
+      totalDaytime: 33,
+      totalNighttime: 5,
+      totalVisits: 38,
+      avgDaytimePerDay: 1.5,
+      avgNighttimePerDay: 0.2,
+      avgVisitsPerDay: 1.7,
+      daysWithLooserStools: 4,
+      daysWithBloodVisible: 1,
+      daysLogged: 22,
+    },
+  },
   dayStrip: [
     {
       date: "2026-09-01",
@@ -160,6 +219,137 @@ describe("DoctorReportView", () => {
     expect(screen.getByText("3 days")).toBeTruthy();
     expect(screen.getByText("Pizza")).toBeTruthy();
     expect(screen.getByText("2 days")).toBeTruthy();
+  });
+
+  it("renders wearable data with median, middle half and valid days", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    expect(screen.getByText("Wearable data")).toBeTruthy();
+    expect(screen.getByText("5200 steps")).toBeTruthy();
+    expect(screen.getByText("3900 to 6800 steps")).toBeTruthy();
+    expect(screen.getByText("61 bpm")).toBeTruthy();
+    expect(
+      screen.getAllByText("From the wearable (Google Health): Wearable · Fitbit Charge 6").length,
+    ).toBe(1);
+  });
+
+  it("shows how the night-time heart rate was made and the method note", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    expect(screen.getByText(/lowest average of 3 readings in a row/)).toBeTruthy();
+    expect(screen.getByText(/wearable recorded about every 30 min/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "How the wearable figures are made" })).toBeTruthy();
+    expect(screen.getByText(/their results are mixed/)).toBeTruthy();
+  });
+
+  it("shows no method line without a night-time figure", () => {
+    renderWithTheme(
+      <DoctorReportView
+        data={{
+          ...mockReportData,
+          wearable: { ...mockReportData.wearable, restingHrMethodText: null },
+        }}
+      />,
+    );
+    expect(screen.queryByText(/readings in a row/)).toBeNull();
+  });
+
+  it("says when the resting heart rate is the one reported by the wearable", () => {
+    renderWithTheme(
+      <DoctorReportView
+        data={{
+          ...mockReportData,
+          wearable: { ...mockReportData.wearable, restingHrSource: "wearable-daily" },
+        }}
+      />,
+    );
+    expect(screen.getAllByText("Resting HR (reported by the wearable)").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Resting heart rate as reported by the wearable\./)).toBeTruthy();
+  });
+
+  it("shows no-data text and a demo banner for the wearable section", () => {
+    const empty = { n: 0, median: null, q1: null, q3: null };
+    renderWithTheme(
+      <DoctorReportView
+        data={{
+          ...mockReportData,
+          isDemo: false,
+          wearable: {
+            source: "From the wearable (Google Health)",
+            deviceLabels: [],
+            restingHrSource: null,
+            restingHrNights: { dense: 0, sparse: 0 },
+            sparseGapMin: null,
+            restingHrMethodText: null,
+            methodNote: [],
+            isDemo: true,
+            validDays: 0,
+            steps: empty,
+            restingHr: empty,
+            sleepHours: empty,
+            series: [],
+          },
+          crossComparison: [],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("No data from the wearable in this period.")).toBeTruthy();
+    expect(screen.getAllByText("Demo data").length).toBeGreaterThan(0);
+  });
+
+  it("renders charts and the clinician comparison with N and interval", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    expect(screen.getAllByRole("img").length).toBe(3);
+    expect(screen.getByText("Child, family and wearable together")).toBeTruthy();
+    expect(screen.getByText("-0.7 to -0.08")).toBeTruthy();
+    expect(screen.getByText("-0.42")).toBeTruthy();
+  });
+
+  it("explains when there are too few paired days", () => {
+    renderWithTheme(<DoctorReportView data={{ ...mockReportData, crossComparison: [] }} />);
+
+    expect(screen.getByText(/Not enough days with both/)).toBeTruthy();
+  });
+
+  it("renders the observed by the family counts including bathroom clinical observations", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    expect(screen.getByText("Observed by the family")).toBeTruthy();
+    expect(screen.getByText("School: attended")).toBeTruthy();
+    expect(screen.getByText("Medication: taken")).toBeTruthy();
+    expect(screen.getByText("Bathroom: daytime visits")).toBeTruthy();
+    expect(screen.getByText("33 total (avg 1.5/day)")).toBeTruthy();
+    expect(screen.getByText("Bathroom: nighttime visits")).toBeTruthy();
+    expect(screen.getByText("5 total (avg 0.2/day)")).toBeTruthy();
+    expect(screen.getByText("Bathroom: total visits")).toBeTruthy();
+    expect(screen.getByText("38 total (avg 1.7/day)")).toBeTruthy();
+    expect(screen.getByText("Bathroom: looser stools reported")).toBeTruthy();
+    expect(screen.getByText("4 days")).toBeTruthy();
+    expect(screen.getByText("Bathroom: visible blood reported")).toBeTruthy();
+    expect(screen.getByText("1 day")).toBeTruthy();
+  });
+
+  it("renders mission corroboration breakdown when available", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    expect(screen.getByText("Wearable verified")).toBeTruthy();
+    expect(screen.getByText("10 missions")).toBeTruthy();
+    expect(screen.getByText("Motion sensor verified")).toBeTruthy();
+    expect(screen.getByText("4 missions")).toBeTruthy();
+    expect(screen.getByText("Self-reported only")).toBeTruthy();
+    expect(screen.getByText("1 mission")).toBeTruthy();
+  });
+
+  it("renders daily SVG sparklines with titles and accessibility attributes", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    const svgs = screen.getAllByRole("img");
+    expect(svgs.length).toBe(3);
+    expect(screen.getAllByText("Steps per day").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Nocturnal resting HR").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Sleep duration").length).toBeGreaterThan(0);
   });
 
   it("renders mandatory disclaimer banner", () => {

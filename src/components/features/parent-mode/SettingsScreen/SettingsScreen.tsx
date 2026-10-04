@@ -18,7 +18,13 @@ import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { buildDemoState } from "@/lib/demo-data";
 import { createPinRecord, isValidPin, verifyPin } from "@/lib/pin";
-import { exportBackup, importBackup } from "@/lib/storage";
+import {
+  exportBackup,
+  importBackup,
+  importBackupWearable,
+  loadWearableState,
+  saveWearableState,
+} from "@/lib/storage";
 import {
   DEFAULT_REMINDER_TIME,
   getNotificationPermission,
@@ -36,6 +42,7 @@ import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { SectionCard } from "../SectionCard/SectionCard";
 import { SECTION_BUTTON_VARIANT } from "../sections";
 import { PinGate } from "../PinGate/PinGate";
+import { WearableConnectCard } from "../WearableConnectCard/WearableConnectCard";
 import {
   AlertBox,
   HiddenFileInput,
@@ -165,7 +172,7 @@ export function SettingsScreen() {
 
   const handleExportBackup = () => {
     try {
-      const json = exportBackup(state);
+      const json = exportBackup(state, loadWearableState());
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
@@ -191,6 +198,8 @@ export function SettingsScreen() {
       const content = await file.text();
       const imported = importBackup(content);
       actions.importState(imported);
+      const wearable = importBackupWearable(content);
+      if (wearable) saveWearableState(wearable);
 
       setImportSuccess("Backup imported successfully.");
     } catch (err) {
@@ -242,6 +251,8 @@ export function SettingsScreen() {
               </SubtitleRow>
             }
           />
+
+          <WearableConnectCard />
 
           {/* Daily care reminder */}
           <SectionCard section="more" title="Daily care reminder">

@@ -1,7 +1,9 @@
 import { createDefaultEconomy } from "@/lib/economy";
 import { syncCompanion } from "@/lib/rewards";
 import type { AppState } from "@/types";
+import type { WearableState } from "@/types/wearable";
 import { appStateSchema } from "./schemas";
+import { clearWearableState, wearableStateSchema } from "./wearableStore";
 
 export const STORAGE_KEY = "crohncare_app_state";
 export const BACKUP_STORAGE_KEY = "crohncare_app_state_backup";
@@ -110,10 +112,11 @@ export function saveState(state: AppState): boolean {
 }
 
 /**
- * Removes both the main state key and backup key from localStorage.
+ * Removes the main state key, the backup key and the wearable state from localStorage.
  * Never throws.
  */
 export function clearStorage(): void {
+  clearWearableState();
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
@@ -128,10 +131,33 @@ export function clearStorage(): void {
 
 /**
  * Exports the state as an indented JSON string for backup download.
+ * Pass the wearable state to include it under the optional "wearable" key.
  */
-export function exportBackup(state: AppState): string {
+export function exportBackup(state: AppState, wearable?: WearableState): string {
   const validated = appStateSchema.parse(state);
-  return JSON.stringify(validated, null, 2);
+  const payload = wearable
+    ? { ...validated, wearable: wearableStateSchema.parse(wearable) }
+    : validated;
+  return JSON.stringify(payload, null, 2);
+}
+
+/**
+ * Reads the optional wearable state from a backup JSON string. Backups made before the rename
+ * keep it under the old "watch" key, which is read as well.
+ * Returns null when the backup has none or it is invalid.
+ */
+export function importBackupWearable(jsonString: string): WearableState | null {
+  try {
+    const parsed: unknown = JSON.parse(jsonString);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const block = parsed as { wearable?: unknown; watch?: unknown };
+    const raw = "wearable" in block ? block.wearable : block.watch;
+    if (raw === undefined) return null;
+    const result = wearableStateSchema.safeParse(raw);
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
 }
 
 /**

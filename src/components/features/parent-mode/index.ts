@@ -6,6 +6,7 @@ export { PinGate } from "./PinGate/PinGate";
 export { SettingsScreen } from "./SettingsScreen/SettingsScreen";
 export { SectionCard } from "./SectionCard/SectionCard";
 export { SetupScreen } from "./SetupScreen/SetupScreen";
+export { WearableConnectCard } from "./WearableConnectCard/WearableConnectCard";
 export { SummaryCard } from "./SummaryCard/SummaryCard";
 export { formatMissionTitle } from "./missionLabels";
 export { SECTION_BUTTON_VARIANT } from "./sections";

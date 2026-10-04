@@ -20,6 +20,7 @@ import type {
   FoodEntry,
   MedicationTaken,
   MissionCompany,
+  MissionCorroboration,
   MissionConfirmation,
   MissionLog,
   MissionMoodAfter,
@@ -99,6 +100,11 @@ export const missionMoodAfterSchema: z.ZodType<MissionMoodAfter> = z.enum([
   "great",
 ]);
 
+/** Old logs saved the value "watch": it is read as "wearable". */
+export const missionCorroborationSchema: z.ZodType<MissionCorroboration> = z
+  .enum(["wearable", "watch", "motion"])
+  .transform((value): MissionCorroboration => (value === "watch" ? "wearable" : value));
+
 export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   id: z.string(),
   date: dateKeySchema,
@@ -109,6 +115,7 @@ export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   createdAt: z.string(),
   moodBefore: missionMoodBeforeSchema.optional(),
   moodAfter: missionMoodAfterSchema.optional(),
+  corroboration: missionCorroborationSchema.optional(),
 });
 
 export const activityLevelSchema: z.ZodType<ActivityLevel> = z.enum([
@@ -160,6 +167,10 @@ export const parentLogSchema: z.ZodType<ParentLog> = z.object({
   stoolNight: stoolNightSchema.optional(),
   stoolConsistency: stoolConsistencySchema.optional(),
   stoolBlood: stoolBloodSchema.optional(),
+  daytimeBathroomCount: z.number().min(0).optional(),
+  nighttimeBathroomCount: z.number().min(0).optional(),
+  looserStools: z.boolean().optional(),
+  bloodVisible: z.boolean().optional(),
   note: z.string().optional(),
 });
 

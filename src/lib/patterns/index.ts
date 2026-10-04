@@ -5,3 +5,5 @@ export * from "./enoughData";
 export * from "./foodCooccurrence";
 export * from "./types";
 export * from "./weeklySeries";
+export * from "./wearableJoin";
+export * from "./wearableStatus";

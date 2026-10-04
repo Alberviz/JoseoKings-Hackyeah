@@ -30,7 +30,7 @@ pnpm check
 Check, in this order:
 
 1. The PR stays inside its task's folders and only adds the deps allowed in `docs/TASKS.md`.
-2. Domain rules and `docs/PRODUCT.md` section 5: no health data leaves the device (the only exception is the watch pipeline of task W1, with the privacy guardrails in `AGENTS.md`; check-ins, parent log and food diary never leave), watch data is labelled as measured by the watch and never used for scores, alerts or rewards, no medical claims, rewards never depend on answers, mission kind or watch data, no punishment mechanics, wording from section 6.
+2. Domain rules and `docs/PRODUCT.md` section 5: no health data leaves the device (the only exception is the wearable pipeline of task W1, with the privacy guardrails in `AGENTS.md`; check-ins, parent log and food diary never leave), wearable data is labelled as measured by the wearable and never used for scores, alerts or rewards, no medical claims, rewards never depend on answers, mission kind or wearable data, no punishment mechanics, wording from section 6.
 3. The component pattern (`.tsx` + `.style.ts`, theme tokens, `$` transient props, `"use client"`).
 4. Correctness and edge cases (empty or corrupt storage, no data yet, day boundaries in local time, offline).
 5. Accessibility (labels, 48 px targets, focus).

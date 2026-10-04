@@ -2,13 +2,20 @@ import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays, daysBetween, todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
-import type { AppState, DateKey, MissionCompany } from "@/types";
+import { createEmptyWearableState } from "@/lib/storage/wearableStore";
+import type { AppState, BathroomEntry, DateKey, MissionCompany } from "@/types";
+import type { WearableState } from "@/types/wearable";
+import { compareChildWithWearable } from "./crossComparison";
+import { buildObservedSection, buildWearableSection } from "./sections";
 import type {
   ActivityConfidenceCount,
   DayStripEntry,
   DoctorReportData,
   FoodCooccurrence,
+  MissionCorroborationCount,
 } from "./types";
+
+type DatedBathroomEntry = BathroomEntry & { date: DateKey };
 
 const COMPANIES: readonly MissionCompany[] = ["alone", "family", "other"];
 
@@ -18,7 +25,11 @@ function isSchoolImpacted(school?: string): boolean {
   );
 }
 
-export function buildReport(state: AppState, today: DateKey = todayKey()): DoctorReportData {
+export function buildReport(
+  state: AppState,
+  today: DateKey = todayKey(),
+  wearable: WearableState = createEmptyWearableState(),
+): DoctorReportData {
   const priorConsultations = [...(state.consultations ?? [])]
     .filter((c) => c.date <= today)
     .sort((a, b) => b.date.localeCompare(a.date));
@@ -69,11 +80,32 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
     missionDates.add(m.date);
   }
 
+  const inPeriod = (entry: BathroomEntry | undefined): entry is DatedBathroomEntry =>
+    Boolean(entry && entry.date && entry.date >= startDate && entry.date <= endDate);
+  const periodDailyLogs = (state.dailyLogs ?? []).filter(inPeriod);
+  const periodParentObservations = (state.parentObservations ?? []).filter(inPeriod);
+
+  const dailyLogByDate = new Map<DateKey, DatedBathroomEntry>();
+  for (const d of periodDailyLogs) {
+    if (!dailyLogByDate.has(d.date)) {
+      dailyLogByDate.set(d.date, d);
+    }
+  }
+
+  const parentObsByDate = new Map<DateKey, DatedBathroomEntry[]>();
+  for (const o of periodParentObservations) {
+    const list = parentObsByDate.get(o.date) ?? [];
+    list.push(o);
+    parentObsByDate.set(o.date, list);
+  }
+
   const dayStrip: DayStripEntry[] = [];
   for (let i = 0; i < totalDays; i += 1) {
     const day = addDays(startDate, i);
     const checkIn = checkInByDate.get(day);
     const parentLog = parentLogByDate.get(day);
+    const dailyLog = dailyLogByDate.get(day);
+    const parentObsList = parentObsByDate.get(day) ?? [];
 
     const rawBelly = checkIn?.answers?.[QUESTION_IDS.bellyComfort];
     const bellyComfort =
@@ -91,6 +123,62 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
     const hadDiscomfort =
       (bellyComfort !== null && bellyComfort >= DISCOMFORT_THRESHOLD) || notToday;
 
+    const daytimeBathroomCount =
+      parentLog?.daytimeBathroomCount ??
+      dailyLog?.daytimeBathroomCount ??
+      dailyLog?.daytimeVisits ??
+      (parentObsList.length > 0
+        ? parentObsList.reduce(
+            (max: number, o: BathroomEntry) =>
+              Math.max(max, o.daytimeBathroomCount ?? o.daytimeVisits ?? o.valueNum ?? 0),
+            0,
+          )
+        : undefined);
+
+    const nighttimeBathroomCount =
+      parentLog?.nighttimeBathroomCount ??
+      dailyLog?.nighttimeBathroomCount ??
+      dailyLog?.nighttimeVisits ??
+      (parentLog?.stoolNight === "yes" || dailyLog?.stoolNight === "yes"
+        ? 1
+        : parentObsList.length > 0
+          ? parentObsList.reduce(
+              (max: number, o: BathroomEntry) =>
+                Math.max(
+                  max,
+                  o.nighttimeBathroomCount ??
+                    o.nighttimeVisits ??
+                    (o.stoolNight === "yes" ? 1 : (o.valueNum ?? 0)),
+                ),
+              0,
+            )
+          : undefined);
+
+    const looserStools =
+      Boolean(parentLog?.looserStools) ||
+      parentLog?.stoolConsistency === "looser" ||
+      parentLog?.stoolConsistency === "watery" ||
+      Boolean(dailyLog?.looserStools) ||
+      dailyLog?.stoolConsistency === "looser" ||
+      dailyLog?.stoolConsistency === "watery" ||
+      parentObsList.some(
+        (o: BathroomEntry) =>
+          Boolean(o.looserStools) ||
+          o.stoolConsistency === "looser" ||
+          o.stoolConsistency === "watery" ||
+          o.kind === "looser_stools",
+      );
+
+    const bloodVisible =
+      Boolean(parentLog?.bloodVisible) ||
+      parentLog?.stoolBlood === "visible" ||
+      Boolean(dailyLog?.bloodVisible) ||
+      dailyLog?.stoolBlood === "visible" ||
+      parentObsList.some(
+        (o: BathroomEntry) =>
+          Boolean(o.bloodVisible) || o.stoolBlood === "visible" || o.kind === "blood_visible",
+      );
+
     dayStrip.push({
       date: day,
       hasCheckIn: Boolean(checkIn),
@@ -100,8 +188,13 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
       playPace,
       hadMissions: missionDates.has(day),
       hadDiscomfort,
-      hasParentLog: Boolean(parentLog),
+      hasParentLog: Boolean(parentLog || dailyLog || parentObsList.length > 0),
       ...(parentLog?.sleepHours !== undefined ? { sleepHours: parentLog.sleepHours } : {}),
+      ...(parentLog ? { schoolImpacted: isSchoolImpacted(parentLog.school) } : {}),
+      ...(typeof daytimeBathroomCount === "number" ? { daytimeBathroomCount } : {}),
+      ...(typeof nighttimeBathroomCount === "number" ? { nighttimeBathroomCount } : {}),
+      ...(looserStools ? { looserStools: true } : {}),
+      ...(bloodVisible ? { bloodVisible: true } : {}),
     });
   }
 
@@ -137,6 +230,24 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
     count: completedMissions.filter((m) => m.company === company).length,
   }));
 
+  const wearableCorroboratedCount = completedMissions.filter(
+    (m) => m.corroboration === "wearable",
+  ).length;
+  const motionCorroboratedCount = completedMissions.filter(
+    (m) => m.corroboration === "motion",
+  ).length;
+  const noneCorroboratedCount = completedMissions.filter((m) => !m.corroboration).length;
+
+  const byCorroboration: MissionCorroborationCount[] = [
+    {
+      method: "wearable",
+      label: "Movement noted by the wearable",
+      count: wearableCorroboratedCount,
+    },
+    { method: "motion", label: "Movement noted by the phone", count: motionCorroboratedCount },
+    { method: "none", label: "Self-reported only", count: noneCorroboratedCount },
+  ];
+
   const discomfortDates = new Set<DateKey>(
     dayStrip.filter((d) => d.hadDiscomfort).map((d) => d.date),
   );
@@ -154,6 +265,8 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
   const foodsOnDiscomfortDays: FoodCooccurrence[] = Array.from(foodCounts.entries())
     .map(([text, count]) => ({ text, count }))
     .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
+
+  const wearableSection = buildWearableSection(wearable, startDate, endDate);
 
   return {
     childNickname: state.child?.nickname ?? "Lucas",
@@ -178,8 +291,17 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
     activity: {
       totalMissionsCompleted: completedMissions.length,
       byConfidence,
+      byCorroboration,
+      corroborationTotals: {
+        wearable: wearableCorroboratedCount,
+        motion: motionCorroboratedCount,
+        none: noneCorroboratedCount,
+      },
     },
     foodsOnDiscomfortDays,
+    crossComparison: compareChildWithWearable(dayStrip, wearableSection.series),
+    wearable: wearableSection,
+    observed: buildObservedSection(periodParentLogs, periodDailyLogs, periodParentObservations),
     dayStrip,
     disclaimer: REPORT_DISCLAIMER,
   };

@@ -8,7 +8,7 @@ export const PrintGlobalStyle = createGlobalStyle`
     }
 
     body {
-      background: ${({ theme }) => theme.colors.surface} !important;
+      background: #ffffff !important;
       color: ${({ theme }) => theme.colors.text} !important;
     }
 
@@ -19,6 +19,9 @@ export const PrintGlobalStyle = createGlobalStyle`
       min-height: auto !important;
     }
 
+    nav,
+    button,
+    [role="navigation"],
     .no-print {
       display: none !important;
     }
@@ -27,6 +30,11 @@ export const PrintGlobalStyle = createGlobalStyle`
     section, table, tr, figure, article, aside {
       break-inside: avoid;
       page-break-inside: avoid;
+    }
+
+    h1, h2, h3 {
+      break-after: avoid;
+      page-break-after: avoid;
     }
 
     * {
@@ -360,7 +368,7 @@ export const Table = styled.table`
   }
 
   @media print {
-    font-size: 8pt !important;
+    font-size: 7.5pt !important;
 
     tbody tr:nth-child(even) {
       background: ${({ theme }) => theme.colors.background} !important;
@@ -405,7 +413,8 @@ export const TableCell = styled.td`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
   @media print {
-    padding: 2px 4px !important;
+    padding: 1px 4px !important;
+    line-height: 1.2 !important;
     border: 1px solid ${({ theme }) => theme.colors.border} !important;
     color: ${({ theme }) => theme.colors.text} !important;
   }
@@ -432,6 +441,39 @@ export const SectionNote = styled.p`
   @media print {
     font-size: 7.5pt !important;
     color: ${({ theme }) => theme.colors.textMuted} !important;
+  }
+`;
+
+/** Small muted line under a figure's name, for example how it was calculated. */
+export const MethodText = styled.span`
+  display: block;
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textMuted};
+
+  @media print {
+    font-size: 7pt !important;
+    color: ${({ theme }) => theme.colors.textMuted} !important;
+  }
+`;
+
+export const MethodNote = styled.aside`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding-top: ${({ theme }) => theme.spacing.sm};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  break-inside: avoid;
+`;
+
+export const MethodNoteTitle = styled.h3`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSize.md};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.text};
+
+  @media print {
+    font-size: 8.5pt !important;
+    color: ${({ theme }) => theme.colors.text} !important;
   }
 `;
 
@@ -476,5 +518,34 @@ export const DisclaimerText = styled.p`
     color: ${({ theme }) => theme.colors.text} !important;
     font-size: 7.5pt !important;
     line-height: 1.25 !important;
+  }
+`;
+
+/** Where a section's numbers come from: Child, Family, Wearable. */
+export const SourceTag = styled.span`
+  align-self: flex-start;
+  padding: 1px 8px;
+  border: 1px solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  background: ${({ theme }) => theme.colors.primarySoft};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.75rem;
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+
+  @media print {
+    font-size: 7pt !important;
+    padding: 0 6px !important;
+    background: ${({ theme }) => theme.colors.surface} !important;
+  }
+`;
+
+export const ChartsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  @media print {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
   }
 `;
