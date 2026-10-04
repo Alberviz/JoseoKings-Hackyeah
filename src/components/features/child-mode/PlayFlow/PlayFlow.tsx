@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Companion } from "@/components/features/companion";
 import { ExerciseFigure, MissionConfirmation } from "@/components/features/missions";
@@ -116,6 +116,7 @@ type StepCountdownProps = {
   withAdult: boolean;
   onNext: () => void;
   onRestNow: () => void;
+  autoAdvanceDelayMs?: number;
 };
 
 function StepCountdown({
@@ -125,11 +126,46 @@ function StepCountdown({
   withAdult,
   onNext,
   onRestNow,
+  autoAdvanceDelayMs = 2000,
 }: StepCountdownProps) {
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearAutoAdvance = useCallback(() => {
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+  }, []);
+
+  const handleNext = useCallback(() => {
+    clearAutoAdvance();
+    onNext();
+  }, [clearAutoAdvance, onNext]);
+
+  const handleRestNow = useCallback(() => {
+    clearAutoAdvance();
+    onRestNow();
+  }, [clearAutoAdvance, onRestNow]);
+
+  const onCountdownDone = useCallback(() => {
+    if (autoAdvanceDelayMs > 0) {
+      autoAdvanceTimerRef.current = setTimeout(() => {
+        onNext();
+      }, autoAdvanceDelayMs);
+    }
+  }, [autoAdvanceDelayMs, onNext]);
+
   const countdown = useCountdown({
     seconds: step.durationSeconds,
     running: true,
+    onDone: onCountdownDone,
   });
+
+  useEffect(() => {
+    return () => {
+      clearAutoAdvance();
+    };
+  }, [stepIndex, clearAutoAdvance]);
 
   return (
     <ExerciseBox>
@@ -156,10 +192,17 @@ function StepCountdown({
       </ExerciseTimerBox>
 
       <ExerciseActionsRow>
-        <Button variant="primary" fullWidth onClick={onNext}>
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={handleNext}
+          disabled={!countdown.isDone}
+          aria-disabled={!countdown.isDone}
+          data-testid="play-step-next-button"
+        >
           {stepIndex < totalSteps - 1 ? "Next step" : "Done"}
         </Button>
-        <RestNowButton type="button" onClick={onRestNow}>
+        <RestNowButton type="button" onClick={handleRestNow}>
           Rest now
         </RestNowButton>
       </ExerciseActionsRow>

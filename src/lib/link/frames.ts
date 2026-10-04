@@ -40,7 +40,7 @@ export function splitFrames(
 
 export function parseFrame(text: string): Frame {
   const match = FRAME_PATTERN.exec(text.trim());
-  if (!match) throw new LinkError("not-a-code", "This is not a CrohnCare code.");
+  if (!match) throw new LinkError("not-a-code", "This is not a MyCrohnie code.");
   const index = Number(match[2]);
   const total = Number(match[3]);
   if (index < 1 || total < 1 || index > total || total > MAX_FRAME_COUNT) {
