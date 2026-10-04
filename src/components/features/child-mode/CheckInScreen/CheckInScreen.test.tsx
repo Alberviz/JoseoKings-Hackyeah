@@ -63,7 +63,7 @@ describe("CheckInScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: /Save today's check-in/i }));
 
     expect(screen.getByRole("heading", { name: /Check-in saved/i })).toBeTruthy();
-    expect(screen.getByText(/What your parents can see/i)).toBeTruthy();
+    expect(screen.queryByText(/What your parents can see/i)).toBeNull();
     expect(screen.getByRole("link", { name: /Back home/i })).toBeTruthy();
 
     await waitFor(() => {

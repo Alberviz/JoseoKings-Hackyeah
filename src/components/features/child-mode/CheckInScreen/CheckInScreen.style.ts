@@ -341,16 +341,3 @@ export const StarsBadge = styled.div`
   justify-content: center;
   line-height: 0;
 `;
-
-export const ParentReportNotice = styled.aside`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xs};
-  width: 100%;
-  box-sizing: border-box;
-  padding: ${({ theme }) => theme.spacing.md};
-  background: ${({ theme }) => theme.colors.primarySoft};
-  border: 2px solid ${({ theme }) => theme.colors.ink};
-  border-radius: ${({ theme }) => theme.radius.leaf};
-  text-align: left;
-`;
