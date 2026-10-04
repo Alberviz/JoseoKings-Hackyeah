@@ -60,6 +60,43 @@ describe("patterns logic", () => {
       }
     });
 
+    it("treats answers that are not 0, 1 or 2 as missing", () => {
+      const state = makeState();
+      state.checkIns = [
+        {
+          id: "c-1",
+          date: "2026-10-01",
+          answers: {
+            [QUESTION_IDS.bellyComfort]: 7,
+            [QUESTION_IDS.energy]: -1,
+            [QUESTION_IDS.playPace]: 1.5,
+          },
+          notToday: false,
+          createdAt: "2026-10-01T10:00:00Z",
+        },
+        {
+          id: "c-2",
+          date: "2026-10-02",
+          answers: {
+            [QUESTION_IDS.bellyComfort]: 2,
+            [QUESTION_IDS.energy]: 0,
+            [QUESTION_IDS.playPace]: 1,
+          },
+          notToday: false,
+          createdAt: "2026-10-02T10:00:00Z",
+        },
+      ];
+      const [bad, good] = getDaySummaries(state, { from: "2026-10-01", to: "2026-10-02" });
+
+      expect(bad.bellyComfort).toBeNull();
+      expect(bad.energy).toBeNull();
+      expect(bad.playPace).toBeNull();
+      expect(bad.dayLevel).toBeNull();
+      expect(bad.hasDiscomfort).toBe(false);
+      expect([good.bellyComfort, good.energy, good.playPace]).toEqual([2, 0, 1]);
+      expect(good.hasDiscomfort).toBe(true);
+    });
+
     it("returns empty weekly series when given empty summaries", () => {
       expect(getWeeklySeries([])).toEqual([]);
     });
