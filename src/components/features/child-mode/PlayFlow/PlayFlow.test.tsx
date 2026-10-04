@@ -116,11 +116,15 @@ describe("PlayFlow (Task V5)", () => {
     expect(screen.getByTestId("exercise-figure-svg")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Rest now/i })).toBeTruthy();
 
-    // Step 0: Verify button is initially disabled, advance 16s, then click
+    // Step 0: Verify button is initially disabled, advance to last 5s to see 'Almost there!' hint
     const step1Btn = screen.getByRole("button", { name: /Next step/i });
     expect((step1Btn as HTMLButtonElement).disabled).toBe(true);
     act(() => {
-      vi.advanceTimersByTime(16000);
+      vi.advanceTimersByTime(11000);
+    });
+    expect(screen.getByText("Almost there!")).toBeTruthy();
+    act(() => {
+      vi.advanceTimersByTime(5000);
     });
     expect((step1Btn as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(step1Btn);
@@ -211,11 +215,48 @@ describe("PlayFlow (Task V5)", () => {
   });
 
   it("Step 5 with Someone else (other): asks partner to confirm", async () => {
+    vi.useFakeTimers();
+
     renderWithTheme(
       <ProviderWrapper>
-        <PlayFlow initialStep="confirmation" initialCompany="other" />
+        <PlayFlow />
       </ProviderWrapper>,
     );
+
+    expect(screen.getByText("Who is playing?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Someone else/i }));
+
+    expect(screen.getByText("How are you feeling?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Amazing, level 3/i }));
+
+    expect(screen.getByText("Ready to play?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Let's play/i }));
+
+    // Step 0 (10s):
+    act(() => {
+      vi.advanceTimersByTime(11000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Next step/i }));
+
+    // Step 1 (20s):
+    act(() => {
+      vi.advanceTimersByTime(21000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Next step/i }));
+
+    // Step 2 (20s):
+    act(() => {
+      vi.advanceTimersByTime(21000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Next step/i }));
+
+    // Step 3 (20s - last step shows Done):
+    act(() => {
+      vi.advanceTimersByTime(21000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Done/i }));
+
+    vi.useRealTimers();
 
     // Someone else confirmation
     expect(await screen.findByText("Great teamwork!")).toBeTruthy();
