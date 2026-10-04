@@ -36,7 +36,11 @@ export interface GoogleHealthReadOptions {
 
 /** What happened when one metric was requested. Callers decide how to show a failed metric. */
 export type MetricFetchStatus =
-  | { status: "ok"; count?: number }
+  | {
+      status: "ok";
+      count?: number;
+      /** The page limit was reached: the metric was read only in part. */ partial?: boolean;
+    }
   | { status: "http-error"; httpStatus: number; reason?: string; message?: string }
   | { status: "network-error"; message: string }
   | { status: "invalid-response" };
@@ -82,6 +86,8 @@ type ListSpec = {
   pageSize: number;
 };
 
+type ListResult = { points: HealthDataPoint[]; truncated: boolean };
+
 class MetricFailure extends Error {
   constructor(readonly outcome: MetricFetchStatus) {
     super("metric failed");
@@ -113,7 +119,7 @@ async function listAll(
   baseUrl: string,
   headers: Record<string, string>,
   spec: ListSpec,
-): Promise<HealthDataPoint[]> {
+): Promise<ListResult> {
   const points: HealthDataPoint[] = [];
   let pageToken: string | undefined;
   for (let page = 0; page < MAX_PAGES; page++) {
@@ -148,7 +154,8 @@ async function listAll(
     pageToken = data.nextPageToken || undefined;
     if (!pageToken) break;
   }
-  return points;
+  // A next page is still waiting after the last allowed request: the list is cut short.
+  return { points, truncated: pageToken !== undefined };
 }
 
 /** Physical-time filter: RFC3339 instants ending in Z, only >= and <. */
@@ -180,13 +187,17 @@ export async function fetchBrowserGoogleHealth(
   async function run(
     key: FetchedMetricKey,
     deviceMetric: DeviceMetric,
-    load: () => Promise<{ points: HealthDataPoint[]; rows: WearableSample[] }>,
+    load: () => Promise<{ points: HealthDataPoint[]; rows: WearableSample[]; truncated: boolean }>,
   ): Promise<void> {
     try {
       const loaded = await load();
       rows.push(...loaded.rows);
       devicePoints[deviceMetric] = [...(devicePoints[deviceMetric] ?? []), ...loaded.points];
-      metricStatus[key] = { status: "ok", count: loaded.rows.length };
+      metricStatus[key] = {
+        status: "ok",
+        count: loaded.rows.length,
+        ...(loaded.truncated ? { partial: true } : {}),
+      };
     } catch (err) {
       if (err instanceof MetricFailure) {
         metricStatus[key] = err.outcome;
@@ -197,52 +208,53 @@ export async function fetchBrowserGoogleHealth(
   }
 
   await run("steps", "steps", async () => {
-    const points = await listAll(baseUrl, headers, {
+    const { points, truncated } = await listAll(baseUrl, headers, {
       dataType: "steps",
       filter: timeFilter("steps.interval.start_time", startTimeMillis, endTimeMillis),
       pageSize: PAGE_SIZE,
     });
-    return { points, rows: stepPointsToRows(points) };
+    return { points, rows: stepPointsToRows(points), truncated };
   });
 
   // Heart rate is a sample type: it is filtered by its sample time. At most 14 days per request.
   await run("heartRate", "heartRate", async () => {
     const points: HealthDataPoint[] = [];
+    let truncated = false;
     const chunk = HEART_RATE_MAX_RANGE_DAYS * DAY_MS;
     for (let from = startTimeMillis; from < endTimeMillis; from += chunk) {
       const to = Math.min(from + chunk, endTimeMillis);
-      points.push(
-        ...(await listAll(baseUrl, headers, {
-          dataType: "heart-rate",
-          filter: timeFilter("heart_rate.sample_time.physical_time", from, to),
-          pageSize: PAGE_SIZE,
-        })),
-      );
+      const part = await listAll(baseUrl, headers, {
+        dataType: "heart-rate",
+        filter: timeFilter("heart_rate.sample_time.physical_time", from, to),
+        pageSize: PAGE_SIZE,
+      });
+      points.push(...part.points);
+      truncated = truncated || part.truncated;
     }
-    return { points, rows: heartRatePointsToRows(points) };
+    return { points, rows: heartRatePointsToRows(points), truncated };
   });
 
   // The wearable's own resting heart rate per day. Daily types are filtered by civil date, never mixed with instants.
   await run("restingHrDaily", "heartRate", async () => {
     const fromDate = localDateTime(startTimeMillis, timeZone).date;
     const toDate = addDays(localDateTime(endTimeMillis, timeZone).date, 1);
-    const points = await listAll(baseUrl, headers, {
+    const { points, truncated } = await listAll(baseUrl, headers, {
       dataType: "daily-resting-heart-rate",
       filter: `daily_resting_heart_rate.date >= "${fromDate}" AND daily_resting_heart_rate.date < "${toDate}"`,
       pageSize: DAILY_PAGE_SIZE,
     });
-    return { points, rows: dailyRestingHrPointsToRows(points) };
+    return { points, rows: dailyRestingHrPointsToRows(points), truncated };
   });
 
   await run("sleep", "sleep", async () => {
     // Sleep is filtered by the civil day it ends; start one day early to keep a session that ends on day one.
     const fromDate = localDateTime(startTimeMillis - DAY_MS, timeZone).date;
-    const points = await listAll(baseUrl, headers, {
+    const { points, truncated } = await listAll(baseUrl, headers, {
       dataType: "sleep",
       filter: `sleep.interval.civil_end_time >= "${fromDate}"`,
       pageSize: SLEEP_PAGE_SIZE,
     });
-    return { points, rows: sleepPointsToRows(points) };
+    return { points, rows: sleepPointsToRows(points), truncated };
   });
 
   // Daily figures with the automatic device per metric, so steps are never summed across devices.

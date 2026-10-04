@@ -98,16 +98,23 @@ function readPoint(source: HealthDataSource | undefined): PointFacts {
   const appName = clean(source?.application?.name);
   const known = packageName ? knownApp(packageName) : null;
 
+  const fromForm = deviceKindFromFormFactor(formFactor);
+  const isPhoneApp = packageName.toLowerCase().startsWith(PHONE_APP_PREFIX);
+
   // The source app is the identity: devices often come with empty fields (Health Connect).
+  // A wearable app without a uid that also reports PHONE points gets a separate id for them, so the
+  // phone's steps are never summed with the wearable's.
   let id = UNKNOWN_ID;
-  if (packageName) id = uid ? `${packageName}|${uid}` : packageName;
-  else if (uid) id = uid;
+  if (packageName) {
+    if (uid) id = `${packageName}|${uid}`;
+    else if (fromForm === "phone" && !isPhoneApp && known?.kind === "wearable") {
+      id = `${packageName}|phone`;
+    } else id = packageName;
+  } else if (uid) id = uid;
   else if (manufacturer || model || formFactor) {
     id = [manufacturer, model, formFactor].filter(Boolean).join("|");
   } else if (appName) id = appName;
 
-  const fromForm = deviceKindFromFormFactor(formFactor);
-  const isPhoneApp = packageName.toLowerCase().startsWith(PHONE_APP_PREFIX);
   const formKind =
     fromForm === "wearable" ? "wearable" : fromForm === "phone" || isPhoneApp ? "phone" : null;
 
@@ -166,7 +173,9 @@ export function buildDeviceList(points: DevicePoints): WearableDevice[] {
   const byId = new Map<string, Merged>();
   for (const metric of DEVICE_METRICS) {
     for (const point of points[metric] ?? []) {
-      if (metric === "sleep" && point.sleep?.metadata?.nap === true) continue;
+      // Same rule as sleepPointsToRows: a nap is skipped unless the app also flags it as main sleep.
+      const sleepMeta = point.sleep?.metadata;
+      if (metric === "sleep" && sleepMeta?.nap === true && sleepMeta.mainSleep !== true) continue;
       const facts = readPoint(point.dataSource);
       let m = byId.get(facts.id);
       if (!m) {
