@@ -246,8 +246,8 @@ export function setSpecialRewards(
 }
 
 /**
- * Calculates current dragon evolution details based on the child's highest fire reached.
- * Even if the child claims a special reward and spends fire, the dragon NEVER de-evolves.
+ * Calculates current dragon evolution details based on the child's current fire.
+ * When fire is spent on rewards, stage dynamically reflects current fire (e.g. 100 Hero -> spends 50 -> 50 Young).
  */
 export function getDragonEvolution(
   economy: Pick<EconomyState, "fire"> & { highestFire?: number },
@@ -256,15 +256,15 @@ export function getDragonEvolution(
   const highestFire = Math.max(currentFire, economy.highestFire ?? 0);
 
   let stage: DragonStageId = 1;
-  if (highestFire >= DRAGON_EVOLUTION_THRESHOLDS.stage3) {
+  if (currentFire >= DRAGON_EVOLUTION_THRESHOLDS.stage3) {
     stage = 3;
-  } else if (highestFire >= DRAGON_EVOLUTION_THRESHOLDS.stage2) {
+  } else if (currentFire >= DRAGON_EVOLUTION_THRESHOLDS.stage2) {
     stage = 2;
   }
 
   const stageConfig = DRAGON_EVOLUTION_STAGES[stage];
   const fireNeededForNext =
-    stageConfig.nextThreshold !== null ? Math.max(0, stageConfig.nextThreshold - highestFire) : 0;
+    stageConfig.nextThreshold !== null ? Math.max(0, stageConfig.nextThreshold - currentFire) : 0;
 
   return {
     ...stageConfig,
