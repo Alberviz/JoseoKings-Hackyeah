@@ -1,10 +1,8 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import { QUESTION_IDS } from "@/config/content-ids";
-import { useParentAlert } from "@/hooks/useParentAlert";
 import { addDays, todayKey } from "@/lib/dates";
-import { getDayStatuses, shouldAlertParent } from "@/lib/patterns";
+import { getDayStatuses } from "@/lib/patterns";
 import {
   createEmptyWatchState,
   WATCH_STORAGE_KEY,
@@ -17,7 +15,7 @@ import { WatchStatusCard } from "../WatchStatusCard/WatchStatusCard";
 const STRIP_DAYS = 7;
 
 type WatchSummaryProps = {
-  state: AppState;
+  state?: AppState;
 };
 
 function subscribe(onChange: () => void): () => void {
@@ -48,7 +46,8 @@ function parseWatch(raw: string | null): WatchState {
 }
 
 /** Reads the watch data from this device and shows one light status per day for the parent. */
-export function WatchSummary({ state }: WatchSummaryProps) {
+export function WatchSummary(props: WatchSummaryProps) {
+  void props;
   const raw = useSyncExternalStore(subscribe, readRawWatch, () => null);
   const watch = useMemo(() => parseWatch(raw), [raw]);
 
@@ -57,25 +56,5 @@ export function WatchSummary({ state }: WatchSummaryProps) {
     return getDayStatuses(watch.days, { from: addDays(to, -(STRIP_DAYS - 1)), to });
   }, [watch]);
 
-  const alert = useMemo(() => {
-    const today = todayKey();
-    const checkIn = state.checkIns.find((item) => item.date === today);
-    const belly = checkIn && !checkIn.notToday ? checkIn.answers[QUESTION_IDS.bellyComfort] : null;
-    return shouldAlertParent(watch.days, {
-      bellyComfort: typeof belly === "number" ? belly : null,
-    });
-  }, [state.checkIns, watch]);
-
-  const { available, permission, requestPermission } = useParentAlert(alert, watch.lastSyncAt);
-
-  return (
-    <WatchStatusCard
-      statuses={statuses}
-      isDemo={watch.isDemo}
-      alertReason={alert.alert ? alert.reason : ""}
-      alertsAvailable={available}
-      alertsPermission={permission}
-      onEnableAlerts={requestPermission}
-    />
-  );
+  return <WatchStatusCard statuses={statuses} isDemo={watch.isDemo} />;
 }

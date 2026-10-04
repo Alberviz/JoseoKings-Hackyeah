@@ -1,4 +1,3 @@
-import { DISCOMFORT_THRESHOLD } from "@/config/content-ids";
 import { DAY_TONE_LABELS, WATCH_STATUS_COPY, type DayTone } from "@/content/watch-summary";
 import { addDays } from "@/lib/dates";
 import { evaluateParentStatus, type MetricEvaluation } from "@/lib/wearables/parentStatus";
@@ -17,8 +16,7 @@ export type DayStatus = {
   longestStreak: number;
 };
 
-/** Number of consecutive days beyond usual before the emergency alert can fire. */
-export const ALERT_STREAK_DAYS = 3;
+const SUSTAINED_STREAK_DAYS = 3;
 
 function phrase(metric: MetricEvaluation): string | null {
   if (!metric.outsideRange) return null;
@@ -76,7 +74,7 @@ export function getDayStatus(watchDays: WatchDay[], date: string): DayStatus {
   const phrases = outside.map(phrase).filter((text): text is string => text !== null);
 
   let tone: DayTone = "usual";
-  if (outside.length >= 2 || longestStreak >= ALERT_STREAK_DAYS) tone = "clearlyDifferent";
+  if (outside.length >= 2 || longestStreak >= SUSTAINED_STREAK_DAYS) tone = "clearlyDifferent";
   else if (outside.length === 1) tone = "slightlyDifferent";
 
   return {
@@ -96,41 +94,4 @@ export function getDayStatuses(watchDays: WatchDay[], range: DateRange): DayStat
     statuses.push(getDayStatus(watchDays, date));
   }
   return statuses;
-}
-
-export type ChildCheckInInput = {
-  bellyComfort: number | null;
-};
-
-export type ParentAlert = { alert: boolean; reason: string };
-
-/**
- * True only for a sustained, clearly different watch pattern (the last ALERT_STREAK_DAYS days all
- * beyond the child's usual, the latest one clearly) together with belly discomfort marked by the child.
- * Descriptive only: the reason says what was recorded, never why.
- */
-export function shouldAlertParent(
-  days: WatchDay[],
-  childCheckIn: ChildCheckInInput | null,
-): ParentAlert {
-  const none: ParentAlert = { alert: false, reason: "" };
-  if (days.length === 0) return none;
-  if (
-    !childCheckIn ||
-    childCheckIn.bellyComfort === null ||
-    childCheckIn.bellyComfort < DISCOMFORT_THRESHOLD
-  ) {
-    return none;
-  }
-  const latest = [...days].sort((a, b) => a.date.localeCompare(b.date))[days.length - 1].date;
-  const recent: DayStatus[] = [];
-  for (let i = 0; i < ALERT_STREAK_DAYS; i += 1) {
-    recent.push(getDayStatus(days, addDays(latest, -i)));
-  }
-  if (recent.some((status) => status.outsideCount === 0)) return none;
-  if (recent[0].tone !== "clearlyDifferent") return none;
-  return {
-    alert: true,
-    reason: `${recent[0].sentence} This was beyond usual for ${ALERT_STREAK_DAYS} days in a row, and the child marked belly discomfort.`,
-  };
 }

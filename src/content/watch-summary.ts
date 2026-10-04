@@ -6,15 +6,16 @@ export const DAY_TONE_LABELS: Record<DayTone, string> = {
   usual: "Like usual",
   slightlyDifferent: "A bit different from usual",
   clearlyDifferent: "Clearly different from usual",
-  unknown: "Not enough data",
+  unknown: "No watch data yet",
 };
 
 export const WATCH_STATUS_COPY = {
   title: "How the days look",
-  fromWatch: "From the watch",
+  fromWatch: "From the watch (Google Health)",
+  noWatchData: "No watch data yet",
   demo: "Demo data",
   usualSentence: "Everything looked like usual.",
-  unknownSentence: "Not enough watch data yet to compare with usual.",
+  unknownSentence: "No watch data yet.",
   sleepBelow: "slept less than usual",
   sleepAbove: "slept more than usual",
   stepsBelow: "moved less than usual",
@@ -23,12 +24,6 @@ export const WATCH_STATUS_COPY = {
   hrBelow: "resting heart rate lower",
   stripLabel: "Last 7 days",
   logSigns: "Log physical signs",
-  alertsOn: "Turn on alerts on this device",
-  alertsEnabled: "Alerts are on for this device.",
-  alertsBlocked: "Alerts are blocked in this browser.",
-  alertReasonPrefix: "A note for you",
-  notificationTitle: "MyCrohnie",
-  notificationBody: "Open the app to see a note about the last few days.",
   footnote:
     "What the watch recorded compared with the child's own usual. Not a medical assessment.",
 } as const;

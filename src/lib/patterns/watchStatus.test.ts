@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { addDays } from "@/lib/dates";
 import type { WatchDay } from "@/types/watch";
-import { getDayStatus, getDayStatuses, shouldAlertParent } from "./watchStatus";
+import { getDayStatus, getDayStatuses } from "./watchStatus";
 
 const START = "2026-09-01";
 
@@ -67,27 +67,5 @@ describe("getDayStatuses", () => {
   it("returns one status per day in range", () => {
     const list = getDayStatuses(usualDays(), { from: addDays(START, 14), to: addDays(START, 20) });
     expect(list).toHaveLength(7);
-  });
-});
-
-describe("shouldAlertParent", () => {
-  it("is false for a sustained pattern without child discomfort", () => {
-    expect(shouldAlertParent(withDifferentTail(3), { bellyComfort: 0 }).alert).toBe(false);
-    expect(shouldAlertParent(withDifferentTail(3), null).alert).toBe(false);
-  });
-
-  it("is false for a single different day even with discomfort", () => {
-    expect(shouldAlertParent(withDifferentTail(1), { bellyComfort: 2 }).alert).toBe(false);
-  });
-
-  it("is false for usual days with discomfort", () => {
-    expect(shouldAlertParent(usualDays(), { bellyComfort: 2 }).alert).toBe(false);
-    expect(shouldAlertParent([], { bellyComfort: 2 }).alert).toBe(false);
-  });
-
-  it("is true for several days beyond usual together with discomfort", () => {
-    const result = shouldAlertParent(withDifferentTail(3), { bellyComfort: 1 });
-    expect(result.alert).toBe(true);
-    expect(result.reason).toMatch(/3 days in a row/);
   });
 });
