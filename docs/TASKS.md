@@ -11,7 +11,7 @@ How to work on a task:
 3. Open the PR with `Closes #<issue>`. Alberto reviews and merges.
 4. If your dependency is not merged yet, build against the types in `src/types/` and a local mock. **Do not wait.**
 
-The old restroom map and menu reader tasks (the previous T1 to T12) are void. Their code is kept but paused.
+The old restroom map and menu reader tasks (the previous T1 to T12) are void. Their code has been removed.
 
 ---
 

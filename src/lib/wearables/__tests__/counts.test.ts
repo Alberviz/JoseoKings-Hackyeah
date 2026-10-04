@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  consultationComparison,
-  foodCooccurrence,
-  missionsVsEnergy,
-  periodCounts,
-} from "../counts";
+import { consultationComparison, foodCooccurrence, periodCounts } from "../counts";
 import { enumerateDates } from "../stats";
 
 describe("counts (A10a, A12, A13, A14)", () => {
@@ -64,40 +59,6 @@ describe("counts (A10a, A12, A13, A14)", () => {
     expect(partial.steadyDays).toBe(0);
     expect(partial.comfortDays).toBe(1);
     expect(partial.items.playPace.notAnswered).toBe(1);
-  });
-
-  it("analyzes missions vs next-day energy with seeded bootstrap CI, requiring n >= 15", () => {
-    const days = Array.from({ length: 40 }, () => ({
-      missions: 0,
-      energy: 0,
-      missionRecords: [] as unknown[],
-    }));
-    for (let i = 0; i < 20; i += 1) days[i].missionRecords = [{ kind: "rest" }];
-    for (let i = 1; i <= 20; i += 1) days[i].energy = 2;
-
-    const compared = missionsVsEnergy(days, 3);
-    expect(compared.kind).toBe("value");
-    expect(compared.difference).toBe(2);
-    expect(compared.mission.counts[2]).toBe(20);
-    if (
-      compared.ci &&
-      compared.ci.low !== null &&
-      compared.ci.high !== null &&
-      compared.difference !== null
-    ) {
-      expect(
-        compared.ci.low <= compared.difference && compared.difference <= compared.ci.high,
-      ).toBe(true);
-    }
-    expect("pValue" in compared).toBe(false);
-
-    // Below 15 days in either group
-    const tooFew = missionsVsEnergy(
-      Array.from({ length: 10 }, () => ({ missions: 1, energy: 1 })),
-      1,
-    );
-    expect(tooFew.kind).toBe("insufficient-data");
-    expect(tooFew.ci).toBeNull();
   });
 
   it("performs consultation period comparison and guards against insufficient data", () => {

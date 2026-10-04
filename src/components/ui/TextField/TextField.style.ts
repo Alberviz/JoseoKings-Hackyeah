@@ -28,6 +28,25 @@ const controlStyles = css<{ $hasError: boolean }>`
 
 export const StyledInput = styled.input<{ $hasError: boolean }>`
   ${controlStyles}
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+
+  /* iOS Safari gives date and time inputs their own intrinsic width and ignores width: 100%, so
+     they overflow the card. Dropping the native look and the inner minimum width keeps them inside. */
+  &[type="date"],
+  &[type="time"],
+  &[type="datetime-local"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    text-align: left;
+  }
+
+  &::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: left;
+  }
 `;
 
 export const StyledTextarea = styled.textarea<{ $hasError: boolean }>`
