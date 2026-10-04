@@ -51,7 +51,6 @@ import {
   PlayLabel,
   PlayTriangleSvg,
   ShopSvg,
-  SmallParentLink,
   StageBadge,
   StageBadgeIcon,
   StageBadgeText,
@@ -70,17 +69,12 @@ export function HomeScreen() {
   const [companionPose, setCompanionPose] = useState<"idle" | "cheer">("idle");
 
   // If no child is configured, redirect to parent setup.
-  // If device is parent-only, redirect straight to parent mode.
   useEffect(() => {
     if (!isReady) return;
     if (!state.child) {
       router.replace(ROUTES.parentSetup);
-      return;
     }
-    if (state.settings?.deviceRole === "parent") {
-      router.replace(ROUTES.parent);
-    }
-  }, [isReady, state.child, state.settings?.deviceRole, router]);
+  }, [isReady, state.child, router]);
 
   if (!isReady) {
     return (
@@ -90,12 +84,9 @@ export function HomeScreen() {
     );
   }
 
-  if (!state.child || state.settings?.deviceRole === "parent") {
+  if (!state.child) {
     return null;
   }
-
-  const deviceRole = state.settings?.deviceRole ?? "both";
-  const isChildOnly = deviceRole === "child";
 
   const companionName = state.companion?.name || "Kraków Dragon";
   const equippedItemIds = state.economy?.equippedItemIds ?? [];
@@ -146,16 +137,14 @@ export function HomeScreen() {
             <CoinsValue>{coins}</CoinsValue>
           </CoinsPill>
 
-          {!isChildOnly && (
-            <ParentDoorLink href={ROUTES.parent} aria-label="Parent mode">
-              <ParentIconWrapper aria-hidden="true">
-                <NavSvg viewBox="0 0 24 24" fill="currentColor">
-                  <SvgPath d="M12 2C9.24 2 7 4.24 7 7V9H6C4.9 9 4 9.9 4 11V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V11C20 9.9 19.1 9 18 9H17V7C17 4.24 14.76 2 12 2ZM9 7C9 5.34 10.34 4 12 4C13.66 4 15 5.34 15 7V9H9V7ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17Z" />
-                </NavSvg>
-              </ParentIconWrapper>
-              <ParentLabel>Parents</ParentLabel>
-            </ParentDoorLink>
-          )}
+          <ParentDoorLink href={ROUTES.parent} aria-label="Parent mode">
+            <ParentIconWrapper aria-hidden="true">
+              <NavSvg viewBox="0 0 24 24" fill="currentColor">
+                <SvgPath d="M12 2C9.24 2 7 4.24 7 7V9H6C4.9 9 4 9.9 4 11V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V11C20 9.9 19.1 9 18 9H17V7C17 4.24 14.76 2 12 2ZM9 7C9 5.34 10.34 4 12 4C13.66 4 15 5.34 15 7V9H9V7ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17Z" />
+              </NavSvg>
+            </ParentIconWrapper>
+            <ParentLabel>Parents</ParentLabel>
+          </ParentDoorLink>
         </TopRightCluster>
       </TopBar>
 
@@ -305,17 +294,6 @@ export function HomeScreen() {
           </ActionButtonWrapper>
         </ActionsNav>
       </BottomArea>
-
-      {deviceRole === "child" || deviceRole === "both" ? (
-        <SmallParentLink href={ROUTES.share} aria-label="Show parents">
-          Show parents
-        </SmallParentLink>
-      ) : null}
-      {isChildOnly ? (
-        <SmallParentLink href={ROUTES.parent} aria-label="Parent mode">
-          Parent mode
-        </SmallParentLink>
-      ) : null}
     </HomeScreenRoot>
   );
 }

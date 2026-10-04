@@ -43,8 +43,6 @@ export const childProfileSchema: z.ZodType<ChildProfile> = z.object({
 export const parentSettingsSchema: z.ZodType<ParentSettings> = z.object({
   pinHash: z.string(),
   pinSalt: z.string(),
-  allowedMissionIds: z.array(z.string()),
-  deviceRole: z.enum(["child", "parent", "both"]).optional(),
   reminderTime: z
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/)

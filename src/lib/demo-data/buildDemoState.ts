@@ -183,7 +183,6 @@ export type DemoOptions = {
 const DEFAULT_SETTINGS: ParentSettings = {
   pinHash: "",
   pinSalt: "",
-  allowedMissionIds: MISSION_ID_LIST,
 };
 
 /** A complete fictional AppState: about 90 days, two consultations, one flare and its recovery. Deterministic. */

@@ -17,13 +17,11 @@ import {
   TextField,
 } from "@/components/ui";
 import { ROUTES } from "@/config/app";
-import { MISSION_IDS } from "@/config/content-ids";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { buildDemoState } from "@/lib/demo-data";
 import { createPinRecord, isValidPin, verifyPin } from "@/lib/pin";
 import { exportBackup, importBackup } from "@/lib/storage";
-import type { DeviceRole } from "@/types";
 import {
   DEFAULT_REMINDER_TIME,
   getNotificationPermission,
@@ -37,17 +35,8 @@ import {
   isBiometricEnrolled,
   registerBiometric,
 } from "@/lib/biometrics";
-import { formatMissionTitle } from "../missionLabels";
 import { PinGate } from "../PinGate/PinGate";
-import {
-  AlertBox,
-  ChipWrap,
-  HiddenFileInput,
-  SettingsContainer,
-  StyledForm,
-} from "./SettingsScreen.style";
-
-const ALL_MISSIONS = Object.values(MISSION_IDS);
+import { AlertBox, HiddenFileInput, SettingsContainer, StyledForm } from "./SettingsScreen.style";
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -60,9 +49,6 @@ export function SettingsScreen() {
     getNotificationPermission(),
   );
   const [reminderMessage, setReminderMessage] = useState<string | undefined>(undefined);
-
-  // Enabled missions state
-  const [missionsError, setMissionsError] = useState<string | undefined>(undefined);
 
   // Change PIN state
   const [currentPin, setCurrentPin] = useState("");
@@ -120,36 +106,6 @@ export function SettingsScreen() {
       </Screen>
     );
   }
-
-  const enabledMissions = state.settings?.allowedMissionIds ?? ALL_MISSIONS;
-  const currentDeviceRole: DeviceRole = state.settings?.deviceRole ?? "both";
-
-  const handleDeviceRoleChange = (role: DeviceRole) => {
-    if (!state.settings) return;
-    actions.setSettings({
-      ...state.settings,
-      deviceRole: role,
-    });
-  };
-
-  const handleToggleMission = (missionId: string) => {
-    if (!state.settings) return;
-    const exists = enabledMissions.includes(missionId);
-    if (exists && enabledMissions.length === 1) {
-      setMissionsError("At least one mission must be enabled.");
-      return;
-    }
-
-    const nextMissions = exists
-      ? enabledMissions.filter((id) => id !== missionId)
-      : [...enabledMissions, missionId];
-
-    setMissionsError(undefined);
-    actions.setSettings({
-      ...state.settings,
-      allowedMissionIds: nextMissions,
-    });
-  };
 
   const handleChangePinSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -249,10 +205,7 @@ export function SettingsScreen() {
       const demoState = buildDemoState();
       actions.loadDemo(demoState);
       const demoPinRecord = await createPinRecord("1234");
-      actions.setSettings({
-        ...demoPinRecord,
-        allowedMissionIds: demoState.settings?.allowedMissionIds ?? ALL_MISSIONS,
-      });
+      actions.setSettings(demoPinRecord);
       setImportSuccess("Demo data loaded. Demo PIN is 1234.");
       setImportError(undefined);
     } catch (err) {
@@ -276,65 +229,12 @@ export function SettingsScreen() {
               <Heading level={1}>Parent settings</Heading>
               {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
             </Stack>
-            <Text tone="muted">Manage missions, security, and app data.</Text>
+            <Text tone="muted">Manage security, reminders, and app data.</Text>
           </Stack>
 
           <LinkButton href={ROUTES.parent} variant="secondary">
             ← Back to parent summary
           </LinkButton>
-
-          {/* Device role */}
-          <Card label="Device role">
-            <Stack gap="md">
-              <Heading level={2}>This phone is for</Heading>
-              <Text size="sm" tone="muted">
-                Choose how this phone is used. Child-only phones hide parent shortcuts, and
-                parent-only phones open directly in parent mode.
-              </Text>
-              <OptionGroup legend="This phone is for" hideLegend columns={3}>
-                <OptionButton
-                  label="My child"
-                  selected={currentDeviceRole === "child"}
-                  onSelect={() => handleDeviceRoleChange("child")}
-                />
-                <OptionButton
-                  label="Me (parent)"
-                  selected={currentDeviceRole === "parent"}
-                  onSelect={() => handleDeviceRoleChange("parent")}
-                />
-                <OptionButton
-                  label="Both"
-                  selected={currentDeviceRole === "both"}
-                  onSelect={() => handleDeviceRoleChange("both")}
-                />
-              </OptionGroup>
-            </Stack>
-          </Card>
-
-          {/* 1. Enabled missions */}
-          <Card label="Enabled missions">
-            <Stack gap="md">
-              <Heading level={2}>Enabled missions</Heading>
-              <Text size="sm" tone="muted">
-                Choose which missions appear in child mode. At least one mission must be enabled.
-              </Text>
-              <ChipWrap>
-                {ALL_MISSIONS.map((id) => (
-                  <Chip
-                    key={id}
-                    label={formatMissionTitle(id)}
-                    selected={enabledMissions.includes(id)}
-                    onToggle={() => handleToggleMission(id)}
-                  />
-                ))}
-              </ChipWrap>
-              {missionsError ? (
-                <AlertBox $variant="urgent" role="alert">
-                  {missionsError}
-                </AlertBox>
-              ) : null}
-            </Stack>
-          </Card>
 
           {/* Daily care reminder */}
           <Card label="Daily care reminder">

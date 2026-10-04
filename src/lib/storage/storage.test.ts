@@ -59,7 +59,6 @@ describe("storage layer", () => {
     initial.settings = {
       pinHash: "hash123",
       pinSalt: "salt123",
-      allowedMissionIds: ["m1", "m2"],
     };
     initial.companion.points = 120;
     initial.companion.name = "Golem";
@@ -79,6 +78,23 @@ describe("storage layer", () => {
 
     const loaded = loadState();
     expect(loaded).toEqual(initial);
+  });
+
+  it("still loads an old saved state that has deviceRole and allowedMissionIds", () => {
+    const old = createEmptyState();
+    old.child = { nickname: "Lucas" };
+    old.settings = {
+      pinHash: "hash123",
+      pinSalt: "salt123",
+      // Fields removed from the app; old devices may still have them saved.
+      allowedMissionIds: ["m1", "m2"],
+      deviceRole: "child",
+    } as AppState["settings"];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(old));
+
+    const loaded = loadState();
+    expect(loaded.child).toEqual({ nickname: "Lucas" });
+    expect(loaded.settings).toEqual({ pinHash: "hash123", pinSalt: "salt123" });
   });
 
   it("saving does not throw when localStorage.setItem throws", () => {
