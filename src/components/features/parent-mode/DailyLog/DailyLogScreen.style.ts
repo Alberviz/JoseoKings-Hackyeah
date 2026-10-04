@@ -129,9 +129,13 @@ export const SleepSliderHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 export const SleepValueBadge = styled.span<{ $active?: boolean }>`
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
   font-size: ${({ theme }) => theme.fontSize.lg};
   font-weight: ${({ theme }) => theme.fontWeight.bold};
   color: ${({ theme, $active }) => ($active ? theme.colors.primary : theme.colors.textMuted)};
@@ -242,26 +246,28 @@ export const StyledRangeInput = styled.input.attrs({ type: "range" })`
 `;
 
 export const QuickPillRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: ${({ theme }) => theme.spacing.xs};
-  flex-wrap: wrap;
 `;
 
 export const QuickPillButton = styled.button<{ $selected?: boolean }>`
   min-height: ${({ theme }) => theme.touchTarget};
-  padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
-  border: 1px solid
-    ${({ theme, $selected }) => ($selected ? theme.colors.primary : theme.colors.border)};
-  border-radius: ${({ theme }) => theme.radius.pill};
-  background: ${({ theme, $selected }) => ($selected ? theme.colors.primarySoft : theme.colors.background)};
-  color: ${({ theme, $selected }) => ($selected ? theme.colors.primary : theme.colors.text)};
+  padding: ${({ theme }) => theme.spacing.xs};
+  border: 1px solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: ${({ theme, $selected }) => ($selected ? theme.colors.primary : theme.colors.surface)};
+  color: ${({ theme, $selected }) => ($selected ? theme.colors.onPrimary : theme.colors.ink)};
   font-size: ${({ theme }) => theme.fontSize.sm};
   font-weight: ${({ theme }) => theme.fontWeight.bold};
   cursor: pointer;
+  touch-action: manipulation;
 
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
+  &:hover:not([aria-pressed="true"]) {
+    background: ${({ theme }) => theme.colors.primarySoft};
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 `;
