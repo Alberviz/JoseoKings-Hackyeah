@@ -86,4 +86,15 @@ describe("WearableConnectCard device choice", () => {
     ).toBeTruthy();
     expect(screen.getByText("Sleep: 3 nights")).toBeTruthy();
   });
+
+  it("tells a visitor how to try the wearable before any real data", () => {
+    renderWithTheme(<WearableConnectCard />);
+    expect(screen.getByText(/connecting needs an account added by the team/)).toBeTruthy();
+  });
+
+  it("hides the visitor hint when the connection is not set up", () => {
+    hookState = { ...makeHook(), isConfigured: false };
+    renderWithTheme(<WearableConnectCard />);
+    expect(screen.queryByText(/connecting needs an account added by the team/)).toBeNull();
+  });
 });

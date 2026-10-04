@@ -321,6 +321,29 @@ describe("PlayFlow (Task V5)", () => {
     expect(screen.getByText("Step 2 of 4")).toBeTruthy();
   });
 
+  it("Exercise step: the Next button shows a fill only during the auto-advance wait", () => {
+    vi.useFakeTimers();
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <PlayFlow initialStep="exercise" initialCompany="alone" initialLevel={1} />
+      </ProviderWrapper>,
+    );
+
+    expect(screen.queryByTestId("play-step-next-fill")).toBeNull();
+
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+    expect(screen.getByTestId("play-step-next-fill")).toBeTruthy();
+
+    // After the auto-advance the next exercise starts counting down, so the fill is gone.
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.queryByTestId("play-step-next-fill")).toBeNull();
+  });
+
   it("Exercise step: clicking Next step before 2 seconds advances immediately and cancels auto-advance", () => {
     vi.useFakeTimers();
 
