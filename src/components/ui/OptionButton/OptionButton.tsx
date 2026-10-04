@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import type { AppTheme } from "@/theme/theme";
 import { OptionIcon, OptionLabel, StyledOptionButton } from "./OptionButton.style";
 
 type OptionButtonProps = {
@@ -9,6 +10,8 @@ type OptionButtonProps = {
   /** Optional drawing (an emoji or an SVG element). Hidden from screen readers. */
   icon?: ReactNode;
   selected?: boolean;
+  /** Parent-area section whose colour marks the selected option. Default: yellow highlight. */
+  section?: keyof AppTheme["sections"];
   disabled?: boolean;
   onSelect: () => void;
 };
@@ -18,6 +21,7 @@ export function OptionButton({
   label,
   icon,
   selected = false,
+  section,
   disabled = false,
   onSelect,
 }: OptionButtonProps) {
@@ -27,6 +31,7 @@ export function OptionButton({
       aria-pressed={selected}
       disabled={disabled}
       $selected={selected}
+      $section={section}
       onClick={onSelect}
     >
       {icon ? <OptionIcon aria-hidden="true">{icon}</OptionIcon> : null}

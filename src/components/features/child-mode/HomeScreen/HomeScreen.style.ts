@@ -34,7 +34,7 @@ export const HomeScreenRoot = styled.main`
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
-  background-color: ${({ theme }) => theme.colors.childHomeBg};
+  background: transparent;
   overflow-x: hidden;
   box-sizing: border-box;
   user-select: none;
