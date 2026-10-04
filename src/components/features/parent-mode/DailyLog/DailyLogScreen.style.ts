@@ -218,7 +218,7 @@ export const QuickPillRow = styled.div`
 `;
 
 export const QuickPillButton = styled.button<{ $selected?: boolean }>`
-  min-height: 36px;
+  min-height: ${({ theme }) => theme.touchTarget};
   padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
   border: 1px solid
     ${({ theme, $selected }) => ($selected ? theme.colors.primary : theme.colors.border)};
