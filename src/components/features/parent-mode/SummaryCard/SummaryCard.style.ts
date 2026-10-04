@@ -83,12 +83,6 @@ export const MissionHeader = styled.div`
   align-items: center;
 `;
 
-export const NavGrid = styled.nav`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
 export const PromptCard = styled.aside`
   padding: ${({ theme }) => theme.spacing.md};
   background: ${({ theme }) => theme.colors.primarySoft};

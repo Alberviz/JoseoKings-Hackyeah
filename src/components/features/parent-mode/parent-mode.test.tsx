@@ -382,7 +382,7 @@ describe("Parent Mode Shell (Task T10)", () => {
   });
 
   describe("SummaryCard with demo data", () => {
-    it("renders plain facts, confidence labels, discomfort prompt, and navigation buttons", () => {
+    it("renders plain facts, confidence labels, discomfort prompt, and lock button", () => {
       const today = todayKey();
       const demoState = buildDemoState({ today });
       // Ensure today has a check-in with discomfort to test gentle food prompt
@@ -433,13 +433,6 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(screen.getByText("Dragon breathing")).toBeDefined();
       expect(screen.getByText("Done with family")).toBeDefined();
       expect(screen.getByText("Status: Completed")).toBeDefined();
-
-      // Navigation links
-      expect(screen.getByRole("link", { name: "Daily log" })).toBeDefined();
-      expect(screen.getByRole("link", { name: "Food diary" })).toBeDefined();
-      expect(screen.getByRole("link", { name: "Patterns" })).toBeDefined();
-      expect(screen.getByRole("link", { name: "Doctor report" })).toBeDefined();
-      expect(screen.getByRole("link", { name: "Settings" })).toBeDefined();
 
       // Lock button
       fireEvent.click(screen.getByRole("button", { name: "Lock" }));

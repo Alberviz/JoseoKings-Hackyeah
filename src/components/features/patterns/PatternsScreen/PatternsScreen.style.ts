@@ -60,9 +60,3 @@ export const EmptyStateCard = styled.article`
   text-align: center;
   gap: ${({ theme }) => theme.spacing.md};
 `;
-
-export const BackButtonWrapper = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  margin-top: ${({ theme }) => theme.spacing.sm};
-`;

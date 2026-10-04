@@ -1,18 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import {
-  Button,
-  Card,
-  Chip,
-  Heading,
-  LinkButton,
-  Screen,
-  Stack,
-  Text,
-  TextField,
-} from "@/components/ui";
-import { ROUTES } from "@/config/app";
+import { Button, Card, Chip, Heading, Screen, Stack, Text, TextField } from "@/components/ui";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { PATTERNS_DISCLAIMER } from "@/content";
 import { useAppState } from "@/hooks/useAppState";
@@ -154,10 +143,6 @@ export function FoodDiaryScreen() {
             </Text>
           </Stack>
 
-          <LinkButton href={ROUTES.parent} variant="secondary">
-            ← Back to parent summary
-          </LinkButton>
-
           {/* Reactive prompt when today's check-in has discomfort */}
           {todayHasDiscomfort ? (
             <PromptBanner role="region" aria-label="Food note prompt">
@@ -265,9 +250,6 @@ export function FoodDiaryScreen() {
             <Button variant="secondary" onClick={session.lock} fullWidth>
               Lock
             </Button>
-            <LinkButton href={ROUTES.parent} variant="secondary" fullWidth>
-              Back to parent summary
-            </LinkButton>
           </Stack>
         </Stack>
       </FoodDiaryContainer>

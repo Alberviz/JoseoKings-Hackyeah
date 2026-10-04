@@ -20,7 +20,6 @@ import { ColourCalendar } from "../ColourCalendar/ColourCalendar";
 import { FoodCoOccurrence } from "../FoodCoOccurrence/FoodCoOccurrence";
 import { WeeklyCharts } from "../WeeklyCharts/WeeklyCharts";
 import {
-  BackButtonWrapper,
   DemoBadge,
   DisclaimerCard,
   DisclaimerTitle,
@@ -97,12 +96,6 @@ export function PatternsScreen() {
   return (
     <Screen>
       <PatternsLayout>
-        <BackButtonWrapper>
-          <LinkButton href={ROUTES.parent} variant="secondary">
-            ← Back to parent summary
-          </LinkButton>
-        </BackButtonWrapper>
-
         <ScreenHeader>
           <Heading level={1}>Patterns & Trends</Heading>
           <Text tone="muted">

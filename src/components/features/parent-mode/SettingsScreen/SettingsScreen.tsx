@@ -241,10 +241,6 @@ export function SettingsScreen() {
             <Text tone="muted">Manage missions, security, and app data.</Text>
           </Stack>
 
-          <LinkButton href={ROUTES.parent} variant="secondary">
-            ← Back to parent summary
-          </LinkButton>
-
           {/* Device role */}
           <Card label="Device role">
             <Stack gap="md">

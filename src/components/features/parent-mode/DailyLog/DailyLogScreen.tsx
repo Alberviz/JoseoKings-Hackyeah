@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   Heading,
-  LinkButton,
   OptionButton,
   OptionGroup,
   Screen,
@@ -380,9 +379,6 @@ export function DailyLogScreen() {
           </Card>
 
           <Stack gap="sm">
-            <LinkButton href={ROUTES.parent} variant="secondary" fullWidth>
-              Back to parent summary
-            </LinkButton>
             <Button type="button" variant="secondary" onClick={session.lock} fullWidth>
               Lock
             </Button>

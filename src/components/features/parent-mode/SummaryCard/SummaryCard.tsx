@@ -19,7 +19,6 @@ import {
   FactList,
   MissionHeader,
   MissionItem,
-  NavGrid,
   PromptCard,
   SummaryContainer,
 } from "./SummaryCard.style";
@@ -185,32 +184,6 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
             </LinkButton>
           </PromptCard>
         ) : null}
-
-        <Card label="Parent sections">
-          <Stack gap="md">
-            <Heading level={2}>Parent sections</Heading>
-            <NavGrid aria-label="Parent mode navigation">
-              <LinkButton href={ROUTES.parentLog} variant="secondary" fullWidth>
-                Daily log
-              </LinkButton>
-              <LinkButton href={ROUTES.parentFoods} variant="secondary" fullWidth>
-                Food diary
-              </LinkButton>
-              <LinkButton href={ROUTES.parentPatterns} variant="secondary" fullWidth>
-                Patterns
-              </LinkButton>
-              <LinkButton href={ROUTES.parentReport} variant="secondary" fullWidth>
-                Doctor report
-              </LinkButton>
-              <LinkButton href={ROUTES.parentSettings} variant="secondary" fullWidth>
-                Settings
-              </LinkButton>
-              <LinkButton href={ROUTES.parentLink} variant="secondary" fullWidth>
-                Family link
-              </LinkButton>
-            </NavGrid>
-          </Stack>
-        </Card>
 
         <Stack gap="sm">
           <Button variant="secondary" onClick={onLock} fullWidth>
