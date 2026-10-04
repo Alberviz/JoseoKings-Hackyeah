@@ -256,4 +256,51 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     expect(smallLink).toBeDefined();
     expect(smallLink.getAttribute("href")).toBe(ROUTES.parent);
   });
+
+  it("renders dragon evolution stage badge with English copy and updates with fire level", async () => {
+    const today = todayKey();
+    const demo = buildDemoState({ today });
+    const customState: AppState = {
+      ...demo,
+      child: { nickname: "Lucas" },
+      economy: {
+        ...createDefaultEconomy(),
+        fire: 0,
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customState));
+
+    const { unmount } = renderWithTheme(
+      <ProviderWrapper>
+        <HomeScreen />
+      </ProviderWrapper>,
+    );
+
+    const badge = await screen.findByTestId("evolution-stage-badge");
+    expect(badge).toBeDefined();
+    expect(badge.textContent).toContain("Baby Dragon");
+    expect(badge.textContent).toContain("40 🔥 to evolve");
+
+    unmount();
+
+    const heroState: AppState = {
+      ...customState,
+      economy: {
+        ...createDefaultEconomy(),
+        fire: 85,
+        highestFire: 85,
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(heroState));
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <HomeScreen />
+      </ProviderWrapper>,
+    );
+
+    const heroBadge = await screen.findByTestId("evolution-stage-badge");
+    expect(heroBadge.textContent).toContain("Hero Dragon");
+    expect(heroBadge.textContent).toContain("Max level!");
+  });
 });
