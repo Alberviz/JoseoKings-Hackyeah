@@ -2,25 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  Card,
-  Heading,
-  LinkButton,
-  OptionButton,
-  OptionGroup,
-  Screen,
-  Stack,
-  Text,
-  TextField,
-} from "@/components/ui";
+import { Button, Card, Heading, LinkButton, Screen, Stack, Text, TextField } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { MISSION_IDS } from "@/config/content-ids";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { createPinRecord, hasPin, isValidPin } from "@/lib/pin";
 import { buildDemoState } from "@/lib/demo-data";
-import type { DeviceRole } from "@/types";
 import { AlertBox, SetupContainer, SetupForm } from "./SetupScreen.style";
 
 const ALL_MISSIONS = Object.values(MISSION_IDS);
@@ -31,7 +19,6 @@ export function SetupScreen() {
   const session = useParentSession();
 
   const [nickname, setNickname] = useState("");
-  const [deviceRole, setDeviceRole] = useState<DeviceRole>("both");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
 
@@ -141,15 +128,11 @@ export function SetupScreen() {
       actions.setSettings({
         ...pinRecord,
         allowedMissionIds: ALL_MISSIONS,
-        deviceRole,
+        deviceRole: "both",
       });
 
       session.setUnlocked(true);
-      if (deviceRole === "child") {
-        router.push(ROUTES.home);
-      } else {
-        router.push(ROUTES.parent);
-      }
+      router.push(ROUTES.parent);
     } catch (err) {
       setGeneralError(err instanceof Error ? err.message : "Failed to create PIN.");
       setIsSubmitting(false);
@@ -191,32 +174,6 @@ export function SetupScreen() {
                     maxLength={30}
                     autoComplete="off"
                   />
-                </Stack>
-              </Card>
-
-              <Card label="Device role">
-                <Stack gap="md">
-                  <Heading level={2}>This phone is for:</Heading>
-                  <Text size="sm" tone="muted">
-                    Choose how this phone will be used. You can change this anytime in settings.
-                  </Text>
-                  <OptionGroup legend="This phone is for:" hideLegend columns={3}>
-                    <OptionButton
-                      label="My child"
-                      selected={deviceRole === "child"}
-                      onSelect={() => setDeviceRole("child")}
-                    />
-                    <OptionButton
-                      label="Me (parent)"
-                      selected={deviceRole === "parent"}
-                      onSelect={() => setDeviceRole("parent")}
-                    />
-                    <OptionButton
-                      label="Both"
-                      selected={deviceRole === "both"}
-                      onSelect={() => setDeviceRole("both")}
-                    />
-                  </OptionGroup>
                 </Stack>
               </Card>
 

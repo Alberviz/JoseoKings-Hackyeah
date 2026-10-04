@@ -8,7 +8,7 @@ How the product in [`PRODUCT.md`](PRODUCT.md) is built. Rules for code style are
 
 - One Next.js 16 PWA. **No backend for health data.** There are no route handlers in v1.
 - One `AppState` object, stored in `localStorage` under one key, validated on every read.
-- Two modes on the same device: **child mode** (default) and **parent mode** (PIN). At setup the device gets a role (child, parent or both); two phones can exchange data only through the family QR link (section 8b).
+- One consolidated application on a single device with two modes: **child mode** (default) and **parent mode** (protected by 4-digit PIN).
 - Pure logic lives in `src/lib/<topic>/` (no React, unit-tested). UI lives in `src/components/features/<feature>/`. Static content (questions, missions, disclaimers) lives in `src/content/`.
 
 ```
@@ -62,7 +62,6 @@ Rules for the data:
 | `src/lib/rewards/`, `src/lib/pin/`                | Alberto                               | T3                                                              |
 | `src/lib/patterns/`                               | Juan                                  | T9                                                              |
 | `src/lib/economy/`                                | Claude                                | V1. Coins, fire, shop, rewards from home                        |
-| `src/lib/link/`, `src/components/features/link/`  | Álvaro's AI                           | L1, L3. Family QR link                                          |
 | `src/lib/report/`                                 | Juan                                  | T11                                                             |
 | `src/content/`                                    | Farouk (with Álvaro)                  | T4. Typed data files, with sources in comments.                 |
 | `src/components/features/companion/`              | Baitiare                              | T5                                                              |
@@ -84,20 +83,18 @@ Defined in `src/config/app.ts` (`ROUTES`). Do not hard-code paths.
 | :----------------- | :------------------------------------------------------------------ | :----- |
 | `/`                | Child home: companion, today's check-in, mission entry, parent door | child  |
 | `/check-in`        | Check-in flow                                                       | child  |
-| `/missions`        | Mission list (enabled missions only)                                | child  |
+| `/missions`        | Mission list (all 19 movement missions)                             | child  |
 | `/missions/[id]`   | Guided mission, company choice, confirmation                        | child  |
 | `/companion`       | Accessories, colours, badges                                        | child  |
 | `/parent`          | PIN gate, then the summary card                                     | parent |
-| `/parent/setup`    | First run: nickname, PIN, enabled missions                          | parent |
+| `/parent/setup`    | First run: nickname, parent PIN                                     | parent |
 | `/parent/log`      | Daily log                                                           | parent |
 | `/parent/foods`    | Reactive food diary                                                 | parent |
 | `/parent/patterns` | Calendar and weekly charts                                          | parent |
 | `/parent/report`   | Doctor report view and print                                        | parent |
-| `/parent/settings` | Enabled missions, PIN, backup export and import, consultations      | parent |
-| `/parent/link`     | Family link: show the pairing QR, scan the child's data QR          | parent |
-| `/share`           | Child side of the link: scan the pairing QR, show the data QR       | child  |
+| `/parent/settings` | PIN, backup export and import, consultations                        | parent |
 
-The v2 child routes (Play flow, Shop, Food, Customize) are planned in `docs/V2-CHILD-PLAN.md` and will be added to `ROUTES` with it.
+The v2 child routes (Play flow, Shop, Food, Customize) are planned in `docs/V2-CHILD-PLAN.md` and added to `ROUTES`.
 
 First run: if `AppState.child` is `null`, `/` redirects to `/parent/setup`.
 
@@ -140,7 +137,7 @@ Pure functions in `src/lib/economy/`, constants in `src/config/economy.ts`, type
 
 ## 8. Mission flow
 
-1. The child picks one of the missions in `settings.allowedMissionIds`.
+1. The child picks one of the movement missions.
 2. The child chooses company: alone, with a parent or carer, or with someone else.
 3. The companion guides the steps with a timer. The **Stop** button is always visible.
 4. At the end:
@@ -150,9 +147,9 @@ Pure functions in `src/lib/economy/`, constants in `src/config/economy.ts`, type
 5. Stopping early saves a `rest` log. The completion button is not shown before the timer ends.
 6. The reward and the confidence label come from `src/lib/rewards/` and the label mapping in `PRODUCT.md` section 5.3.
 
-## 8b. Family link
+## 8b. Family link (Retired)
 
-In scope (it was a stretch goal). One PWA, no server. The pairing QR goes from the parent phone to the child phone, and the child's data goes back as an encrypted QR (AES-GCM). Code: `src/lib/link/` (pure, tested) and `src/components/features/link/`. Dependencies `qrcode` and `jsqr` are approved. Health data still never reaches a server.
+The two-device Family Link / pairing flow has been retired in favor of the single-device consolidated architecture.
 
 ## 9. Doctor report
 
@@ -173,7 +170,7 @@ In scope (it was a stretch goal). One PWA, no server. The pairing QR goes from t
 
 ## 12. Dependencies
 
-Approved for the project: `zod` (T1), `qrcode` and `jsqr` (family link). Anything else needs approval, as in `AGENTS.md`. No charting library (charts are small SVG components), no PDF library, no animation library, no Tailwind.
+Approved for the project: `zod` (T1). Anything else needs approval, as in `AGENTS.md`. No charting library (charts are small SVG components), no PDF library, no animation library, no Tailwind.
 
 ## 13. Content files (`src/content/`)
 
@@ -189,4 +186,4 @@ Each item names its source in a comment. If there is no source, write `// source
 
 - Vitest next to the code. Required for everything in `src/lib/`.
 - `pnpm check` before every push. Test at 360 px wide.
-- Before the demo: the full flow on two real phones, offline after one online visit, and the print view.
+- Before the demo: the full flow on a real phone, offline after one online visit, and the print view.

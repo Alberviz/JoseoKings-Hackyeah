@@ -35,13 +35,13 @@ Scope of disease: **inflammatory bowel disease** (Crohn's and ulcerative colitis
 
 ## 4. How the app works
 
-One installable PWA. One device, **two modes**: child mode (default) and parent mode (protected by a PIN). Everything is stored on the device. The setup asks what the phone is for (child, parent or both). Two phones can share data only through the **family link**: the parent shows a pairing QR, the child phone answers with an encrypted data QR. There is no server.
+One installable PWA. One device, **two modes**: child mode (default) and parent mode (protected by a 4-digit PIN). Everything is stored locally on the device. There is no server.
 
 ### 4.1 Child mode
 
 1. **Daily check-in.** A few taps on drawings. The exact questions are written by the biomedical team from real sources and live in `src/content/check-in-questions.ts`. The check-in always includes **"I don't feel like it today"**, which is a valid answer.
 2. **The companion.** A character that does the movement mission _together with the child_ and shows the exercise on screen. It is not a pet to look after: it never gets sick, sad or hungry, and it never loses anything. It only gains things.
-3. **Missions.** Short (1 to 2 minutes), gentle (breathing, stretching, balance, wall sit), guided step by step by the companion. **No impact and no jumping in v1.** The child picks one of the missions that the parents enabled. The child can do a mission:
+3. **Missions.** Short (1 to 2 minutes), gentle (breathing, stretching, balance, wall sit), guided step by step by the companion. **No impact and no jumping in v1.** The child picks one of the movement missions. The child can do a mission:
    - **alone**,
    - **with a parent or carer**, or
    - **with someone else** (sibling, grandparent, friend).
@@ -56,7 +56,7 @@ One installable PWA. One device, **two modes**: child mode (default) and parent 
 - **Reactive food diary:** only when the child marked discomfort, the parents are prompted to write what the child ate. It goes into the doctor report.
 - **Patterns:** a colour calendar, weekly charts, and a list of foods that appeared on days with discomfort (counts only, never causes).
 - **Consultations:** parents mark the date of each visit; the report covers the time since the previous one.
-- **Settings:** choose which missions are enabled, change the PIN, export or import a backup file.
+- **Settings:** change the PIN, export or import a backup file.
 
 ### 4.3 Doctor report
 
