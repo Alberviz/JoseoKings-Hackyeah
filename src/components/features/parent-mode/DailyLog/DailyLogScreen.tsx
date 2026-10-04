@@ -19,7 +19,17 @@ import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { addDays, isDateKey, todayKey } from "@/lib/dates";
 import { hasPin } from "@/lib/pin";
-import type { ActivityLevel, Consultation, MedicationTaken, ParentLog, SchoolDay } from "@/types";
+import type {
+  ActivityLevel,
+  Consultation,
+  MedicationTaken,
+  ParentLog,
+  SchoolDay,
+  StoolBlood,
+  StoolConsistency,
+  StoolFrequency,
+  StoolNight,
+} from "@/types";
 import { PinGate } from "../PinGate/PinGate";
 import {
   AlertBox,
@@ -28,6 +38,7 @@ import {
   DailyLogContainer,
   DateLabel,
   DateNav,
+  FormSection,
   StyledForm,
 } from "./DailyLogScreen.style";
 
@@ -52,11 +63,41 @@ const MEDICATION_OPTIONS: Array<{ value: MedicationTaken; label: string }> = [
   { value: "not-applicable", label: "N/A" },
 ];
 
+const STOOL_FREQUENCY_OPTIONS: Array<{ value: StoolFrequency; label: string }> = [
+  { value: "typical", label: "1–2 (Typical)" },
+  { value: "more", label: "3–4 (More)" },
+  { value: "much-more", label: "5+ (Much more)" },
+  { value: "unknown", label: "Don't know" },
+];
+
+const STOOL_NIGHT_OPTIONS: Array<{ value: StoolNight; label: string }> = [
+  { value: "no", label: "No" },
+  { value: "yes", label: "Yes (woke up)" },
+  { value: "unknown", label: "Don't know" },
+];
+
+const STOOL_CONSISTENCY_OPTIONS: Array<{ value: StoolConsistency; label: string }> = [
+  { value: "formed", label: "Formed / Normal" },
+  { value: "looser", label: "Looser than usual" },
+  { value: "watery", label: "Watery / Diarrhea" },
+  { value: "unknown", label: "Don't know" },
+];
+
+const STOOL_BLOOD_OPTIONS: Array<{ value: StoolBlood; label: string }> = [
+  { value: "none", label: "No blood" },
+  { value: "visible", label: "Visible" },
+  { value: "unknown", label: "Don't know" },
+];
+
 type DayDraft = {
   sleepHours: string;
   activity: ActivityLevel | undefined;
   school: SchoolDay | undefined;
   medicationTaken: MedicationTaken | undefined;
+  stoolFrequency: StoolFrequency | undefined;
+  stoolNight: StoolNight | undefined;
+  stoolConsistency: StoolConsistency | undefined;
+  stoolBlood: StoolBlood | undefined;
   note: string;
 };
 
@@ -67,6 +108,10 @@ function draftFromLog(log: ParentLog | undefined): DayDraft {
       activity: undefined,
       school: undefined,
       medicationTaken: undefined,
+      stoolFrequency: undefined,
+      stoolNight: undefined,
+      stoolConsistency: undefined,
+      stoolBlood: undefined,
       note: "",
     };
   }
@@ -75,6 +120,10 @@ function draftFromLog(log: ParentLog | undefined): DayDraft {
     activity: log.activity,
     school: log.school,
     medicationTaken: log.medicationTaken,
+    stoolFrequency: log.stoolFrequency,
+    stoolNight: log.stoolNight,
+    stoolConsistency: log.stoolConsistency,
+    stoolBlood: log.stoolBlood,
     note: log.note ?? "",
   };
 }
@@ -108,6 +157,10 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
       ...(draft.activity ? { activity: draft.activity } : {}),
       ...(draft.school ? { school: draft.school } : {}),
       ...(draft.medicationTaken ? { medicationTaken: draft.medicationTaken } : {}),
+      ...(draft.stoolFrequency ? { stoolFrequency: draft.stoolFrequency } : {}),
+      ...(draft.stoolNight ? { stoolNight: draft.stoolNight } : {}),
+      ...(draft.stoolConsistency ? { stoolConsistency: draft.stoolConsistency } : {}),
+      ...(draft.stoolBlood ? { stoolBlood: draft.stoolBlood } : {}),
       ...(draft.note.trim() ? { note: draft.note.trim() } : {}),
     };
 
@@ -173,6 +226,80 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
         <Text size="sm" tone="muted">
           Yes, partly, no, or not applicable. Do not write medicine names or doses.
         </Text>
+
+        <FormSection>
+          <Heading level={3}>Bathroom observations</Heading>
+          <Text size="sm" tone="muted">
+            Factual bowel observations for your gastroenterology team (Crohn&apos;s / IBD). Only
+            record what you know naturally — no need to ask or press your child. All items are
+            optional.
+          </Text>
+
+          <OptionGroup legend="Bowel frequency (times today)" columns={2}>
+            {STOOL_FREQUENCY_OPTIONS.map((option) => (
+              <OptionButton
+                key={option.value}
+                label={option.label}
+                selected={draft.stoolFrequency === option.value}
+                onSelect={() =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    stoolFrequency: prev.stoolFrequency === option.value ? undefined : option.value,
+                  }))
+                }
+              />
+            ))}
+          </OptionGroup>
+
+          <OptionGroup legend="Woke up at night to go?" columns={3}>
+            {STOOL_NIGHT_OPTIONS.map((option) => (
+              <OptionButton
+                key={option.value}
+                label={option.label}
+                selected={draft.stoolNight === option.value}
+                onSelect={() =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    stoolNight: prev.stoolNight === option.value ? undefined : option.value,
+                  }))
+                }
+              />
+            ))}
+          </OptionGroup>
+
+          <OptionGroup legend="Stool consistency" columns={2}>
+            {STOOL_CONSISTENCY_OPTIONS.map((option) => (
+              <OptionButton
+                key={option.value}
+                label={option.label}
+                selected={draft.stoolConsistency === option.value}
+                onSelect={() =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    stoolConsistency:
+                      prev.stoolConsistency === option.value ? undefined : option.value,
+                  }))
+                }
+              />
+            ))}
+          </OptionGroup>
+
+          <OptionGroup legend="Visible blood in stool?" columns={3}>
+            {STOOL_BLOOD_OPTIONS.map((option) => (
+              <OptionButton
+                key={option.value}
+                label={option.label}
+                selected={draft.stoolBlood === option.value}
+                onSelect={() =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    stoolBlood: prev.stoolBlood === option.value ? undefined : option.value,
+                  }))
+                }
+              />
+            ))}
+          </OptionGroup>
+        </FormSection>
 
         <TextField
           label="Note"

@@ -30,6 +30,10 @@ import type {
   SchoolDay,
   RewardClaim,
   SpecialReward,
+  StoolBlood,
+  StoolConsistency,
+  StoolFrequency,
+  StoolNight,
 } from "@/types";
 
 export const childProfileSchema: z.ZodType<ChildProfile> = z.object({
@@ -125,12 +129,34 @@ export const medicationTakenSchema: z.ZodType<MedicationTaken> = z.enum([
   "not-applicable",
 ]);
 
+export const stoolFrequencySchema: z.ZodType<StoolFrequency> = z.enum([
+  "typical",
+  "more",
+  "much-more",
+  "unknown",
+]);
+
+export const stoolNightSchema: z.ZodType<StoolNight> = z.enum(["yes", "no", "unknown"]);
+
+export const stoolConsistencySchema: z.ZodType<StoolConsistency> = z.enum([
+  "formed",
+  "looser",
+  "watery",
+  "unknown",
+]);
+
+export const stoolBloodSchema: z.ZodType<StoolBlood> = z.enum(["none", "visible", "unknown"]);
+
 export const parentLogSchema: z.ZodType<ParentLog> = z.object({
   date: dateKeySchema,
   sleepHours: z.number().min(0).max(24).optional(),
   activity: activityLevelSchema.optional(),
   school: schoolDaySchema.optional(),
   medicationTaken: medicationTakenSchema.optional(),
+  stoolFrequency: stoolFrequencySchema.optional(),
+  stoolNight: stoolNightSchema.optional(),
+  stoolConsistency: stoolConsistencySchema.optional(),
+  stoolBlood: stoolBloodSchema.optional(),
   note: z.string().optional(),
 });
 
