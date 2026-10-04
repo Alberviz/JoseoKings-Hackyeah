@@ -421,7 +421,9 @@ describe("Parent Mode Shell (Task T10)", () => {
       // Check-in section
       expect(screen.getByText("Answered")).toBeDefined();
       expect(screen.getByText("Belly comfort")).toBeDefined();
-      expect(screen.getAllByText("Level 1").length).toBeGreaterThan(0);
+      expect(screen.getByText("A little rumble")).toBeDefined();
+      expect(screen.getByText("Medium energy")).toBeDefined();
+      expect(screen.getByText("Active and on the move")).toBeDefined();
 
       // Discomfort prompt
       expect(screen.getByText("Want to note what Lucas ate today?")).toBeDefined();
