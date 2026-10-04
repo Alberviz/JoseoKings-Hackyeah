@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styled from "styled-components";
+import { pressable } from "@/components/ui/Button/Button.style";
 
 const NAV_HEIGHT = "64px";
 
@@ -72,11 +73,6 @@ export const TabButton = styled.button<TabProps>`
   ${tabStyles}
 `;
 
-export const TabIcon = styled.span`
-  font-size: 1.4rem;
-  line-height: 1;
-`;
-
 export const MorePanel = styled.div`
   position: fixed;
   inset: auto 0 calc(${NAV_HEIGHT} + env(safe-area-inset-bottom)) 0;
@@ -98,4 +94,27 @@ export const MoreInner = styled.div`
   gap: ${({ theme }) => theme.spacing.sm};
   width: 100%;
   max-width: ${({ theme }) => theme.maxContentWidth};
+`;
+
+// Round sticker at the top right of every parent screen, scrolling with the page.
+export const SettingsLink = styled(Link)`
+  ${pressable}
+  position: absolute;
+  top: ${({ theme }) => theme.spacing.sm};
+  right: max(
+    ${({ theme }) => theme.spacing.md},
+    calc((100vw - ${({ theme }) => theme.maxContentWidth}) / 2 + ${({ theme }) => theme.spacing.md})
+  );
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: ${({ theme }) => theme.touchTarget};
+  height: ${({ theme }) => theme.touchTarget};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  background: ${({ theme }) => theme.colors.surface};
+
+  @media print {
+    display: none;
+  }
 `;

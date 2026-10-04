@@ -33,6 +33,18 @@ describe("ParentNav", () => {
     expect(screen.getByRole("link", { name: /Patterns/ })).toBeDefined();
   });
 
+  it("shows the settings gear except on the settings screen", () => {
+    const { unmount } = renderWithTheme(<ParentNav />);
+    expect(screen.getByRole("link", { name: "Settings" }).getAttribute("href")).toBe(
+      "/parent/settings",
+    );
+    unmount();
+
+    mocks.pathname = "/parent/settings";
+    renderWithTheme(<ParentNav />);
+    expect(screen.queryByRole("link", { name: "Settings" })).toBeNull();
+  });
+
   it("is hidden while locked and on the setup screen", () => {
     mocks.isUnlocked = false;
     const { unmount } = renderWithTheme(<ParentNav />);
@@ -49,7 +61,6 @@ describe("ParentNav", () => {
     renderWithTheme(<ParentNav />);
     fireEvent.click(screen.getByRole("button", { name: /More/ }));
     expect(screen.getByRole("link", { name: "Doctor report" })).toBeDefined();
-    expect(screen.getByRole("link", { name: "Settings" })).toBeDefined();
     expect(screen.getByRole("link", { name: "Family link" })).toBeDefined();
     expect(screen.getByRole("link", { name: "Back to child mode" })).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Lock" }));

@@ -13,19 +13,20 @@ import {
   NavItem,
   NavList,
   NavSpacer,
+  SettingsLink,
   TabButton,
-  TabIcon,
   TabLink,
 } from "./ParentNav.style";
+import { ParentNavIcon, type ParentNavIconKey } from "./ParentNavIcons";
 
-const TABS = [
-  { href: ROUTES.parent, label: "Summary", icon: "🏠" },
-  { href: ROUTES.parentLog, label: "Log", icon: "📝" },
-  { href: ROUTES.parentFoods, label: "Food", icon: "🍽️" },
-  { href: ROUTES.parentPatterns, label: "Patterns", icon: "📈" },
-] as const;
+const TABS: { href: string; label: string; icon: ParentNavIconKey }[] = [
+  { href: ROUTES.parent, label: "Summary", icon: "summary" },
+  { href: ROUTES.parentLog, label: "Log", icon: "log" },
+  { href: ROUTES.parentFoods, label: "Food", icon: "food" },
+  { href: ROUTES.parentPatterns, label: "Patterns", icon: "patterns" },
+];
 
-const MORE_ROUTES: string[] = [ROUTES.parentReport, ROUTES.parentSettings, ROUTES.parentLink];
+const MORE_ROUTES: string[] = [ROUTES.parentReport, ROUTES.parentLink];
 
 export function ParentNav() {
   const pathname = usePathname();
@@ -46,15 +47,17 @@ export function ParentNav() {
 
   return (
     <>
+      {pathname === ROUTES.parentSettings ? null : (
+        <SettingsLink href={ROUTES.parentSettings} aria-label="Settings">
+          <ParentNavIcon iconKey="settings" size={30} />
+        </SettingsLink>
+      )}
       <NavSpacer />
       {isMoreOpen ? (
         <MorePanel>
           <MoreInner>
             <LinkButton href={ROUTES.parentReport} variant="secondary" fullWidth>
               Doctor report
-            </LinkButton>
-            <LinkButton href={ROUTES.parentSettings} variant="secondary" fullWidth>
-              Settings
             </LinkButton>
             <LinkButton href={ROUTES.parentLink} variant="secondary" fullWidth>
               Family link
@@ -82,7 +85,7 @@ export function ParentNav() {
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => setMoreOpenPath(null)}
                 >
-                  <TabIcon aria-hidden="true">{tab.icon}</TabIcon>
+                  <ParentNavIcon iconKey={tab.icon} />
                   {tab.label}
                 </TabLink>
               </NavItem>
@@ -95,7 +98,7 @@ export function ParentNav() {
               aria-expanded={isMoreOpen}
               onClick={() => setMoreOpenPath(isMoreOpen ? null : pathname)}
             >
-              <TabIcon aria-hidden="true">⋯</TabIcon>
+              <ParentNavIcon iconKey="more" />
               More
             </TabButton>
           </NavItem>
