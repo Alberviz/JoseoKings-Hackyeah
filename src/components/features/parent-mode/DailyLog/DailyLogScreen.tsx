@@ -4,10 +4,8 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
-  Card,
   Chip,
   Heading,
-  LinkButton,
   OptionButton,
   OptionGroup,
   Screen,
@@ -36,7 +34,10 @@ import type {
   StoolFrequency,
   StoolNight,
 } from "@/types";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { PinGate } from "../PinGate/PinGate";
+import { SectionCard } from "../SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "../sections";
 import {
   AlertBox,
   ConsultationItem,
@@ -185,9 +186,8 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
   };
 
   return (
-    <Card label="Daily facts">
+    <SectionCard section="log" title="Daily facts">
       <StyledForm onSubmit={handleSaveLog}>
-        <Heading level={2}>Daily facts</Heading>
         <Text size="sm" tone="muted">
           Edit any past day. Saving replaces the log for that day.
         </Text>
@@ -274,6 +274,7 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
         <OptionGroup legend="Physical activity" columns={2}>
           {ACTIVITY_OPTIONS.map((option) => (
             <OptionButton
+              section="log"
               key={option.value}
               label={option.label}
               selected={draft.activity === option.value}
@@ -285,6 +286,7 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
         <OptionGroup legend="School" columns={2}>
           {SCHOOL_OPTIONS.map((option) => (
             <OptionButton
+              section="log"
               key={option.value}
               label={option.label}
               selected={draft.school === option.value}
@@ -296,6 +298,7 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
         <OptionGroup legend="Medication taken" columns={2}>
           {MEDICATION_OPTIONS.map((option) => (
             <OptionButton
+              section="log"
               key={option.value}
               label={option.label}
               selected={draft.medicationTaken === option.value}
@@ -390,11 +393,11 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
           maxLength={500}
         />
 
-        <Button type="submit" variant="primary" fullWidth>
+        <Button type="submit" variant={SECTION_BUTTON_VARIANT.log} fullWidth>
           Save day
         </Button>
       </StyledForm>
-    </Card>
+    </SectionCard>
   );
 }
 
@@ -510,14 +513,11 @@ export function DailyLogScreen() {
     <Screen>
       <DailyLogContainer>
         <Stack gap="lg">
-          <Stack gap="xs">
-            <Heading level={1}>Daily log</Heading>
-            <Text tone="muted">{`Facts for ${childName}. No drug names or doses.`}</Text>
-          </Stack>
+          <ParentBanner section="log" icon="log" title="Daily log" subtitle="Facts for the day" />
 
-          <Card label="Day">
+          <SectionCard section="log" title="Day">
             <Stack gap="md">
-              <Heading level={2}>Day</Heading>
+              <Text tone="muted">{`Facts for ${childName}. No drug names or doses.`}</Text>
               <DateNav>
                 <Button
                   type="button"
@@ -543,7 +543,7 @@ export function DailyLogScreen() {
                 onChange={(value) => selectDate(value)}
               />
             </Stack>
-          </Card>
+          </SectionCard>
 
           <DayForm
             key={selectedDate}
@@ -552,9 +552,8 @@ export function DailyLogScreen() {
             onSave={actions.saveParentLog}
           />
 
-          <Card label="Consultations">
+          <SectionCard section="log" title="Consultations and appointments">
             <Stack gap="md">
-              <Heading level={2}>Consultations and appointments</Heading>
               <Text size="sm" tone="muted">
                 Mark past visits or schedule your next appointment. The doctor report uses the time
                 since the last consultation.
@@ -641,16 +640,7 @@ export function DailyLogScreen() {
                 </Stack>
               )}
             </Stack>
-          </Card>
-
-          <Stack gap="sm">
-            <LinkButton href={ROUTES.parent} variant="secondary" fullWidth>
-              Back to parent summary
-            </LinkButton>
-            <Button type="button" variant="secondary" onClick={session.lock} fullWidth>
-              Lock
-            </Button>
-          </Stack>
+          </SectionCard>
         </Stack>
       </DailyLogContainer>
     </Screen>

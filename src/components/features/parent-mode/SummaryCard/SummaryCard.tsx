@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button, Card, Chip, Heading, LinkButton, Stack, Text } from "@/components/ui";
+import { Chip, LinkButton, Stack, Text } from "@/components/ui";
+import type { ChipTone } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { todayKey } from "@/lib/dates";
@@ -15,8 +16,9 @@ import {
   getConsultationSummary,
 } from "@/lib/consultation/consultation";
 import { formatMissionTitle } from "../missionLabels";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
+import { SectionCard } from "../SectionCard/SectionCard";
 import {
-  AnswerLabel,
   AnswerValue,
   AppointmentDateText,
   AppointmentRow,
@@ -28,8 +30,6 @@ import {
   FactList,
   MissionHeader,
   MissionItem,
-  NavGrid,
-  PromptCard,
   SummaryContainer,
 } from "./SummaryCard.style";
 
@@ -38,6 +38,13 @@ function getCheckInAnswerLabel(questionId: string, answerValue: unknown): string
   const question = CHECK_IN_QUESTIONS.find((q) => q.id === questionId);
   const option = question?.options.find((o) => o.value === answerValue);
   return option?.label ?? "-";
+}
+
+function toneForAnswer(value: unknown): ChipTone {
+  if (value === 0) return "success";
+  if (value === 1) return "mixed";
+  if (value === 2) return "harder";
+  return "default";
 }
 
 function DegreeFace({ level }: { level: number }) {
@@ -86,7 +93,7 @@ function AnswerRow({ label, questionId, value }: AnswerRowProps) {
       <Text size="sm">{label}</Text>
       <AnswerValue>
         {typeof value === "number" ? <DegreeFace level={value} /> : null}
-        <AnswerLabel>{getCheckInAnswerLabel(questionId, value)}</AnswerLabel>
+        <Chip label={getCheckInAnswerLabel(questionId, value)} tone={toneForAnswer(value)} />
       </AnswerValue>
     </FactItem>
   );
@@ -94,10 +101,9 @@ function AnswerRow({ label, questionId, value }: AnswerRowProps) {
 
 type SummaryCardProps = {
   state: AppState;
-  onLock: () => void;
 };
 
-export function SummaryCard({ state, onLock }: SummaryCardProps) {
+export function SummaryCard({ state }: SummaryCardProps) {
   const today = todayKey();
   const childName = state.child?.nickname ?? "your child";
 
@@ -132,31 +138,33 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
   return (
     <SummaryContainer>
       <Stack gap="lg">
-        <Stack gap="xs">
-          <Stack gap="sm" direction="row" align="center">
-            <Heading level={1}>Parent mode</Heading>
-            {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
-          </Stack>
-          <Text tone="muted">Daily summary for {childName}</Text>
-        </Stack>
+        <ParentBanner
+          section="summary"
+          icon="summary"
+          title="Parent mode"
+          subtitle={
+            <Stack gap="sm" direction="row" align="center">
+              <Text size="sm">Daily summary for {childName}</Text>
+              {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
+            </Stack>
+          }
+        />
 
         {activeNotifications.map((notif) => (
-          <PromptCard key={notif.id} role="status">
+          <SectionCard key={notif.id} section="log" title={notif.title}>
             <Stack gap="xs">
-              <Heading level={2}>{notif.title}</Heading>
               <Text size="sm">{notif.body}</Text>
               {notif.actionUrl && notif.actionLabel ? (
-                <LinkButton href={notif.actionUrl} variant="secondary">
+                <LinkButton href={notif.actionUrl} variant="success" fullWidth>
                   {notif.actionLabel}
                 </LinkButton>
               ) : null}
             </Stack>
-          </PromptCard>
+          </SectionCard>
         ))}
 
-        <Card label="Today's performance">
+        <SectionCard section="summary" title="Today's performance">
           <Stack gap="md">
-            <Heading level={2}>Today&apos;s performance</Heading>
             <Stack gap="sm">
               <Text size="sm" tone="muted">
                 Check-in
@@ -220,20 +228,21 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
               )}
             </Stack>
           </Stack>
-        </Card>
+        </SectionCard>
 
         {hasDiscomfort ? (
-          <PromptCard role="region" aria-label="Food note prompt">
-            <Text>Want to note what {childName} ate today?</Text>
-            <LinkButton href={ROUTES.parentFoods} variant="primary">
-              Open food diary
-            </LinkButton>
-          </PromptCard>
+          <SectionCard section="food" title="Food note" label="Food note prompt">
+            <Stack gap="sm">
+              <Text>Want to note what {childName} ate today?</Text>
+              <LinkButton href={ROUTES.parentFoods} variant="accent" fullWidth>
+                Open food diary
+              </LinkButton>
+            </Stack>
+          </SectionCard>
         ) : null}
 
-        <Card label="Doctor appointments">
+        <SectionCard section="more" title="Doctor appointments">
           <Stack gap="md">
-            <Heading level={2}>Doctor appointments</Heading>
             <Stack gap="xs">
               <Text size="sm" tone="muted">
                 Next appointment
@@ -267,43 +276,11 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
               )}
             </Stack>
 
-            <LinkButton href={ROUTES.parentLog} variant="secondary" fullWidth>
+            <LinkButton href={ROUTES.parentLog} variant="highlight" fullWidth>
               Manage appointments
             </LinkButton>
           </Stack>
-        </Card>
-
-        <Card label="Parent sections">
-          <Stack gap="md">
-            <Heading level={2}>Parent sections</Heading>
-            <NavGrid aria-label="Parent mode navigation">
-              <LinkButton href={ROUTES.parentLog} variant="secondary" fullWidth>
-                Daily log
-              </LinkButton>
-              <LinkButton href={ROUTES.parentFoods} variant="secondary" fullWidth>
-                Food diary
-              </LinkButton>
-              <LinkButton href={ROUTES.parentPatterns} variant="secondary" fullWidth>
-                Patterns
-              </LinkButton>
-              <LinkButton href={ROUTES.parentReport} variant="secondary" fullWidth>
-                Doctor report
-              </LinkButton>
-              <LinkButton href={ROUTES.parentSettings} variant="secondary" fullWidth>
-                Settings
-              </LinkButton>
-            </NavGrid>
-          </Stack>
-        </Card>
-
-        <Stack gap="sm">
-          <Button variant="secondary" onClick={onLock} fullWidth>
-            Lock
-          </Button>
-          <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-            Back to child mode
-          </LinkButton>
-        </Stack>
+        </SectionCard>
       </Stack>
     </SummaryContainer>
   );
