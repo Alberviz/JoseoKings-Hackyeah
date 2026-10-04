@@ -4,7 +4,7 @@ import { ThemeProvider } from "styled-components";
 import { renderWithTheme } from "@/test/renderWithTheme";
 import { theme as defaultTheme } from "@/theme/theme";
 import { ITEM_IDS } from "@/config/content-ids";
-import { Companion } from "./Companion";
+import { Companion, getDragonArtwork } from "./Companion";
 import { COMPANION_POSES, type CompanionPose } from "./poses";
 import { CompanionGallery } from "../CompanionGallery/CompanionGallery";
 import {
@@ -112,6 +112,43 @@ describe("Companion component", () => {
     expect(container.querySelector("[data-testid='companion-cape']")).not.toBeNull();
     expect(container.querySelector("[data-testid='companion-goggles']")).not.toBeNull();
     expect(container.querySelector("[data-testid='companion-body']")).not.toBeNull();
+  });
+
+  it("renders visible shop wearables (hat, glasses, t-shirt) on top of dragon with refined transforms", () => {
+    const { container } = renderWithTheme(
+      <Companion pose="idle" stage={2} equippedItemIds={["hat", "glasses", "t-shirt"]} />,
+    );
+
+    const hat = container.querySelector("[data-testid='companion-wearable-hat']");
+    const glasses = container.querySelector("[data-testid='companion-wearable-glasses']");
+    const tshirt = container.querySelector("[data-testid='companion-wearable-tshirt']");
+
+    expect(hat).not.toBeNull();
+    expect(glasses).not.toBeNull();
+    expect(tshirt).not.toBeNull();
+    expect(hat?.getAttribute("transform")).toContain("translate(107, 40)");
+    expect(tshirt?.getAttribute("transform")).toContain("translate(109, 107)");
+  });
+
+  it("renders alternative wearables (cap, sunglasses, sport-shirt) and enforces single item per slot", () => {
+    const { container } = renderWithTheme(
+      <Companion
+        pose="idle"
+        stage={1}
+        equippedItemIds={["cap", "hat", "sunglasses", "glasses", "sport-shirt", "t-shirt"]}
+      />,
+    );
+
+    expect(container.querySelector("[data-testid='companion-wearable-cap']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='companion-wearable-hat']")).toBeNull();
+
+    expect(container.querySelector("[data-testid='companion-wearable-sunglasses']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='companion-wearable-glasses']")).toBeNull();
+
+    expect(
+      container.querySelector("[data-testid='companion-wearable-sport-shirt']"),
+    ).not.toBeNull();
+    expect(container.querySelector("[data-testid='companion-wearable-tshirt']")).toBeNull();
   });
 
   it("defaults animated prop to true and exposes data-animated='true'", () => {
@@ -264,6 +301,33 @@ describe("Companion component", () => {
     rerender(<Companion pose="idle" stage={3} />);
     artwork = screen.getByTestId("companion-artwork");
     expect(artwork.getAttribute("href")).toBe("/dragon_stage3_heroic.png");
+  });
+
+  it("selects correct integrated raster accessory artwork for all stages", () => {
+    expect(getDragonArtwork(1, [])).toBe("/dragon.png");
+    expect(getDragonArtwork(1, ["glasses"])).toBe("/dragon_stage1_glasses.png");
+    expect(getDragonArtwork(1, ["sunglasses"])).toBe("/dragon_stage1_glasses.png");
+    expect(getDragonArtwork(1, ["glasses", "t-shirt"])).toBe("/dragon_stage1_shirt.png");
+    expect(getDragonArtwork(1, ["glasses", "t-shirt", "hat"])).toBe("/dragon_stage1_all.png");
+
+    expect(getDragonArtwork(2, ["glasses"])).toBe("/dragon_stage2_glasses.png");
+    expect(getDragonArtwork(2, ["t-shirt"])).toBe("/dragon_stage2_shirt.png");
+    expect(getDragonArtwork(2, ["hat"])).toBe("/dragon_stage2_all.png");
+
+    expect(getDragonArtwork(3, ["sunglasses"])).toBe("/dragon_stage3_glasses.png");
+    expect(getDragonArtwork(3, ["sport-shirt"])).toBe("/dragon_stage3_shirt.png");
+    expect(getDragonArtwork(3, ["cap"])).toBe("/dragon_stage3_all.png");
+
+    const { rerender } = renderWithTheme(
+      <Companion pose="idle" stage={2} equippedItemIds={["glasses", "t-shirt"]} />,
+    );
+    const artwork = screen.getByTestId("companion-artwork");
+    expect(artwork.getAttribute("href")).toBe("/dragon_stage2_shirt.png");
+
+    rerender(<Companion pose="idle" stage={3} equippedItemIds={["hat"]} />);
+    expect(screen.getByTestId("companion-artwork").getAttribute("href")).toBe(
+      "/dragon_stage3_all.png",
+    );
   });
 });
 

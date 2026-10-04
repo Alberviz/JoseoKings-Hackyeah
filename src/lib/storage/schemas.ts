@@ -178,7 +178,15 @@ export const consultationSchema: z.ZodType<Consultation> = z.object({
   date: dateKeySchema,
 });
 
-export const shopItemIdSchema = z.enum(["food", "glasses", "t-shirt", "hat"]);
+export const shopItemIdSchema = z.enum([
+  "food",
+  "glasses",
+  "sunglasses",
+  "t-shirt",
+  "sport-shirt",
+  "hat",
+  "cap",
+]);
 
 export const specialRewardSchema: z.ZodType<SpecialReward> = z.object({
   id: z.string(),

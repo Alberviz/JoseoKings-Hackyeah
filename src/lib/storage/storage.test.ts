@@ -9,6 +9,8 @@ import {
   foodEntrySchema,
   missionLogSchema,
   parentLogSchema,
+  shopItemIdSchema,
+  economyStateSchema,
 } from "./schemas";
 import {
   BACKUP_STORAGE_KEY,
@@ -292,5 +294,38 @@ describe("storage layer", () => {
     const parsed = missionLogSchema.parse(withMoods);
     expect(parsed.moodBefore).toBe("strong");
     expect(parsed.moodAfter).toBe("great");
+  });
+
+  it("shopItemIdSchema validates legacy items and new expanded items (additive only)", () => {
+    // Legacy items
+    expect(() => shopItemIdSchema.parse("food")).not.toThrow();
+    expect(() => shopItemIdSchema.parse("glasses")).not.toThrow();
+    expect(() => shopItemIdSchema.parse("t-shirt")).not.toThrow();
+    expect(() => shopItemIdSchema.parse("hat")).not.toThrow();
+
+    // New expanded items
+    expect(() => shopItemIdSchema.parse("cap")).not.toThrow();
+    expect(() => shopItemIdSchema.parse("sunglasses")).not.toThrow();
+    expect(() => shopItemIdSchema.parse("sport-shirt")).not.toThrow();
+
+    // Economy state with legacy items validates
+    const legacyEconomy = {
+      fire: 40,
+      coinsSpent: 20,
+      inventory: { food: 2 },
+      ownedItemIds: ["hat", "glasses"],
+      equippedItemIds: ["hat"],
+      specialRewards: [],
+      rewardClaims: [],
+    };
+    expect(() => economyStateSchema.parse(legacyEconomy)).not.toThrow();
+
+    // Economy state with expanded items validates
+    const expandedEconomy = {
+      ...legacyEconomy,
+      ownedItemIds: ["cap", "sunglasses", "sport-shirt"],
+      equippedItemIds: ["cap", "sunglasses", "sport-shirt"],
+    };
+    expect(() => economyStateSchema.parse(expandedEconomy)).not.toThrow();
   });
 });

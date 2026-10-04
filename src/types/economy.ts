@@ -1,6 +1,7 @@
 import type { DateKey } from "./check-in";
 
-export type ShopItemId = "food" | "glasses" | "t-shirt" | "hat";
+export type ShopItemId =
+  "food" | "glasses" | "sunglasses" | "t-shirt" | "sport-shirt" | "hat" | "cap";
 
 export type ShopSlot = "face" | "body" | "head";
 
