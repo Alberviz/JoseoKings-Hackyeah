@@ -22,17 +22,12 @@ import type {
 import { getCoinsForPlay, getMatchingPlayGames, toMoveKey } from "./game-matching";
 import {
   BackButton,
-  ChestBodyPath,
-  ChestBandPath,
-  ChestClaspRect,
   ChestContainer,
-  ChestGlowPolygon,
-  ChestGoldGlowEllipse,
-  ChestInside,
-  ChestLidPath,
-  ChestSparklePolygon,
+  ChestGlowAura,
+  ChestRasterImg,
+  ChestSparklesOverlay,
   ChestSubline,
-  ChestSvg,
+  ChestWrapper,
   ChoiceButton,
   ChoiceDot,
   ChoiceGrid,
@@ -60,6 +55,7 @@ import {
   PlayStage,
   PlayTopBar,
   RestNowButton,
+  SparkleStar,
   StepIndicator,
 } from "./PlayFlow.style";
 
@@ -71,30 +67,142 @@ export type PlayFlowProps = {
   initialCompany?: MissionCompany;
   initialLevel?: PlayLevel;
   initialGame?: PlayGame;
+  initialChestOpened?: boolean;
 };
 
-function OpenChest() {
+function playChestOpenSound() {
+  try {
+    if (typeof window === "undefined") return;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const now = ctx.currentTime;
+
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, now + i * 0.08);
+      gain.gain.setValueAtTime(0, now + i * 0.08);
+      gain.gain.linearRampToValueAtTime(0.2, now + i * 0.08 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + i * 0.08);
+      osc.stop(now + i * 0.08 + 0.38);
+    });
+  } catch {
+    // Ignore audio errors gracefully
+  }
+}
+
+function playChestTapSound() {
+  try {
+    if (typeof window === "undefined") return;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(659.25, now);
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  } catch {
+    // Ignore audio errors gracefully
+  }
+}
+
+function triggerChestHaptics() {
+  try {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([35, 50, 90]);
+    }
+  } catch {
+    // Ignore haptic failures
+  }
+}
+
+type TreasureChestProps = {
+  isOpen: boolean;
+  onOpen: () => void;
+};
+
+function TreasureChest({ isOpen, onOpen }: TreasureChestProps) {
+  const [isTapped, setIsTapped] = useState(false);
+
+  const handleTap = () => {
+    setIsTapped(true);
+    setTimeout(() => setIsTapped(false), 600);
+
+    if (!isOpen) {
+      playChestOpenSound();
+      triggerChestHaptics();
+      onOpen();
+    } else {
+      playChestTapSound();
+      triggerChestHaptics();
+    }
+  };
+
   return (
-    <ChestSvg viewBox="0 0 200 160" role="img" aria-label="Open treasure chest full of coins">
-      <ChestGlowPolygon points="100,60 40,0 160,0" />
-      <ChestGlowPolygon points="100,60 10,30 50,0" />
-      <ChestGlowPolygon points="100,60 190,30 150,0" />
+    <ChestWrapper
+      type="button"
+      aria-label={
+        isOpen ? "Open treasure chest full of coins" : "Closed treasure chest. Tap to open!"
+      }
+      onClick={handleTap}
+      $isOpen={isOpen}
+      $isTapped={isTapped}
+      data-testid="open-treasure-chest"
+    >
+      <ChestGlowAura $isOpen={isOpen} aria-hidden="true" />
 
-      <ChestInside d="M 40 70 L 160 70 L 150 92 L 50 92 Z" />
-      <ChestGoldGlowEllipse cx="100" cy="85" rx="45" ry="12" />
+      {isOpen ? (
+        <ChestSparklesOverlay viewBox="0 0 200 200" aria-hidden="true">
+          <SparkleStar
+            d="M 40 45 Q 40 55 30 55 Q 40 55 40 65 Q 40 55 50 55 Q 40 55 40 45 Z"
+            $delay={0.1}
+          />
+          <SparkleStar
+            d="M 100 15 Q 100 27 88 27 Q 100 27 100 39 Q 100 27 112 27 Q 100 27 100 15 Z"
+            $delay={0.25}
+          />
+          <SparkleStar
+            d="M 160 40 Q 160 52 148 52 Q 160 52 160 64 Q 160 52 172 52 Q 160 52 160 40 Z"
+            $delay={0.15}
+          />
+          <SparkleStar
+            d="M 180 110 Q 180 120 170 120 Q 180 120 180 130 Q 180 120 190 120 Q 180 120 180 110 Z"
+            $delay={0.35}
+          />
+          <SparkleStar
+            d="M 20 100 Q 20 110 10 110 Q 20 110 20 120 Q 20 110 30 110 Q 20 110 20 100 Z"
+            $delay={0.3}
+          />
+        </ChestSparklesOverlay>
+      ) : null}
 
-      <ChestSparklePolygon points="65,40 68,48 76,50 68,52 65,60 62,52 54,50 62,48" />
-      <ChestSparklePolygon points="135,35 138,43 146,45 138,47 135,55 132,47 124,45 132,43" />
-      <ChestSparklePolygon points="100,20 102,26 108,28 102,30 100,36 98,30 92,28 98,26" />
-
-      <ChestLidPath d="M 35 45 Q 100 16 165 45 L 160 68 Q 100 42 40 68 Z" />
-      <ChestBodyPath d="M 38 82 L 162 82 L 152 144 L 48 144 Z" />
-
-      <ChestBandPath d="M 68 82 L 72 144" />
-      <ChestBandPath d="M 132 82 L 128 144" />
-
-      <ChestClaspRect x="93" y="80" width="14" height="16" rx="3" />
-    </ChestSvg>
+      <ChestRasterImg
+        src={isOpen ? "/chest_open.png" : "/chest_closed.png"}
+        alt=""
+        role="img"
+        aria-label={isOpen ? "Open treasure chest full of coins" : "Closed treasure chest"}
+        $isOpen={isOpen}
+        $isTapped={isTapped}
+      />
+    </ChestWrapper>
   );
 }
 
@@ -185,6 +293,7 @@ export function PlayFlow({
   initialCompany = "alone",
   initialLevel = 1,
   initialGame,
+  initialChestOpened = false,
 }: PlayFlowProps) {
   const router = useRouter();
   const { state, actions, isReady } = useAppState();
@@ -198,8 +307,13 @@ export function PlayFlow({
   const [isRest, setIsRest] = useState(false);
   const [confirmedBy, setConfirmedBy] = useState<ConfirmationKind | undefined>(undefined);
   const [, setMoodAfter] = useState<MissionMoodAfter | undefined>(undefined);
+  const [isChestOpened, setIsChestOpened] = useState(initialChestOpened);
 
   const hasSavedRef = useRef(false);
+
+  const handleOpenChest = () => {
+    setIsChestOpened(true);
+  };
 
   const gameMode: PlayMode = company === "alone" ? "alone" : "family";
   const matchingGames = useMemo(
@@ -556,20 +670,32 @@ export function PlayFlow({
             {companionElement}
 
             <ChestContainer>
-              <OpenChest />
+              <TreasureChest isOpen={isChestOpened} onOpen={handleOpenChest} />
 
-              <CoinBadge>
-                <CoinIcon />
-                <CoinRewardAmount>
-                  +{getCoinsForPlay(isRest ? "rest" : "completed")}
-                </CoinRewardAmount>
-              </CoinBadge>
+              {isChestOpened ? (
+                <>
+                  <CoinBadge>
+                    <CoinIcon />
+                    <CoinRewardAmount>
+                      +{getCoinsForPlay(isRest ? "rest" : "completed")}
+                    </CoinRewardAmount>
+                  </CoinBadge>
 
-              <ChestSubline>Every time you play, you get a chest.</ChestSubline>
+                  <ChestSubline>Every time you play, you get a chest.</ChestSubline>
 
-              <Button variant="primary" fullWidth onClick={() => router.push(ROUTES.home)}>
-                Back home
-              </Button>
+                  <Button variant="primary" fullWidth onClick={() => router.push(ROUTES.home)}>
+                    Back home
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <ChestSubline>Tap the chest to open your reward!</ChestSubline>
+
+                  <Button variant="primary" fullWidth onClick={handleOpenChest}>
+                    Open chest!
+                  </Button>
+                </>
+              )}
             </ChestContainer>
           </PlayStage>
         ) : null}
