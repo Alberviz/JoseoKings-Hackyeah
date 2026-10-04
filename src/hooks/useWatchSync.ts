@@ -14,6 +14,7 @@ import { buildWatchDays } from "@/lib/wearables/buildWatchDays";
 import { fetchBrowserGoogleHealth, GoogleHealthError } from "@/lib/wearables/browserGoogleHealth";
 import { requestGoogleAccessToken, type AccessToken } from "@/lib/wearables/googleIdentity";
 import { localDateTime } from "@/lib/wearables/validity";
+import type { WatchSample } from "@/lib/wearables/types";
 import type { WatchState } from "@/types/watch";
 
 export const WATCH_SYNC_DAYS = 28;
@@ -37,6 +38,7 @@ export function useWatchSync() {
   const [status, setStatus] = useState<WatchSyncStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const tokenRef = useRef<AccessToken | null>(null);
+  const rawSamplesRef = useRef<WatchSample[]>(watch.rawSamples ?? []);
 
   const sync = useCallback(async () => {
     if (!CLIENT_ID) {
@@ -64,10 +66,23 @@ export function useWatchSync() {
         timeZone,
       });
       const failed = Object.values(result.metricStatus).some((m) => m?.status !== "ok");
-      const days = buildWatchDays(result.samples, { timeZone, fromDate });
+      rawSamplesRef.current = result.samples;
       const current = loadWatchState();
       const base = current.isDemo ? createEmptyWatchState() : current;
-      const next = mergeWatchDays(base, days, { isDemo: false });
+      const discoveredDevices = Array.from(
+        new Set(result.samples.map((s) => s.source).filter(Boolean)),
+      ).sort();
+      const selectedDevice =
+        base.selectedDevice && discoveredDevices.includes(base.selectedDevice)
+          ? base.selectedDevice
+          : null;
+      const days = buildWatchDays(result.samples, { timeZone, fromDate, selectedDevice });
+      const next = mergeWatchDays(base, days, {
+        isDemo: false,
+        devices: discoveredDevices,
+        selectedDevice,
+        rawSamples: result.samples,
+      });
       saveWatchState(next);
       setWatch(next);
       setStatus("idle");
@@ -85,8 +100,36 @@ export function useWatchSync() {
     }
   }, []);
 
+  const selectDevice = useCallback((device: string | null) => {
+    setWatch((prev) => {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const now = Date.now();
+      const today = localDateTime(now, timeZone).date;
+      const fromDate = addDays(today, -(WATCH_SYNC_DAYS - 1));
+      const samples =
+        rawSamplesRef.current.length > 0 ? rawSamplesRef.current : (prev.rawSamples ?? []);
+      const days =
+        samples.length > 0
+          ? buildWatchDays(samples, { timeZone, fromDate, selectedDevice: device })
+          : prev.days;
+      const next: WatchState = {
+        ...prev,
+        selectedDevice: device,
+        days,
+      };
+      saveWatchState(next);
+      return next;
+    });
+  }, []);
+
   const useDemo = useCallback(() => {
-    const next = mergeWatchDays(createEmptyWatchState(), buildDemoWatchDays(), { isDemo: true });
+    rawSamplesRef.current = [];
+    const next = mergeWatchDays(createEmptyWatchState(), buildDemoWatchDays(), {
+      isDemo: true,
+      devices: [],
+      selectedDevice: null,
+      rawSamples: [],
+    });
     saveWatchState(next);
     setWatch(next);
     setStatus("idle");
@@ -96,10 +139,20 @@ export function useWatchSync() {
   const clear = useCallback(() => {
     clearWatchState();
     tokenRef.current = null;
+    rawSamplesRef.current = [];
     setWatch(createEmptyWatchState());
     setStatus("idle");
     setMessage(null);
   }, []);
 
-  return { watch, status, message, isConfigured: CLIENT_ID !== "", sync, useDemo, clear };
+  return {
+    watch,
+    status,
+    message,
+    isConfigured: CLIENT_ID !== "",
+    sync,
+    useDemo,
+    clear,
+    selectDevice,
+  };
 }

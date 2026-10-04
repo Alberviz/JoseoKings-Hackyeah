@@ -26,6 +26,7 @@ export interface GoogleHealthReadOptions {
   endTimeMillis: number;
   timeZone?: string;
   baseUrl?: string;
+  selectedDevice?: string | null;
 }
 
 /** What happened when one metric was requested. Callers decide how to show a failed metric. */
@@ -40,6 +41,7 @@ export type FetchedMetricKey = WearableMetric | "sleep";
 export interface GoogleHealthResult {
   samples: WatchSample[];
   dailyMetrics: DailyMetric[];
+  devices?: string[];
   /** One entry per requested metric. A metric that failed has no samples and a non-"ok" status. */
   metricStatus: Partial<Record<FetchedMetricKey, MetricFetchStatus>>;
   range: {
@@ -70,6 +72,7 @@ type ListSpec = {
   dataType: string;
   filter: string;
   pageSize: number;
+  dataSourceFamily?: string;
 };
 
 class MetricFailure extends Error {
@@ -89,6 +92,10 @@ async function listAll(
     const url = new URL(`${baseUrl}/dataTypes/${spec.dataType}/dataPoints`);
     url.searchParams.set("filter", spec.filter);
     url.searchParams.set("pageSize", String(spec.pageSize));
+    url.searchParams.set(
+      "dataSourceFamily",
+      spec.dataSourceFamily ?? "users/me/dataSourceFamilies/all-sources",
+    );
     if (pageToken) url.searchParams.set("pageToken", pageToken);
 
     let res: Response;
@@ -165,17 +172,35 @@ export async function fetchBrowserGoogleHealth(
   await run("heartRate", async () => {
     const out: WatchSample[] = [];
     const chunk = HEART_RATE_MAX_RANGE_DAYS * DAY_MS;
+    let field = "heart_rate.interval.start_time";
+
     for (let from = startTimeMillis; from < endTimeMillis; from += chunk) {
       const to = Math.min(from + chunk, endTimeMillis);
-      out.push(
-        ...heartRatePointsToRows(
-          await listAll(baseUrl, headers, {
+      let points: HealthDataPoint[];
+      try {
+        points = await listAll(baseUrl, headers, {
+          dataType: "heart-rate",
+          filter: timeFilter(field, from, to),
+          pageSize: PAGE_SIZE,
+        });
+      } catch (err) {
+        if (
+          err instanceof MetricFailure &&
+          err.outcome.status === "http-error" &&
+          err.outcome.httpStatus === 400 &&
+          field === "heart_rate.interval.start_time"
+        ) {
+          field = "heart_rate.sample_time.physical_time";
+          points = await listAll(baseUrl, headers, {
             dataType: "heart-rate",
-            filter: timeFilter("heart_rate.sample_time.physical_time", from, to),
+            filter: timeFilter(field, from, to),
             pageSize: PAGE_SIZE,
-          }),
-        ),
-      );
+          });
+        } else {
+          throw err;
+        }
+      }
+      out.push(...heartRatePointsToRows(points));
     }
     return out;
   });
@@ -193,11 +218,16 @@ export async function fetchBrowserGoogleHealth(
   });
 
   // Compute local daily metrics directly in the browser
-  const dailyMetrics = computeDailyMetrics(rows, timeZone);
+  const filteredRows = options.selectedDevice
+    ? rows.filter((s) => s.source === options.selectedDevice)
+    : rows;
+  const dailyMetrics = computeDailyMetrics(filteredRows, timeZone);
+  const devices = Array.from(new Set(rows.map((s) => s.source).filter(Boolean))).sort();
 
   return {
     samples: rows,
     dailyMetrics,
+    devices,
     metricStatus,
     range: {
       startMillis: startTimeMillis,

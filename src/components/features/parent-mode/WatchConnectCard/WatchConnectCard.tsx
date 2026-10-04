@@ -2,7 +2,7 @@
 
 import { Button, Card, Chip, Heading, Stack, Text } from "@/components/ui";
 import { useWatchSync } from "@/hooks/useWatchSync";
-import { ButtonRow, StatusMessage } from "./WatchConnectCard.style";
+import { ButtonRow, DeviceRow, StatusMessage } from "./WatchConnectCard.style";
 
 function formatLastSync(iso: string | null): string {
   if (!iso) return "";
@@ -11,7 +11,8 @@ function formatLastSync(iso: string | null): string {
 }
 
 export function WatchConnectCard() {
-  const { watch, status, message, isConfigured, sync, useDemo, clear } = useWatchSync();
+  const { watch, status, message, isConfigured, sync, useDemo, clear, selectDevice } =
+    useWatchSync();
   const isWorking = status === "working";
   const hasDays = watch.days.length > 0;
   const hasRealData = hasDays && !watch.isDemo;
@@ -36,6 +37,28 @@ export function WatchConnectCard() {
           only on this phone.
         </Text>
         <Text size="sm">{statusText}</Text>
+        {watch.devices && watch.devices.length > 1 ? (
+          <Stack gap="xs">
+            <Text size="sm" tone="muted">
+              Device:
+            </Text>
+            <DeviceRow>
+              <Chip
+                label="All devices"
+                selected={!watch.selectedDevice}
+                onToggle={() => selectDevice(null)}
+              />
+              {watch.devices.map((device) => (
+                <Chip
+                  key={device}
+                  label={device}
+                  selected={watch.selectedDevice === device}
+                  onToggle={() => selectDevice(device)}
+                />
+              ))}
+            </DeviceRow>
+          </Stack>
+        ) : null}
         {message ? (
           <StatusMessage
             $isError={status === "error"}

@@ -1,3 +1,5 @@
+import type { WatchSample } from "@/lib/wearables/types";
+
 export type WatchDay = {
   /** Local calendar day, YYYY-MM-DD. */
   date: string;
@@ -17,4 +19,10 @@ export type WatchState = {
   lastSyncAt: string | null;
   /** True when the days were generated demo data. */
   isDemo: boolean;
+  /** Unique device names discovered across watch samples. */
+  devices?: string[];
+  /** Selected device name for filtering, or null for all devices. */
+  selectedDevice?: string | null;
+  /** Optional cached raw samples to allow re-filtering by device. */
+  rawSamples?: WatchSample[];
 };

@@ -8,10 +8,13 @@ import type { WatchSample } from "./types";
  */
 export function buildWatchDays(
   samples: WatchSample[],
-  options: { timeZone?: string; fromDate?: string } = {},
+  options: { timeZone?: string; fromDate?: string; selectedDevice?: string | null } = {},
 ): WatchDay[] {
-  const { timeZone = DEFAULT_TIMEZONE, fromDate } = options;
-  return computeDailyMetrics(samples, timeZone)
+  const { timeZone = DEFAULT_TIMEZONE, fromDate, selectedDevice } = options;
+  const filteredSamples = selectedDevice
+    ? samples.filter((s) => s.source === selectedDevice)
+    : samples;
+  return computeDailyMetrics(filteredSamples, timeZone)
     .filter((m) => !fromDate || m.localDate >= fromDate)
     .map((m) => ({
       date: m.localDate,

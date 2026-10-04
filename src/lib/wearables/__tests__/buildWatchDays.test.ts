@@ -71,4 +71,29 @@ describe("buildWatchDays", () => {
     expect(day?.sleepMinutes).toBe(480);
     expect(day?.restingHr).not.toBeNull();
   });
+
+  it("filters samples by selectedDevice when specified", () => {
+    const s1: WatchSample = {
+      metric: "steps",
+      startAt: "2026-09-01T10:00:00Z",
+      endAt: "2026-09-01T10:01:00Z",
+      value: 100,
+      source: "Pixel Watch 2",
+    };
+    const s2: WatchSample = {
+      metric: "steps",
+      startAt: "2026-09-01T11:00:00Z",
+      endAt: "2026-09-01T11:01:00Z",
+      value: 50,
+      source: "Galaxy Watch6",
+    };
+    const all = buildWatchDays([s1, s2], { timeZone: "UTC" });
+    expect(all[0].steps).toBe(150);
+
+    const filtered = buildWatchDays([s1, s2], {
+      timeZone: "UTC",
+      selectedDevice: "Pixel Watch 2",
+    });
+    expect(filtered[0].steps).toBe(100);
+  });
 });

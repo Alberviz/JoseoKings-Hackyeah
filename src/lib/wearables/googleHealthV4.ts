@@ -16,8 +16,24 @@ export const HEART_RATE_MAX_RANGE_DAYS = 14;
 
 export type HealthDataPoint = {
   steps?: { interval?: { startTime?: string; endTime?: string }; count?: string | number };
-  heartRate?: { sampleTime?: { physicalTime?: string }; beatsPerMinute?: string | number };
+  heartRate?: {
+    interval?: { startTime?: string; endTime?: string };
+    sampleTime?: { physicalTime?: string };
+    beatsPerMinute?: string | number;
+  };
   sleep?: { interval?: { startTime?: string; endTime?: string } };
+  dataSource?: {
+    device?: {
+      manufacturer?: string;
+      displayName?: string;
+      model?: string;
+      type?: string;
+    };
+    platform?: string;
+    application?: {
+      packageName?: string;
+    };
+  };
 };
 
 export type HealthListResponse = {
@@ -27,6 +43,10 @@ export type HealthListResponse = {
 
 const SOURCE = "google-health";
 const MINUTE = 60_000;
+
+function extractSource(point: HealthDataPoint): string {
+  return point.dataSource?.device?.displayName || point.dataSource?.device?.model || SOURCE;
+}
 
 function toMs(iso?: string): number | null {
   if (!iso) return null;
@@ -52,7 +72,7 @@ export function stepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
       startAt: new Date(start).toISOString(),
       endAt: new Date(end).toISOString(),
       value: count,
-      source: SOURCE,
+      source: extractSource(point),
     });
   }
   return rows;
@@ -60,20 +80,24 @@ export function stepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
 
 /** Heart-rate readings, thinned to the first reading of each minute (the rules count minutes). */
 export function heartRatePointsToRows(points: HealthDataPoint[]): WatchSample[] {
-  const byMinute = new Map<number, WatchSample>();
+  const byMinute = new Map<string, WatchSample>();
   for (const point of points) {
-    const at = toMs(point.heartRate?.sampleTime?.physicalTime);
+    const at = toMs(
+      point.heartRate?.interval?.startTime ?? point.heartRate?.sampleTime?.physicalTime,
+    );
     const bpm = toNumber(point.heartRate?.beatsPerMinute);
     if (at === null || bpm === null || bpm <= 0) continue;
     const minute = Math.floor(at / MINUTE);
-    if (byMinute.has(minute)) continue;
+    const source = extractSource(point);
+    const key = `${minute}:${source}`;
+    if (byMinute.has(key)) continue;
     const iso = new Date(at).toISOString();
-    byMinute.set(minute, {
+    byMinute.set(key, {
       metric: "heartRate",
       startAt: iso,
       endAt: iso,
       value: bpm,
-      source: SOURCE,
+      source,
     });
   }
   return [...byMinute.values()];
@@ -90,7 +114,7 @@ export function sleepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
       startAt: new Date(start).toISOString(),
       endAt: new Date(end).toISOString(),
       value: (end - start) / MINUTE,
-      source: SOURCE,
+      source: extractSource(point),
     });
   }
   return rows;
