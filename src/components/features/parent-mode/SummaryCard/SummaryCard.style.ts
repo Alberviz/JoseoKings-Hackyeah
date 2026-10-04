@@ -50,13 +50,8 @@ export const DegreeFaceSvg = styled.svg`
   flex-shrink: 0;
 `;
 
-export const DegreeFaceCircle = styled.circle<{ $level: number }>`
-  fill: ${({ $level, theme }) =>
-    $level === 0
-      ? theme.colors.success
-      : $level === 1
-        ? theme.colors.dragonHorn
-        : theme.colors.accent};
+export const DegreeFaceCircle = styled.circle`
+  fill: ${({ theme }) => theme.colors.textMuted};
 `;
 
 export const DegreeFaceEye = styled.circle`
