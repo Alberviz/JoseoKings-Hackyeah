@@ -1,1 +1,0 @@
-export { GameTabBar } from "./GameTabBar";
