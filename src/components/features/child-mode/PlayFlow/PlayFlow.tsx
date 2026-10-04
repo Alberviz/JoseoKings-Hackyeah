@@ -148,10 +148,19 @@ type TreasureChestProps = {
 
 function TreasureChest({ isOpen, onOpen }: TreasureChestProps) {
   const [isTapped, setIsTapped] = useState(false);
+  const tapTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const timeoutRef = tapTimeoutRef;
+    return () => {
+      if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const handleTap = () => {
     setIsTapped(true);
-    setTimeout(() => setIsTapped(false), 600);
+    if (tapTimeoutRef.current !== null) clearTimeout(tapTimeoutRef.current);
+    tapTimeoutRef.current = window.setTimeout(() => setIsTapped(false), 600);
 
     if (!isOpen) {
       playChestOpenSound();

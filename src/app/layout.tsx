@@ -25,6 +25,15 @@ export const metadata: Metadata = {
     template: `%s · ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
+  metadataBase: new URL("https://mycrohnie.vercel.app"),
+  openGraph: {
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    url: "/",
+    siteName: APP_NAME,
+    type: "website",
+    images: [{ url: "/icons/icon-512.png", width: 512, height: 512, alt: APP_NAME }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
