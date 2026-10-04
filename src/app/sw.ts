@@ -1,6 +1,6 @@
 import { defaultCache } from "@serwist/turbopack/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import { NetworkOnly, Serwist } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -15,7 +15,17 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  // Google sign-in and Google Health answers carry health data: never keep them in the cache.
+  runtimeCaching: [
+    {
+      matcher: ({ url }) =>
+        url.hostname === "health.googleapis.com" ||
+        url.hostname === "accounts.google.com" ||
+        url.hostname === "oauth2.googleapis.com",
+      handler: new NetworkOnly(),
+    },
+    ...defaultCache,
+  ],
   fallbacks: {
     entries: [
       {
