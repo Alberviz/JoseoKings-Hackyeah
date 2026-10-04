@@ -830,4 +830,59 @@ describe("patterns logic", () => {
       expect(summaries[1].bellyComfort).toBe(1);
     });
   });
+
+  describe("duplicates and non-ASCII food terms", () => {
+    it("uses the first check-in and first parent log of a date", () => {
+      const state = makeState({
+        checkIns: [
+          {
+            id: "a",
+            date: "2026-10-01",
+            answers: { [QUESTION_IDS.bellyComfort]: 0 },
+            notToday: false,
+            createdAt: "2026-10-01T08:00:00.000Z",
+          },
+          {
+            id: "b",
+            date: "2026-10-01",
+            answers: { [QUESTION_IDS.bellyComfort]: 2 },
+            notToday: false,
+            createdAt: "2026-10-01T18:00:00.000Z",
+          },
+        ],
+        parentLogs: [
+          { date: "2026-10-01", sleepHours: 8 },
+          { date: "2026-10-01", sleepHours: 4 },
+        ],
+      });
+      const [day] = getDaySummaries(state, { from: "2026-10-01", to: "2026-10-01" });
+      expect(day.hasDiscomfort).toBe(false);
+      expect(day.bellyComfort).toBe(0);
+      expect(day.sleepHours).toBe(8);
+    });
+
+    it("keeps terms with Polish letters", () => {
+      const state = makeState({
+        checkIns: [
+          {
+            id: "a",
+            date: "2026-10-01",
+            answers: { [QUESTION_IDS.bellyComfort]: 2 },
+            notToday: false,
+            createdAt: "2026-10-01T08:00:00.000Z",
+          },
+        ],
+        foodEntries: [
+          {
+            id: "f1",
+            date: "2026-10-01",
+            text: "Żurek i pierogi",
+            createdAt: "2026-10-01T12:00:00.000Z",
+          },
+        ],
+      });
+      const result = getFoodCooccurrence(state, { from: "2026-10-01", to: "2026-10-01" });
+      expect(result.termCounts.map((t) => t.term)).toContain("żurek");
+    });
+  });
 });

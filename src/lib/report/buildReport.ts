@@ -1,6 +1,7 @@
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays, daysBetween, todayKey } from "@/lib/dates";
+import { CORROBORATION_LABELS } from "@/lib/missions/corroboration";
 import { confidenceLabel } from "@/lib/rewards";
 import { createEmptyWearableState } from "@/lib/storage/wearableStore";
 import type { AppState, BathroomEntry, DateKey, MissionCompany } from "@/types";
@@ -49,6 +50,8 @@ export function buildReport(
     previousConsultationDate = lastConsultation.date;
     const diff = daysBetween(lastConsultation.date, today);
     if (diff > 90 || diff <= 0) {
+      // The period does not start at that consultation, so do not name it in the header.
+      previousConsultationDate = null;
       startDate = addDays(today, -29);
     } else {
       startDate = addDays(lastConsultation.date, 1);
@@ -120,8 +123,7 @@ export function buildReport(
       typeof rawPlayPace === "number" && rawPlayPace >= 0 && rawPlayPace <= 2 ? rawPlayPace : null;
 
     const notToday = Boolean(checkIn?.notToday);
-    const hadDiscomfort =
-      (bellyComfort !== null && bellyComfort >= DISCOMFORT_THRESHOLD) || notToday;
+    const hadDiscomfort = bellyComfort !== null && bellyComfort >= DISCOMFORT_THRESHOLD;
 
     const daytimeBathroomCount =
       parentLog?.daytimeBathroomCount ??
@@ -203,7 +205,8 @@ export function buildReport(
   const careDaysCount = dayStrip.filter((d) => d.hasCheckIn || d.hadMissions).length;
   const discomfortDaysCount = dayStrip.filter((d) => d.hadDiscomfort).length;
 
-  const periodParentLogs = (state.parentLogs ?? []).filter(
+  // One log per date (the first), same as the day strip.
+  const periodParentLogs = Array.from(parentLogByDate.values()).filter(
     (p) => p.date >= startDate && p.date <= endDate,
   );
 
@@ -241,10 +244,10 @@ export function buildReport(
   const byCorroboration: MissionCorroborationCount[] = [
     {
       method: "wearable",
-      label: "Movement noted by the wearable",
+      label: CORROBORATION_LABELS.wearable,
       count: wearableCorroboratedCount,
     },
-    { method: "motion", label: "Movement noted by the phone", count: motionCorroboratedCount },
+    { method: "motion", label: CORROBORATION_LABELS.motion, count: motionCorroboratedCount },
     { method: "none", label: "Self-reported only", count: noneCorroboratedCount },
   ];
 
@@ -264,12 +267,12 @@ export function buildReport(
 
   const foodsOnDiscomfortDays: FoodCooccurrence[] = Array.from(foodCounts.entries())
     .map(([text, count]) => ({ text, count }))
-    .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
+    .sort((a, b) => a.text.localeCompare(b.text));
 
   const wearableSection = buildWearableSection(wearable, startDate, endDate);
 
   return {
-    childNickname: state.child?.nickname ?? "Lucas",
+    childNickname: state.child?.nickname ?? "Child",
     isDemo: Boolean(state.isDemo),
     generatedDate: today,
     period: {
