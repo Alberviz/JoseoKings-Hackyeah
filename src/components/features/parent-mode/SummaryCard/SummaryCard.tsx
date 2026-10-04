@@ -6,6 +6,7 @@ import type { ChipTone } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { todayKey } from "@/lib/dates";
+import { corroborationLabel } from "@/lib/missions/corroboration";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
@@ -16,6 +17,7 @@ import {
   getConsultationSummary,
 } from "@/lib/consultation/consultation";
 import { formatMissionTitle } from "../missionLabels";
+import { WearableSummary } from "../WearableSummary/WearableSummary";
 import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { SectionCard } from "../SectionCard/SectionCard";
 import {
@@ -218,6 +220,9 @@ export function SummaryCard({ state }: SummaryCardProps) {
                       <MissionHeader>
                         <Text>{formatMissionTitle(log.missionId)}</Text>
                         <Chip label={confidenceLabel(log.company)} tone="default" />
+                        {log.corroboration ? (
+                          <Chip label={corroborationLabel(log.corroboration)} tone="default" />
+                        ) : null}
                       </MissionHeader>
                       <Text size="sm" tone="muted">
                         Status: {log.status === "completed" ? "Completed" : "Rest"}
@@ -229,6 +234,8 @@ export function SummaryCard({ state }: SummaryCardProps) {
             </Stack>
           </Stack>
         </SectionCard>
+
+        <WearableSummary state={state} />
 
         {hasDiscomfort ? (
           <SectionCard section="food" title="Food note" label="Food note prompt">

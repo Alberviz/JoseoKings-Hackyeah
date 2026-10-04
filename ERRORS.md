@@ -141,3 +141,14 @@ Before debugging something, search this file first: it may already be solved.
 - **Cause:** Using a git branch (`comms`) with 1 commit per message and verbose text cards created repo overhead and filled agent context buffers.
 - **Fix:** Replaced Git branch backend in `scripts/comms.sh` with GitHub Issues personal inboxes (#70-#75) and broadcast (#76). Reading inboxes consumes < 50 tokens with zero git commits.
 - **Refs:** E9
+
+### E11 · Google Health API 400s: interval filter on heart rate, `dataSourceFamily` on sleep
+
+- **Date:** 2026-10-04 07:10
+- **Who:** Claude (Claude Code)
+- **Task:** W1
+- **Status:** fixed
+- **Symptom:** `GET .../dataTypes/heart-rate/dataPoints?filter=heart_rate.interval.start_time...` returned 400, and requests with `dataSourceFamily=users/me/dataSourceFamilies/all-sources` returned 400 for sleep. Heart rate and sleep came back empty, so `restingHr` and `sleepMinutes` stayed null.
+- **Cause:** heart rate is a sample type, so it is filtered by `heart_rate.sample_time.physical_time`, not by an interval. `dataSourceFamily` is not needed (the default is all sources) and is invalid for sleep. The code also read a non-existent `device.displayName`, so devices could not be told apart.
+- **Fix:** `src/lib/wearables/browserGoogleHealth.ts` filters heart rate by `heart_rate.sample_time.physical_time` from the first call and never sends `dataSourceFamily`; `googleHealthV4.ts` uses the real `dataSource` fields; Google's error reason and message now reach the watch card. Reference in `docs/WEARABLES_INTEGRATION.md`.
+- **Refs:** W1

@@ -25,6 +25,10 @@ export type ParentLog = {
   stoolNight?: StoolNight;
   stoolConsistency?: StoolConsistency;
   stoolBlood?: StoolBlood;
+  daytimeBathroomCount?: number;
+  nighttimeBathroomCount?: number;
+  looserStools?: boolean;
+  bloodVisible?: boolean;
   note?: string;
 };
 

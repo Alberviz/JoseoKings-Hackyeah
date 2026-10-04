@@ -1,4 +1,4 @@
-import type { CheckIn } from "./check-in";
+import type { CheckIn, DateKey } from "./check-in";
 import type { CompanionState } from "./companion";
 import type { EconomyState } from "./economy";
 import type { MissionLog } from "./mission";
@@ -19,6 +19,28 @@ export type ParentSettings = {
   reminderEnabled?: boolean;
 };
 
+/** The loose shape of a daily log or a family observation, as far as the report reads it. */
+export type BathroomEntry = {
+  date?: DateKey;
+  kind?: string;
+  valueText?: string;
+  valueNum?: number;
+  daytimeBathroomCount?: number;
+  daytimeVisits?: number;
+  daytimeCount?: number;
+  nighttimeBathroomCount?: number;
+  nighttimeVisits?: number;
+  nighttimeCount?: number;
+  looserStools?: boolean;
+  looserStoolsFlag?: boolean;
+  bloodVisible?: boolean;
+  bloodVisibleFlag?: boolean;
+  stoolFrequency?: unknown;
+  stoolNight?: string;
+  stoolConsistency?: string;
+  stoolBlood?: string;
+};
+
 /** The whole app state. One object in localStorage, validated on every read. */
 export type AppState = {
   /** Bump when the shape changes and add a migration in src/lib/storage. */
@@ -34,4 +56,8 @@ export type AppState = {
   parentLogs: ParentLog[];
   foodEntries: FoodEntry[];
   consultations: Consultation[];
+  /** Optional daily logs (alternative data stream for parent logs). */
+  dailyLogs?: BathroomEntry[];
+  /** Optional physical observations entered by family. */
+  parentObservations?: BathroomEntry[];
 };

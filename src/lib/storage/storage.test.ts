@@ -290,6 +290,25 @@ describe("storage layer", () => {
     expect(() => importBackup(JSON.stringify({ schemaVersion: 999 }))).toThrow();
   });
 
+  it("missionLogSchema reads the old corroboration value watch as wearable", () => {
+    const validMission: MissionLog = {
+      id: "ml-1",
+      date: "2026-10-03",
+      missionId: "bed-stretch",
+      status: "completed",
+      company: "alone",
+      confirmedBy: "child",
+      createdAt: "2026-10-03T10:00:00.000Z",
+    };
+    const old = missionLogSchema.parse({ ...validMission, corroboration: "watch" });
+    expect(old.corroboration).toBe("wearable");
+    const current = missionLogSchema.parse({ ...validMission, corroboration: "wearable" });
+    expect(current.corroboration).toBe("wearable");
+    expect(missionLogSchema.safeParse({ ...validMission, corroboration: "nope" }).success).toBe(
+      false,
+    );
+  });
+
   it("missionLogSchema validates logs with and without moodBefore/moodAfter", () => {
     const withoutMoods: MissionLog = {
       id: "m-1",
