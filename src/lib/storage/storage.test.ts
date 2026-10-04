@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createDefaultEconomy } from "@/lib/economy";
 import { syncCompanion } from "@/lib/rewards";
 import type { AppState, CheckIn, Consultation, FoodEntry, MissionLog } from "@/types";
 import {
@@ -14,6 +15,7 @@ import {
 } from "./schemas";
 import {
   BACKUP_STORAGE_KEY,
+  PREVIOUS_BACKUP_STORAGE_KEY,
   STORAGE_KEY,
   clearStorage,
   createEmptyState,
@@ -26,6 +28,7 @@ import {
 
 describe("storage layer", () => {
   beforeEach(() => {
+    clearStorage();
     localStorage.clear();
   });
 
@@ -362,5 +365,57 @@ describe("storage layer", () => {
       equippedItemIds: ["cap", "sunglasses", "sport-shirt"],
     };
     expect(() => economyStateSchema.parse(expandedEconomy)).not.toThrow();
+  });
+
+  describe("unreadable state recovery", () => {
+    it("keeps the previous backup when a second unreadable payload appears", () => {
+      localStorage.setItem(STORAGE_KEY, "first-garbage");
+      loadState();
+      localStorage.setItem(STORAGE_KEY, "second-garbage");
+      loadState();
+      expect(localStorage.getItem(BACKUP_STORAGE_KEY)).toBe("second-garbage");
+      expect(localStorage.getItem(PREVIOUS_BACKUP_STORAGE_KEY)).toBe("first-garbage");
+    });
+
+    it("does not save an untouched empty state over the unreadable original", () => {
+      localStorage.setItem(STORAGE_KEY, "garbage");
+      const state = loadState();
+      expect(saveState(state)).toBe(true);
+      expect(localStorage.getItem(STORAGE_KEY)).toBe("garbage");
+
+      saveState({ ...state, child: { nickname: "Sam" } });
+      expect(localStorage.getItem(STORAGE_KEY)).not.toBe("garbage");
+      expect(localStorage.getItem(BACKUP_STORAGE_KEY)).toBe("garbage");
+    });
+  });
+
+  describe("economy and optional lists", () => {
+    it("drops a corrupt reward claim and keeps the rest of the economy", () => {
+      const economy = {
+        ...createDefaultEconomy(),
+        fire: 7,
+        specialRewards: [{ id: "r1", name: "Movie night", fireCost: 5 }, { id: "bad" }],
+        rewardClaims: [
+          { id: "c1", rewardId: "r1", date: "2026-10-03", createdAt: "x", status: "requested" },
+          { id: "c2", status: "nope" },
+        ],
+      };
+      const parsed = economyStateSchema.parse(economy);
+      expect(parsed.fire).toBe(7);
+      expect(parsed.specialRewards).toHaveLength(1);
+      expect(parsed.rewardClaims).toHaveLength(1);
+    });
+
+    it("keeps dailyLogs and parentObservations through a save and load", () => {
+      const state = {
+        ...createEmptyState(),
+        dailyLogs: [{ date: "2026-10-03", daytimeBathroomCount: 2 }],
+        parentObservations: [{ date: "2026-10-03", valueText: "note" }],
+      };
+      expect(saveState(state)).toBe(true);
+      const loaded = loadState();
+      expect(loaded.dailyLogs).toEqual(state.dailyLogs);
+      expect(loaded.parentObservations).toEqual(state.parentObservations);
+    });
   });
 });
