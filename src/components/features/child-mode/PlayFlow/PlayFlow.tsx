@@ -9,6 +9,8 @@ import { ROUTES } from "@/config/app";
 import { PLAY_GAMES, type PlayGame, type PlayLevel, type PlayMode } from "@/content/games";
 import { useAppState } from "@/hooks/useAppState";
 import { useCountdown } from "@/hooks/useCountdown";
+import { useMotionSample } from "@/hooks/useMotionSample";
+import { corroborateMission } from "@/lib/missions/corroboration";
 import { todayKey } from "@/lib/dates";
 import type {
   MissionCompany,
@@ -199,6 +201,8 @@ export function PlayFlow({
   const [, setMoodAfter] = useState<MissionMoodAfter | undefined>(undefined);
 
   const hasSavedRef = useRef(false);
+  const startedAtRef = useRef<number | null>(null);
+  const motion = useMotionSample();
 
   const gameMode: PlayMode = company === "alone" ? "alone" : "family";
   const matchingGames = useMemo(
@@ -228,6 +232,8 @@ export function PlayFlow({
   const handleStartGame = () => {
     setExerciseStepIndex(0);
     setIsRest(false);
+    startedAtRef.current = Date.now();
+    motion.start();
     setStep("exercise");
   };
 
@@ -263,6 +269,11 @@ export function PlayFlow({
 
     if (!hasSavedRef.current && selectedGame) {
       hasSavedRef.current = true;
+      const endMs = Date.now();
+      const motionVariance = motion.stop();
+      const corroboration = isRest
+        ? undefined
+        : corroborateMission({ startMs: startedAtRef.current ?? endMs, endMs, motionVariance });
       const log: MissionLog = {
         id: crypto.randomUUID(),
         date: todayKey(),
@@ -273,6 +284,7 @@ export function PlayFlow({
         createdAt: new Date().toISOString(),
         moodBefore,
         moodAfter: mood,
+        ...(corroboration ? { corroboration } : {}),
       };
       actions.addMissionLog(log);
     }
@@ -459,6 +471,9 @@ export function PlayFlow({
                 <Heading level={2}>{selectedGame.title}</Heading>
                 <Text tone="muted">{selectedGame.parentNote}</Text>
               </Stack>
+              <Text size="sm" tone="muted">
+                This device may notice movement while you play. Only one summary number is kept.
+              </Text>
 
               <GameActionsRow>
                 <Button variant="primary" fullWidth onClick={handleStartGame}>
