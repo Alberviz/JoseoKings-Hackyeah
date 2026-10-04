@@ -1,6 +1,6 @@
 # Mycrohnie
 
-A Progressive Web App for families with a child aged 8 to 12 who has inflammatory bowel disease (Crohn's disease or ulcerative colitis). The child plays with a companion and tells how they feel without being questioned; parents and the doctor get that information in an organised, honest form. Health data stays on the device. Built at HackYeah 2026, Kraków (category Sport & Healthcare).
+A Progressive Web App for families with a child aged 8 to 12 who has inflammatory bowel disease (Crohn's disease or ulcerative colitis). The child plays with a companion and tells how they feel without being questioned; parents and the doctor get that information in an organised, honest form. Health data stays on the device by default; an optional smartwatch connection reads data only after the parent consents. Built at HackYeah 2026, Kraków (category Sport & Healthcare).
 
 ## Quick start
 
