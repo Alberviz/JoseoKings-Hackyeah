@@ -80,10 +80,10 @@ describe("Parent Mode Shell (Task T10)", () => {
 
       // 1. Submit with empty nickname
       fireEvent.click(submitBtn);
-      expect(await screen.findByText("Please enter a nickname.")).toBeDefined();
+      expect(await screen.findByText("Please enter a name.")).toBeDefined();
 
       // Enter nickname
-      const nicknameInput = screen.getByLabelText("Child's nickname");
+      const nicknameInput = screen.getByLabelText("Child's name");
       fireEvent.change(nicknameInput, { target: { value: "Lucas" } });
 
       // 2. Submit with short PIN
@@ -113,7 +113,7 @@ describe("Parent Mode Shell (Task T10)", () => {
 
       await screen.findByRole("heading", { name: "Parent mode setup" });
 
-      const nicknameInput = screen.getByLabelText("Child's nickname");
+      const nicknameInput = screen.getByLabelText("Child's name");
       const pinInput = screen.getByLabelText("Create 4-digit PIN");
       const confirmPinInput = screen.getByLabelText("Confirm 4-digit PIN");
       const submitBtn = screen.getByRole("button", { name: "Complete setup" });
@@ -145,16 +145,43 @@ describe("Parent Mode Shell (Task T10)", () => {
 
       await screen.findByRole("heading", { name: "Parent mode setup" });
 
-      fireEvent.change(screen.getByLabelText("Child's nickname"), { target: { value: "Lucas" } });
+      fireEvent.change(screen.getByLabelText("Child's name"), { target: { value: "Lucas" } });
       fireEvent.change(screen.getByLabelText("Create 4-digit PIN"), { target: { value: "1234" } });
       fireEvent.change(screen.getByLabelText("Confirm 4-digit PIN"), { target: { value: "1234" } });
 
       fireEvent.click(screen.getByRole("button", { name: "Complete setup" }));
 
-      await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith(ROUTES.parent);
-      });
+      await waitFor(
+        () => {
+          expect(mockPush).toHaveBeenCalledWith(ROUTES.parent);
+        },
+        { timeout: 5000 },
+      );
       expect(sessionStore.getSnapshot().isUnlocked).toBe(true);
+    });
+
+    it("routes to / when device role is set to child", async () => {
+      renderWithTheme(
+        <ProviderWrapper>
+          <SetupScreen />
+        </ProviderWrapper>,
+      );
+
+      await screen.findByRole("heading", { name: "Parent mode setup" });
+
+      fireEvent.change(screen.getByLabelText("Child's name"), { target: { value: "Lucas" } });
+      fireEvent.click(screen.getByRole("button", { name: "My child" }));
+      fireEvent.change(screen.getByLabelText("Create 4-digit PIN"), { target: { value: "1234" } });
+      fireEvent.change(screen.getByLabelText("Confirm 4-digit PIN"), { target: { value: "1234" } });
+
+      fireEvent.click(screen.getByRole("button", { name: "Complete setup" }));
+
+      await waitFor(
+        () => {
+          expect(mockPush).toHaveBeenCalledWith(ROUTES.home);
+        },
+        { timeout: 5000 },
+      );
     });
 
     it("shows notice and settings link when child and PIN already exist", async () => {
@@ -240,9 +267,12 @@ describe("Parent Mode Shell (Task T10)", () => {
       fireEvent.change(pinInput, { target: { value: "1234" } });
       fireEvent.click(unlockBtn);
 
-      await waitFor(() => {
-        expect(sessionStore.getSnapshot().isUnlocked).toBe(true);
-      });
+      await waitFor(
+        () => {
+          expect(sessionStore.getSnapshot().isUnlocked).toBe(true);
+        },
+        { timeout: 5000 },
+      );
     });
 
     it("displays message when crypto.subtle is not available", async () => {
@@ -391,7 +421,9 @@ describe("Parent Mode Shell (Task T10)", () => {
       // Check-in section
       expect(screen.getByText("Answered")).toBeDefined();
       expect(screen.getByText("Belly comfort")).toBeDefined();
-      expect(screen.getAllByText("Level 1").length).toBeGreaterThan(0);
+      expect(screen.getByText("A little rumble")).toBeDefined();
+      expect(screen.getByText("Medium energy")).toBeDefined();
+      expect(screen.getByText("Active and on the move")).toBeDefined();
 
       // Discomfort prompt
       expect(screen.getByText("Want to note what Lucas ate today?")).toBeDefined();

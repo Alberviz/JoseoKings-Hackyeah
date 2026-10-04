@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, ROUTES } from "@/config/app";
 import { FIRE_MAX } from "@/config/economy";
-import { coinBalance } from "@/lib/economy";
+import { coinBalance, getDragonEvolution } from "@/lib/economy";
 import { todayKey } from "@/lib/dates";
 import { useAppState } from "@/hooks/useAppState";
 import { Button, Text } from "@/components/ui";
 import { Companion } from "@/components/features/companion";
+import { DynamicBackground } from "./DynamicBackground";
 import {
   ActionButtonWrapper,
   ActionBtnContent,
@@ -50,6 +51,12 @@ import {
   PlayLabel,
   PlayTriangleSvg,
   ShopSvg,
+  SmallParentLink,
+  StageBadge,
+  StageBadgeIcon,
+  StageBadgeText,
+  StageNextText,
+  StageTitleText,
   SvgCircle,
   SvgPath,
   SvgPolygon,
@@ -60,14 +67,20 @@ import {
 export function HomeScreen() {
   const router = useRouter();
   const { state, isReady } = useAppState();
+  const [companionPose, setCompanionPose] = useState<"idle" | "cheer">("idle");
 
-  // If no child is configured, redirect to parent setup ONLY when isReady is true
+  // If no child is configured, redirect to parent setup.
+  // If device is parent-only, redirect straight to parent mode.
   useEffect(() => {
     if (!isReady) return;
     if (!state.child) {
       router.replace(ROUTES.parentSetup);
+      return;
     }
-  }, [isReady, state.child, router]);
+    if (state.settings?.deviceRole === "parent") {
+      router.replace(ROUTES.parent);
+    }
+  }, [isReady, state.child, state.settings?.deviceRole, router]);
 
   if (!isReady) {
     return (
@@ -77,9 +90,12 @@ export function HomeScreen() {
     );
   }
 
-  if (!state.child) {
+  if (!state.child || state.settings?.deviceRole === "parent") {
     return null;
   }
+
+  const deviceRole = state.settings?.deviceRole ?? "both";
+  const isChildOnly = deviceRole === "child";
 
   const companionName = state.companion?.name || "Kraków Dragon";
   const equippedItemIds = state.economy?.equippedItemIds ?? [];
@@ -88,12 +104,17 @@ export function HomeScreen() {
   const coins = coinBalance(state);
   const firePercent = Math.min(100, Math.max(0, Math.round((fire / FIRE_MAX) * 100)));
 
+  const evolution = getDragonEvolution(state.economy ?? { fire: 0 });
+
   const today = todayKey();
   const todayCheckIn = state.checkIns.find((item) => item.date === today);
   const isCheckInDone = Boolean(todayCheckIn);
 
   return (
     <HomeScreenRoot aria-label="Child Home Screen">
+      {/* Full Screen Dynamic Sky Background with Drifting Clouds */}
+      <DynamicBackground stage={evolution.stage} />
+
       {/* 1. Top bar: Fire bar, Coins pill, and discreet Parent mode link */}
       <TopBar>
         <FireBar aria-label={`Fire ${fire} of ${FIRE_MAX}`}>
@@ -125,21 +146,50 @@ export function HomeScreen() {
             <CoinsValue>{coins}</CoinsValue>
           </CoinsPill>
 
-          <ParentDoorLink href={ROUTES.parent} aria-label="Parent mode">
-            <ParentIconWrapper aria-hidden="true">
-              <NavSvg viewBox="0 0 24 24" fill="currentColor">
-                <SvgPath d="M12 2C9.24 2 7 4.24 7 7V9H6C4.9 9 4 9.9 4 11V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V11C20 9.9 19.1 9 18 9H17V7C17 4.24 14.76 2 12 2ZM9 7C9 5.34 10.34 4 12 4C13.66 4 15 5.34 15 7V9H9V7ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17Z" />
-              </NavSvg>
-            </ParentIconWrapper>
-            <ParentLabel>Parents</ParentLabel>
-          </ParentDoorLink>
+          {!isChildOnly && (
+            <ParentDoorLink href={ROUTES.parent} aria-label="Parent mode">
+              <ParentIconWrapper aria-hidden="true">
+                <NavSvg viewBox="0 0 24 24" fill="currentColor">
+                  <SvgPath d="M12 2C9.24 2 7 4.24 7 7V9H6C4.9 9 4 9.9 4 11V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V11C20 9.9 19.1 9 18 9H17V7C17 4.24 14.76 2 12 2ZM9 7C9 5.34 10.34 4 12 4C13.66 4 15 5.34 15 7V9H9V7ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17Z" />
+                </NavSvg>
+              </ParentIconWrapper>
+              <ParentLabel>Parents</ParentLabel>
+            </ParentDoorLink>
+          )}
         </TopRightCluster>
       </TopBar>
 
-      {/* 2. Middle: Large Centered Companion Mascot */}
+      {/* 2. Middle: Large Centered Companion Mascot with Evolution Stage Badge */}
       <DragonStage aria-label="Mascot Stage">
+        <StageBadge
+          aria-label={`Evolution: ${evolution.title}`}
+          data-testid="evolution-stage-badge"
+        >
+          <StageBadgeIcon aria-hidden="true">
+            {evolution.stage === 1 ? "🌱" : evolution.stage === 2 ? "⚡" : "👑"}
+          </StageBadgeIcon>
+          <StageBadgeText>
+            <StageTitleText>{evolution.title}</StageTitleText>
+            {evolution.nextThreshold ? (
+              <StageNextText>{evolution.fireNeededForNext} 🔥 to evolve</StageNextText>
+            ) : (
+              <StageNextText>Max level!</StageNextText>
+            )}
+          </StageBadgeText>
+        </StageBadge>
+
         <DragonWrapper>
-          <Companion pose="idle" equippedItemIds={equippedItemIds} name={companionName} size="lg" />
+          <Companion
+            pose={companionPose}
+            equippedItemIds={equippedItemIds}
+            name={companionName}
+            size="lg"
+            stage={evolution.stage}
+            onTap={() => {
+              setCompanionPose("cheer");
+              setTimeout(() => setCompanionPose("idle"), 1200);
+            }}
+          />
         </DragonWrapper>
       </DragonStage>
 
@@ -255,6 +305,17 @@ export function HomeScreen() {
           </ActionButtonWrapper>
         </ActionsNav>
       </BottomArea>
+
+      {deviceRole === "child" || deviceRole === "both" ? (
+        <SmallParentLink href={ROUTES.share} aria-label="Show parents">
+          Show parents
+        </SmallParentLink>
+      ) : null}
+      {isChildOnly ? (
+        <SmallParentLink href={ROUTES.parent} aria-label="Parent mode">
+          Parent mode
+        </SmallParentLink>
+      ) : null}
     </HomeScreenRoot>
   );
 }

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
+import { GAME_IDS, MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
 import {
   CHECK_IN_QUESTIONS,
   CHILD_VISIBILITY_NOTE,
-  GAME_IDS,
   GAME_MOVE_KEYS,
+  GENTLE_MISSIONS,
   MISSION_STOP_MESSAGE,
   MISSIONS,
   PATTERNS_DISCLAIMER,
@@ -85,17 +85,22 @@ describe("Check-in questions", () => {
 });
 
 describe("Missions", () => {
-  it("defines exactly one mission for each id in MISSION_IDS", () => {
+  it("defines exactly one gentle mission for each id in MISSION_IDS", () => {
     const expectedMissionIds = Object.values(MISSION_IDS);
-    expect(MISSIONS).toHaveLength(expectedMissionIds.length);
+    expect(GENTLE_MISSIONS).toHaveLength(expectedMissionIds.length);
 
-    const missionIds = MISSIONS.map((m) => m.id);
+    const missionIds = GENTLE_MISSIONS.map((m) => m.id);
     expect(new Set(missionIds).size).toBe(expectedMissionIds.length);
 
     for (const expectedId of expectedMissionIds) {
-      const match = MISSIONS.filter((m) => m.id === expectedId);
+      const match = GENTLE_MISSIONS.filter((m) => m.id === expectedId);
       expect(match).toHaveLength(1);
     }
+  });
+
+  it("lists the gentle missions and the play games in MISSIONS, with unique ids", () => {
+    expect(MISSIONS).toHaveLength(GENTLE_MISSIONS.length + PLAY_GAMES.length);
+    expect(new Set(MISSIONS.map((m) => m.id)).size).toBe(MISSIONS.length);
   });
 
   it("has step counts and durations within allowed ranges", () => {
@@ -117,7 +122,7 @@ describe("Missions", () => {
   });
 
   it("only uses poseKeys from the allowed list", () => {
-    for (const mission of MISSIONS) {
+    for (const mission of GENTLE_MISSIONS) {
       for (const step of mission.steps) {
         expect(ALLOWED_POSE_KEYS).toContain(step.poseKey);
       }
@@ -127,6 +132,15 @@ describe("Missions", () => {
   it("has a non-empty neutral parentNote for each mission", () => {
     for (const mission of MISSIONS) {
       expect(mission.parentNote.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("writes every step as one short sentence of at most 80 characters across all missions", () => {
+    for (const mission of MISSIONS) {
+      for (const step of mission.steps) {
+        expect(step.text.length, step.text).toBeLessThanOrEqual(80);
+        expect(step.text, step.text).not.toMatch(/[.!?]\s+\S/);
+      }
     }
   });
 });
@@ -172,10 +186,28 @@ describe("Play games", () => {
     }
   });
 
-  it("does not reuse a mission id", () => {
-    const missionIds = new Set(MISSIONS.map((m) => m.id));
+  it("writes every step as one short sentence of at most 80 characters", () => {
     for (const game of PLAY_GAMES) {
-      expect(missionIds.has(game.id)).toBe(false);
+      for (const step of game.steps) {
+        expect(step.text.length, step.text).toBeLessThanOrEqual(80);
+        expect(step.text, step.text).not.toMatch(/[.!?]\s+\S/);
+      }
+    }
+  });
+
+  it("puts a choice icon only on the first step of a game", () => {
+    for (const game of PLAY_GAMES) {
+      game.steps.slice(1).forEach((step) => expect(step.iconKey, game.id).toBeUndefined());
+    }
+    const iconKeys = PLAY_GAMES.flatMap((g) => g.steps.map((s) => s.iconKey)).filter(Boolean);
+    expect(iconKeys.sort()).toEqual(["colour", "dice", "traffic-light"]);
+  });
+
+  it("gives mode and level to the play games only", () => {
+    expect(MISSIONS.filter((m) => m.mode !== undefined)).toHaveLength(PLAY_GAMES.length);
+    for (const mission of GENTLE_MISSIONS) {
+      expect(mission.mode).toBeUndefined();
+      expect(mission.level).toBeUndefined();
     }
   });
 });
@@ -210,8 +242,6 @@ describe("Content safety and guidelines", () => {
     ...CHECK_IN_QUESTIONS.flatMap((q) => [q.prompt, ...q.options.map((o) => o.label)]),
     // Mission titles, steps, and parent notes
     ...MISSIONS.flatMap((m) => [m.title, m.parentNote, ...m.steps.map((s) => s.text)]),
-    // Play game titles, steps, and parent notes
-    ...PLAY_GAMES.flatMap((g) => [g.title, g.parentNote, ...g.steps.map((s) => s.text)]),
     // Authored disclaimers
     PATTERNS_DISCLAIMER,
     CHILD_VISIBILITY_NOTE,

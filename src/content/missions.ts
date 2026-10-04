@@ -1,7 +1,9 @@
 import { MISSION_IDS } from "@/config/content-ids";
 import type { Mission } from "@/types";
+import { PLAY_GAMES } from "./games";
 
-export const MISSIONS: Mission[] = [
+/** The gentle missions of the v1 mission list. They use companion poses and have no `mode` or `level`. */
+export const GENTLE_MISSIONS: Mission[] = [
   {
     // source: to verify
     id: MISSION_IDS.dragonBreathing,
@@ -97,7 +99,7 @@ export const MISSIONS: Mission[] = [
     parentNote: "A shallow, gentle wall slide with easy breathing.",
     steps: [
       {
-        text: "Lean your back against a wall and slide down just a little bit, like on a tall stool. Keep breathing easily.",
+        text: "Lean your back against a wall and slide down a little, like sitting tall.",
         durationSeconds: 20,
         poseKey: "strength",
       },
@@ -107,7 +109,7 @@ export const MISSIONS: Mission[] = [
         poseKey: "idle",
       },
       {
-        text: "Lean gently against the wall again and hold a high, comfortable position while breathing smoothly.",
+        text: "Lean against the wall again and hold your spot while breathing smoothly.",
         durationSeconds: 20,
         poseKey: "strength",
       },
@@ -148,3 +150,6 @@ export const MISSIONS: Mission[] = [
     ],
   },
 ];
+
+/** One source for every screen: the gentle missions, then the play games (filter by `mode` and `level`). */
+export const MISSIONS: Mission[] = [...GENTLE_MISSIONS, ...PLAY_GAMES];

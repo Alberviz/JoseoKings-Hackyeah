@@ -4,6 +4,7 @@ import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppStateProvider } from "@/components/providers/AppStateProvider";
 import { ROUTES } from "@/config/app";
+import { INITIAL_COINS } from "@/config/economy";
 import { buildDemoState } from "@/lib/demo-data";
 import { STORAGE_KEY } from "@/lib/storage/storage";
 import { renderWithTheme } from "@/test/renderWithTheme";
@@ -58,7 +59,7 @@ describe("ShopScreen (Task V6)", () => {
       missionLogs: [],
       economy: {
         ...buildDemoState().economy,
-        coinsSpent: 0,
+        coinsSpent: INITIAL_COINS,
       },
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(demo));

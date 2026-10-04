@@ -271,4 +271,26 @@ describe("storage layer", () => {
     expect(() => importBackup("invalid-json")).toThrow();
     expect(() => importBackup(JSON.stringify({ schemaVersion: 999 }))).toThrow();
   });
+
+  it("missionLogSchema validates logs with and without moodBefore/moodAfter", () => {
+    const withoutMoods: MissionLog = {
+      id: "m-1",
+      date: "2026-10-03",
+      missionId: "animal-statue",
+      status: "completed",
+      company: "alone",
+      confirmedBy: "child",
+      createdAt: "2026-10-03T10:00:00.000Z",
+    };
+    expect(() => missionLogSchema.parse(withoutMoods)).not.toThrow();
+
+    const withMoods: MissionLog = {
+      ...withoutMoods,
+      moodBefore: "strong",
+      moodAfter: "great",
+    };
+    const parsed = missionLogSchema.parse(withMoods);
+    expect(parsed.moodBefore).toBe("strong");
+    expect(parsed.moodAfter).toBe("great");
+  });
 });

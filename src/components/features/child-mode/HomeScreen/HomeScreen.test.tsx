@@ -65,44 +65,8 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
         fire: 40,
         coinsSpent: 0,
       },
-      // 5 check-ins = 25 coins
-      checkIns: [
-        {
-          id: "c1",
-          date: "2026-09-01",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-01T10:00:00Z",
-        },
-        {
-          id: "c2",
-          date: "2026-09-02",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-02T10:00:00Z",
-        },
-        {
-          id: "c3",
-          date: "2026-09-03",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-03T10:00:00Z",
-        },
-        {
-          id: "c4",
-          date: "2026-09-04",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-04T10:00:00Z",
-        },
-        {
-          id: "c5",
-          date: "2026-09-05",
-          answers: {},
-          notToday: false,
-          createdAt: "2026-09-05T10:00:00Z",
-        },
-      ],
+      // Initial coins = 100
+      checkIns: [],
       missionLogs: [],
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(customState));
@@ -118,10 +82,10 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     expect(fireBar).toBeDefined();
     expect(fireBar.textContent).toContain("40");
 
-    // Coins pill with exact aria-label "Coins 25"
-    const coinsPill = screen.getByLabelText("Coins 25");
+    // Coins pill with exact aria-label "Coins 100"
+    const coinsPill = screen.getByLabelText("Coins 100");
     expect(coinsPill).toBeDefined();
-    expect(coinsPill.textContent).toContain("25");
+    expect(coinsPill.textContent).toContain("100");
 
     // Discreet Parent Door
     const parentLink = screen.getByRole("link", { name: /Parent mode/i });
@@ -241,5 +205,102 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
 
     await screen.findByTestId("home-play-button");
     expect(screen.queryByTestId("nav-check-in")).toBeNull();
+  });
+
+  it("redirects to ROUTES.parent when deviceRole is parent", async () => {
+    const today = todayKey();
+    const demo = buildDemoState({ today });
+    const parentState: AppState = {
+      ...demo,
+      child: { nickname: "Lucas" },
+      settings: {
+        ...demo.settings!,
+        deviceRole: "parent",
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(parentState));
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <HomeScreen />
+      </ProviderWrapper>,
+    );
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith(ROUTES.parent);
+    });
+  });
+
+  it("renders small parent link and hides door link when deviceRole is child", async () => {
+    const today = todayKey();
+    const demo = buildDemoState({ today });
+    const childOnlyState: AppState = {
+      ...demo,
+      child: { nickname: "Lucas" },
+      settings: {
+        ...demo.settings!,
+        deviceRole: "child",
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(childOnlyState));
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <HomeScreen />
+      </ProviderWrapper>,
+    );
+
+    await screen.findByTestId("home-play-button");
+    expect(screen.queryByText("Parents")).toBeNull();
+    const smallLink = screen.getByRole("link", { name: "Parent mode" });
+    expect(smallLink).toBeDefined();
+    expect(smallLink.getAttribute("href")).toBe(ROUTES.parent);
+  });
+
+  it("renders dragon evolution stage badge with English copy and updates with fire level", async () => {
+    const today = todayKey();
+    const demo = buildDemoState({ today });
+    const customState: AppState = {
+      ...demo,
+      child: { nickname: "Lucas" },
+      economy: {
+        ...createDefaultEconomy(),
+        fire: 0,
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customState));
+
+    const { unmount } = renderWithTheme(
+      <ProviderWrapper>
+        <HomeScreen />
+      </ProviderWrapper>,
+    );
+
+    const badge = await screen.findByTestId("evolution-stage-badge");
+    expect(badge).toBeDefined();
+    expect(badge.textContent).toContain("Baby Dragon");
+    expect(badge.textContent).toContain("40 🔥 to evolve");
+
+    unmount();
+
+    const heroState: AppState = {
+      ...customState,
+      economy: {
+        ...createDefaultEconomy(),
+        fire: 85,
+        highestFire: 85,
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(heroState));
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <HomeScreen />
+      </ProviderWrapper>,
+    );
+
+    const heroBadge = await screen.findByTestId("evolution-stage-badge");
+    expect(heroBadge.textContent).toContain("Hero Dragon");
+    expect(heroBadge.textContent).toContain("Max level!");
   });
 });

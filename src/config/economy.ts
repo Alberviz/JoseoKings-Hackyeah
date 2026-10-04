@@ -1,4 +1,4 @@
-import type { ShopItem, SpecialReward } from "@/types";
+import type { DragonEvolutionConfig, DragonStageId, ShopItem, SpecialReward } from "@/types";
 
 /*
  * Coins reward the act, never the answer. Amounts never depend on what the child
@@ -13,10 +13,40 @@ export const CHEST_COINS = 12;
 /** A mission stopped early, logged as rest. */
 export const REST_COINS = 6;
 
+/** Initial starter coins granted to the child so they can use the shop right away. */
+export const INITIAL_COINS = 100;
+
 /** Fire added by one portion of food. */
 export const FOOD_FIRE = 10;
 
 export const FIRE_MAX = 100;
+
+/** Dragon Evolution thresholds within 0-100 fire */
+export const DRAGON_EVOLUTION_THRESHOLDS = {
+  stage2: 40,
+  stage3: 80,
+} as const;
+
+export const DRAGON_EVOLUTION_STAGES: Record<DragonStageId, DragonEvolutionConfig> = {
+  1: {
+    stage: 1,
+    title: "Baby Dragon",
+    nextThreshold: DRAGON_EVOLUTION_THRESHOLDS.stage2,
+    description: "Gentle pastel sky with drifting fluffy clouds",
+  },
+  2: {
+    stage: 2,
+    title: "Young Dragon",
+    nextThreshold: DRAGON_EVOLUTION_THRESHOLDS.stage3,
+    description: "Warm golden sky with adventurous glowing sparks",
+  },
+  3: {
+    stage: 3,
+    title: "Hero Dragon",
+    nextThreshold: null,
+    description: "Epic twilight sky with vibrant aurora and rising embers",
+  },
+} as const;
 
 export const SPECIAL_REWARD_NAME_MAX_LENGTH = 40;
 export const SPECIAL_REWARD_COST_MIN = 1;

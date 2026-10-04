@@ -1,0 +1,447 @@
+{
+  "characterName": "Krakow Dragon (MyCrohnie Mascot)",
+  "version": "2.0-vector-rig",
+  "coordinateSystem": {
+    "viewBox": "0 0 1024 1024",
+    "width": 1024,
+    "height": 1024,
+    "unit": "px"
+  },
+  "palette": {
+    "ink": "#153F4B",
+    "bodyTurquoise": "#62D6C6",
+    "bellyMint": "#BAFCE1",
+    "highlightMint": "#92E8DB",
+    "wingPurple": "#D195E8",
+    "wingPurpleDark": "#AF6ECC",
+    "white": "#FFFFFF",
+    "mouthInterior": "#153F4B",
+    "tongue": "#FF708A"
+  },
+  "joints": [
+    {
+      "id": "dragon-character",
+      "name": "Root / Global Weight Shift",
+      "parent": null,
+      "pivot": {
+        "x": 512,
+        "y": 850
+      },
+      "limits": {
+        "rotate": [
+          -10,
+          10
+        ],
+        "scaleY": [
+          0.94,
+          1.04
+        ]
+      },
+      "notes": "Root container for squashing and stretching during breathing and jumps"
+    },
+    {
+      "id": "dragon-tail",
+      "name": "Tail Base",
+      "parent": "dragon-character",
+      "pivot": {
+        "x": 665,
+        "y": 760
+      },
+      "limits": {
+        "rotate": [
+          -20,
+          25
+        ]
+      },
+      "notes": "Overlaps behind pelvis and right thigh with seamless hidden dome"
+    },
+    {
+      "id": "tail-tip-joint",
+      "name": "Tail Tip Articulation",
+      "parent": "dragon-tail",
+      "pivot": {
+        "x": 755,
+        "y": 725
+      },
+      "limits": {
+        "rotate": [
+          -25,
+          30
+        ]
+      },
+      "notes": "Secondary action lag during body sway"
+    },
+    {
+      "id": "wing-left",
+      "name": "Left Wing (Viewer Left)",
+      "parent": "dragon-character",
+      "pivot": {
+        "x": 310,
+        "y": 460
+      },
+      "limits": {
+        "rotate": [
+          -15,
+          25
+        ]
+      },
+      "notes": "Root capsule extends 28px into upper back"
+    },
+    {
+      "id": "wing-right",
+      "name": "Right Wing (Viewer Right)",
+      "parent": "dragon-character",
+      "pivot": {
+        "x": 714,
+        "y": 460
+      },
+      "limits": {
+        "rotate": [
+          -25,
+          15
+        ]
+      },
+      "notes": "Root capsule extends 28px into upper back"
+    },
+    {
+      "id": "dragon-torso",
+      "name": "Torso & Abdomen",
+      "parent": "dragon-character",
+      "pivot": {
+        "x": 512,
+        "y": 750
+      },
+      "limits": {
+        "rotate": [
+          -8,
+          8
+        ],
+        "scaleX": [
+          0.96,
+          1.04
+        ],
+        "scaleY": [
+          0.96,
+          1.04
+        ]
+      },
+      "notes": "Hosts the pale mint belly plate with hidden neck collar"
+    },
+    {
+      "id": "leg-left",
+      "name": "Left Leg (Thigh)",
+      "parent": "dragon-character",
+      "pivot": {
+        "x": 375,
+        "y": 745
+      },
+      "limits": {
+        "rotate": [
+          -15,
+          20
+        ]
+      },
+      "notes": "Thigh dome extends into pelvic cavity"
+    },
+    {
+      "id": "foot-left",
+      "name": "Left Foot (Ankle)",
+      "parent": "leg-left",
+      "pivot": {
+        "x": 350,
+        "y": 865
+      },
+      "limits": {
+        "rotate": [
+          -15,
+          15
+        ]
+      },
+      "notes": "Houses 3 claws and circular pale mint sole pad"
+    },
+    {
+      "id": "leg-right",
+      "name": "Right Leg (Thigh)",
+      "parent": "dragon-character",
+      "pivot": {
+        "x": 649,
+        "y": 745
+      },
+      "limits": {
+        "rotate": [
+          -20,
+          15
+        ]
+      },
+      "notes": "Thigh dome extends into pelvic cavity"
+    },
+    {
+      "id": "foot-right",
+      "name": "Right Foot (Ankle)",
+      "parent": "leg-right",
+      "pivot": {
+        "x": 674,
+        "y": 865
+      },
+      "limits": {
+        "rotate": [
+          -15,
+          15
+        ]
+      },
+      "notes": "Houses 3 claws and circular pale mint sole pad"
+    },
+    {
+      "id": "arm-left",
+      "name": "Left Shoulder / Upper Arm",
+      "parent": "dragon-torso",
+      "pivot": {
+        "x": 365,
+        "y": 605
+      },
+      "limits": {
+        "rotate": [
+          -30,
+          45
+        ]
+      },
+      "notes": "Full rounded shoulder capsule extends under torso collar"
+    },
+    {
+      "id": "forearm-left",
+      "name": "Left Forearm (Elbow)",
+      "parent": "arm-left",
+      "pivot": {
+        "x": 350,
+        "y": 715
+      },
+      "limits": {
+        "rotate": [
+          -15,
+          65
+        ]
+      },
+      "notes": "Circular hidden elbow dome of radius 22px guarantees gap-free rotation"
+    },
+    {
+      "id": "hand-left",
+      "name": "Left Hand (Wrist & Claws)",
+      "parent": "forearm-left",
+      "pivot": {
+        "x": 412,
+        "y": 765
+      },
+      "limits": {
+        "rotate": [
+          -25,
+          25
+        ]
+      },
+      "notes": "Carries 3 rounded white finger claws"
+    },
+    {
+      "id": "arm-right",
+      "name": "Right Shoulder / Upper Arm",
+      "parent": "dragon-torso",
+      "pivot": {
+        "x": 659,
+        "y": 605
+      },
+      "limits": {
+        "rotate": [
+          -45,
+          30
+        ]
+      },
+      "notes": "Full rounded shoulder capsule extends under torso collar"
+    },
+    {
+      "id": "forearm-right",
+      "name": "Right Forearm (Elbow)",
+      "parent": "arm-right",
+      "pivot": {
+        "x": 674,
+        "y": 715
+      },
+      "limits": {
+        "rotate": [
+          -65,
+          15
+        ]
+      },
+      "notes": "Circular hidden elbow dome of radius 22px guarantees gap-free rotation"
+    },
+    {
+      "id": "hand-right",
+      "name": "Right Hand (Wrist & Claws)",
+      "parent": "forearm-right",
+      "pivot": {
+        "x": 612,
+        "y": 765
+      },
+      "limits": {
+        "rotate": [
+          -25,
+          25
+        ]
+      },
+      "notes": "Carries 3 rounded white finger claws"
+    },
+    {
+      "id": "dragon-head",
+      "name": "Head & Neck",
+      "parent": "dragon-torso",
+      "pivot": {
+        "x": 512,
+        "y": 600
+      },
+      "limits": {
+        "rotate": [
+          -16,
+          16
+        ],
+        "translateX": [
+          -10,
+          10
+        ],
+        "translateY": [
+          -8,
+          8
+        ]
+      },
+      "notes": "Extends below collar into torso; rotates smoothly for curiosity/tilts"
+    },
+    {
+      "id": "ear-fin-left",
+      "name": "Left Side Fin / Ear",
+      "parent": "dragon-head",
+      "pivot": {
+        "x": 310,
+        "y": 255
+      },
+      "limits": {
+        "rotate": [
+          -12,
+          15
+        ]
+      },
+      "notes": "Double-lobed scalloped fin micro-twitches on emotion"
+    },
+    {
+      "id": "ear-fin-right",
+      "name": "Right Side Fin / Ear",
+      "parent": "dragon-head",
+      "pivot": {
+        "x": 714,
+        "y": 255
+      },
+      "limits": {
+        "rotate": [
+          -15,
+          12
+        ]
+      },
+      "notes": "Double-lobed scalloped fin micro-twitches on emotion"
+    },
+    {
+      "id": "head-horn",
+      "name": "Central Dragon Horn",
+      "parent": "dragon-head",
+      "pivot": {
+        "x": 512,
+        "y": 255
+      },
+      "limits": {
+        "rotate": [
+          -8,
+          8
+        ]
+      },
+      "notes": "Anchored smoothly at skull apex"
+    },
+    {
+      "id": "eye-left-pupil-group",
+      "name": "Left Eye Pupil Tracker",
+      "parent": "dragon-head",
+      "pivot": {
+        "x": 390,
+        "y": 405
+      },
+      "limits": {
+        "translateX": [
+          -14,
+          14
+        ],
+        "translateY": [
+          -12,
+          12
+        ]
+      },
+      "notes": "Clipped by #left-eye-clip; translates to look left, right, up, down"
+    },
+    {
+      "id": "eye-right-pupil-group",
+      "name": "Right Eye Pupil Tracker",
+      "parent": "dragon-head",
+      "pivot": {
+        "x": 634,
+        "y": 405
+      },
+      "limits": {
+        "translateX": [
+          -14,
+          14
+        ],
+        "translateY": [
+          -12,
+          12
+        ]
+      },
+      "notes": "Clipped by #right-eye-clip; translates to look left, right, up, down"
+    },
+    {
+      "id": "eye-left-eyelid",
+      "name": "Left Eyelid Blink Actuator",
+      "parent": "dragon-head",
+      "pivot": {
+        "x": 390,
+        "y": 340
+      },
+      "states": {
+        "open": "translateY(-90px)",
+        "halfBlink": "translateY(-40px)",
+        "closed": "translateY(0px)"
+      }
+    },
+    {
+      "id": "eye-right-eyelid",
+      "name": "Right Eyelid Blink Actuator",
+      "parent": "dragon-head",
+      "pivot": {
+        "x": 634,
+        "y": 340
+      },
+      "states": {
+        "open": "translateY(-90px)",
+        "halfBlink": "translateY(-40px)",
+        "closed": "translateY(0px)"
+      }
+    },
+    {
+      "id": "head-mouth",
+      "name": "Facial Mouth Expressions",
+      "parent": "dragon-head",
+      "pivot": {
+        "x": 512,
+        "y": 550
+      },
+      "states": [
+        "mouth-state-closed-smile",
+        "mouth-state-open-smile",
+        "mouth-state-talking",
+        "mouth-state-surprised",
+        "mouth-state-cheer"
+      ]
+    }
+  ]
+}

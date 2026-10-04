@@ -94,12 +94,13 @@ describe("DoctorReportView", () => {
   it("renders overview metrics correctly", () => {
     renderWithTheme(<DoctorReportView data={mockReportData} />);
 
-    expect(screen.getByText("Check-in adherence rate")).toBeTruthy();
+    expect(screen.getByText("Check-in consistency")).toBeTruthy();
     expect(screen.getByText("84%")).toBeTruthy();
     expect(screen.getByText("26 of 31 days")).toBeTruthy();
 
     expect(screen.getByText("Care days")).toBeTruthy();
     expect(screen.getByText("28")).toBeTruthy();
+    expect(screen.getByText("days active (check-in or mission)")).toBeTruthy();
 
     expect(screen.getByText("Days with discomfort")).toBeTruthy();
     expect(screen.getByText("4")).toBeTruthy();
