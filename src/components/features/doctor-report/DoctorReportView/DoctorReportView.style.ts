@@ -360,7 +360,7 @@ export const Table = styled.table`
   }
 
   @media print {
-    font-size: 8pt !important;
+    font-size: 7.5pt !important;
 
     tbody tr:nth-child(even) {
       background: ${({ theme }) => theme.colors.background} !important;
@@ -405,7 +405,8 @@ export const TableCell = styled.td`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
   @media print {
-    padding: 2px 4px !important;
+    padding: 1px 4px !important;
+    line-height: 1.2 !important;
     border: 1px solid ${({ theme }) => theme.colors.border} !important;
     color: ${({ theme }) => theme.colors.text} !important;
   }
@@ -476,5 +477,34 @@ export const DisclaimerText = styled.p`
     color: ${({ theme }) => theme.colors.text} !important;
     font-size: 7.5pt !important;
     line-height: 1.25 !important;
+  }
+`;
+
+/** Where a section's numbers come from: Child, Family, Watch. */
+export const SourceTag = styled.span`
+  align-self: flex-start;
+  padding: 1px 8px;
+  border: 1px solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  background: ${({ theme }) => theme.colors.primarySoft};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.75rem;
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+
+  @media print {
+    font-size: 7pt !important;
+    padding: 0 6px !important;
+    background: ${({ theme }) => theme.colors.surface} !important;
+  }
+`;
+
+export const ChartsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  @media print {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
   }
 `;

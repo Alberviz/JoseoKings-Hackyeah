@@ -11,6 +11,30 @@ export type DayStripEntry = {
   hadDiscomfort: boolean;
   hasParentLog: boolean;
   sleepHours?: number;
+  /** Set only on days with a parent log. */
+  schoolImpacted?: boolean;
+};
+
+/** One day of valid watch values; null when the watch has no trusted value. */
+export type WatchDailyPoint = {
+  date: DateKey;
+  steps: number | null;
+  restingHr: number | null;
+  sleepHours: number | null;
+};
+
+export type CrossComparisonRow = {
+  /** Who entered the signal. */
+  source: "Child" | "Family";
+  signal: string;
+  metric: string;
+  /** Days with both values. */
+  n: number;
+  /** Spearman rank correlation. */
+  rho: number;
+  /** 95% bootstrap interval of rho. */
+  low: number;
+  high: number;
 };
 
 export type FoodCooccurrence = {
@@ -22,6 +46,34 @@ export type ActivityConfidenceCount = {
   company: MissionCompany;
   label: string;
   count: number;
+};
+
+export type WatchMetricSummary = {
+  /** Valid days that fed this metric. */
+  n: number;
+  median: number | null;
+  q1: number | null;
+  q3: number | null;
+};
+
+export type WatchReportSection = {
+  source: "Watch";
+  isDemo: boolean;
+  /** Days in the period with at least one valid watch value. */
+  validDays: number;
+  steps: WatchMetricSummary;
+  /** Nocturnal resting heart rate, beats per minute. */
+  restingHr: WatchMetricSummary;
+  sleepHours: WatchMetricSummary;
+  /** One point per day of the period, for the charts. */
+  series: WatchDailyPoint[];
+};
+
+/** Day counts from the parent log. Never scores, never causes. */
+export type ObservedSection = {
+  loggedDays: number;
+  school: { attended: number; leftEarly: number; missed: number; noSchool: number };
+  medication: { yes: number; partly: number; no: number; notApplicable: number };
 };
 
 export type DoctorReportData = {
@@ -48,6 +100,10 @@ export type DoctorReportData = {
     byConfidence: ActivityConfidenceCount[];
   };
   foodsOnDiscomfortDays: FoodCooccurrence[];
+  /** Spearman rows for the clinician: only pairs with enough days. */
+  crossComparison: CrossComparisonRow[];
+  watch: WatchReportSection;
+  observed: ObservedSection;
   dayStrip: DayStripEntry[];
   disclaimer: string;
 };

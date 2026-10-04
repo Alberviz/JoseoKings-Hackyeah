@@ -24,5 +24,4 @@ export {
   assessNight,
   assessDay,
 } from "./validity";
-export * from "./doctorReportData";
 export * from "./parentStatus";
