@@ -12,6 +12,7 @@ export const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     min-height: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Notebook paper: a very light 24px grid drawn with two linear gradients. */

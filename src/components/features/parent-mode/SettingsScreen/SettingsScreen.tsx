@@ -183,7 +183,7 @@ export function SettingsScreen() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "crohncare-backup.json";
+      anchor.download = "mycrohnie-backup.json";
       anchor.click();
       URL.revokeObjectURL(url);
       setExportSuccess("Backup exported successfully.");
