@@ -6,6 +6,10 @@ import { LinkError } from "./types";
 
 /** Characters per frame body. Phones scan QR codes of this size reliably; bigger ones often fail. */
 export const DEFAULT_FRAME_CHARS = 600;
+/** Upper bound so a collector cannot be tricked into holding unbounded memory. */
+export const MAX_FRAME_COUNT = 64;
+/** Longest chunk we accept from a scanned frame string. */
+export const MAX_FRAME_CHUNK_CHARS = 1000;
 
 const FRAME_PATTERN = /^([A-Z]{3}\d+:)(\d+)\/(\d+):([A-Za-z0-9_-]*)$/;
 
@@ -24,6 +28,9 @@ export function splitFrames(
 ): string[] {
   if (maxChars < 1) throw new Error("maxChars must be positive");
   const total = Math.max(1, Math.ceil(body.length / maxChars));
+  if (total > MAX_FRAME_COUNT) {
+    throw new LinkError("corrupt", "The code is too large to scan safely.");
+  }
   const frames: string[] = [];
   for (let i = 0; i < total; i += 1) {
     frames.push(`${prefix}${i + 1}/${total}:${body.slice(i * maxChars, (i + 1) * maxChars)}`);
@@ -36,10 +43,14 @@ export function parseFrame(text: string): Frame {
   if (!match) throw new LinkError("not-a-code", "This is not a CrohnCare code.");
   const index = Number(match[2]);
   const total = Number(match[3]);
-  if (index < 1 || total < 1 || index > total) {
+  if (index < 1 || total < 1 || index > total || total > MAX_FRAME_COUNT) {
     throw new LinkError("corrupt", "The frame numbers do not make sense.");
   }
-  return { prefix: match[1], index, total, chunk: match[4] };
+  const chunk = match[4];
+  if (chunk.length > MAX_FRAME_CHUNK_CHARS) {
+    throw new LinkError("corrupt", "The frame chunk is too long.");
+  }
+  return { prefix: match[1], index, total, chunk };
 }
 
 /** Gathers frames of one code until all of them are present. */
@@ -59,6 +70,10 @@ export class FrameCollector {
       this.chunks.clear();
       this.prefix = frame.prefix;
       this.total = frame.total;
+    }
+    const previous = this.chunks.get(frame.index);
+    if (previous !== undefined && previous !== frame.chunk) {
+      throw new LinkError("corrupt", "Two different parts had the same number.");
     }
     this.chunks.set(frame.index, frame.chunk);
     return { have: this.chunks.size, total: this.total, isComplete: this.isComplete() };

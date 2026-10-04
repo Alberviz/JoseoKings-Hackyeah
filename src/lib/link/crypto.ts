@@ -27,10 +27,14 @@ async function importKey(keyB64: string): Promise<CryptoKey> {
   if (raw.length !== FAMILY_KEY_BYTES) {
     throw new LinkError("corrupt", "The family key has the wrong length.");
   }
-  return crypto.subtle.importKey("raw", raw as BufferSource, { name: "AES-GCM" }, false, [
-    "encrypt",
-    "decrypt",
-  ]);
+  try {
+    return await crypto.subtle.importKey("raw", raw as BufferSource, { name: "AES-GCM" }, false, [
+      "encrypt",
+      "decrypt",
+    ]);
+  } catch {
+    throw new LinkError("corrupt", "The family key could not be used.");
+  }
 }
 
 /** Returns iv (12 bytes) followed by the ciphertext with its tag. */

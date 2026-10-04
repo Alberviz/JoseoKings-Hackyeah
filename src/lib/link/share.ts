@@ -41,12 +41,22 @@ export function buildSharePayload(source: ShareSource, from: DateKey, to: DateKe
     items
       .filter((item) => inRange(item.date, from, to))
       .sort((a, b) => a.date.localeCompare(b.date));
+
+  const checkInsByDay = new Map<DateKey, CheckIn>();
+  for (const item of source.checkIns.filter((row) => inRange(row.date, from, to))) {
+    const prev = checkInsByDay.get(item.date);
+    if (!prev || item.createdAt.localeCompare(prev.createdAt) > 0) {
+      checkInsByDay.set(item.date, item);
+    }
+  }
+  const checkIns = [...checkInsByDay.values()].sort((a, b) => a.date.localeCompare(b.date));
+
   return {
     v: LINK_VERSION,
     familyId: source.familyId,
     from,
     to,
-    checkIns: byDate(source.checkIns),
+    checkIns,
     missionLogs: byDate(source.missionLogs),
     rewardClaims: byDate(source.rewardClaims),
   };
@@ -107,8 +117,21 @@ export async function decodeShare(
   const plain = await decryptBytes(keyB64, bytes.slice(1), additionalData(familyId));
   let json: string;
   try {
-    json = utf8Decode((flags & FLAG_COMPRESSED) !== 0 ? await inflate(plain) : plain);
-  } catch {
+    if ((flags & FLAG_COMPRESSED) !== 0) {
+      if (!isCompressionAvailable()) {
+        throw new LinkError(
+          "unsupported",
+          "This code needs a browser that can unpack compressed data.",
+        );
+      }
+      json = utf8Decode(await inflate(plain));
+    } else {
+      json = utf8Decode(plain);
+    }
+  } catch (error) {
+    if (error instanceof LinkError) {
+      throw error;
+    }
     throw new LinkError("corrupt", "The data code could not be unpacked.");
   }
   let parsed: unknown;

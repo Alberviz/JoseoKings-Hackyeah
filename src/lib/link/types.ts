@@ -17,7 +17,8 @@ export const SHARE_PREFIX = "CCD1:";
  */
 export type LinkSpecialReward = {
   id: string;
-  label: string;
+  /** Same field name as `SpecialReward.name` in the economy state. */
+  name: string;
   /** Fire the child spends to light it, 1 to 100. Never depends on what the child answered. */
   fireCost: number;
 };
@@ -32,8 +33,11 @@ export type LinkRewardClaim = {
   rewardId: string;
   /** Local day on the child device. */
   date: DateKey;
+  /** ISO timestamp of the claim on the child device. */
+  createdAt: string;
   status: "requested" | "done";
-  doneDate?: DateKey;
+  /** Local day a parent marked it done. */
+  doneAt?: DateKey;
 };
 
 /**
@@ -86,7 +90,9 @@ export type LinkErrorCode =
   /** Decryption failed: another family's code, or a damaged scan. */
   | "wrong-family"
   /** The code decoded but its content is not what we expect. */
-  | "corrupt";
+  | "corrupt"
+  /** Compression is not supported on this browser. */
+  | "unsupported";
 
 export class LinkError extends Error {
   readonly code: LinkErrorCode;

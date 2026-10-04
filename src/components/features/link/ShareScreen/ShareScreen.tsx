@@ -26,6 +26,7 @@ import {
   isPairingCode,
   SHARE_RANGE_DAYS,
   type FamilyLink,
+  type LinkRewardClaim,
   type ShareRangeDays,
 } from "@/lib/link";
 import type { CheckIn, DateKey, MissionLog } from "@/types";
@@ -39,6 +40,7 @@ type BuildInput = {
   link: FamilyLink;
   checkIns: CheckIn[];
   missionLogs: MissionLog[];
+  rewardClaims: LinkRewardClaim[];
   from: DateKey;
   to: DateKey;
 };
@@ -107,11 +109,20 @@ export function ShareScreen() {
             link,
             checkIns: state.checkIns,
             missionLogs: state.missionLogs,
+            rewardClaims: state.economy.rewardClaims,
             from: range.from,
             to: range.to,
           }
         : null,
-    [link, isReady, cryptoAvailable, state.checkIns, state.missionLogs, range],
+    [
+      link,
+      isReady,
+      cryptoAvailable,
+      state.checkIns,
+      state.missionLogs,
+      state.economy.rewardClaims,
+      range,
+    ],
   );
 
   useEffect(() => {
@@ -124,7 +135,7 @@ export function ShareScreen() {
         familyId: input.link.familyId,
         checkIns: input.checkIns,
         missionLogs: input.missionLogs,
-        rewardClaims: input.link.rewardClaims ?? [],
+        rewardClaims: input.rewardClaims,
       },
       input.from,
       input.to,

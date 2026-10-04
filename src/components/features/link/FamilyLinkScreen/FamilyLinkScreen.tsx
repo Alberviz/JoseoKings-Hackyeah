@@ -72,12 +72,16 @@ export function FamilyLinkScreen() {
         keyB64: link.keyB64,
         nickname: state.child.nickname,
         allowedMissionIds: state.settings?.allowedMissionIds ?? [],
-        specialRewards: link.specialRewards,
+        specialRewards: state.economy.specialRewards.map((reward) => ({
+          id: reward.id,
+          name: reward.name,
+          fireCost: reward.fireCost,
+        })),
         createdAt: new Date().toISOString(),
       }),
     ];
-    // The code only changes when the link, the child or the allowed missions change.
-  }, [link, state.child, state.settings?.allowedMissionIds]);
+    // The code only changes when the link, the child, missions or rewards change.
+  }, [link, state.child, state.settings?.allowedMissionIds, state.economy.specialRewards]);
 
   const createLink = () => {
     if (!state.child) {
@@ -89,8 +93,11 @@ export function FamilyLinkScreen() {
       keyB64: generateFamilyKey(),
       nickname: state.child.nickname,
       allowedMissionIds: state.settings?.allowedMissionIds ?? [],
-      specialRewards: [],
-      rewardClaims: [],
+      specialRewards: state.economy.specialRewards.map((reward) => ({
+        id: reward.id,
+        name: reward.name,
+        fireCost: reward.fireCost,
+      })),
       linkedAt: new Date().toISOString(),
     });
     setIsPairingVisible(true);
@@ -126,17 +133,20 @@ export function FamilyLinkScreen() {
           const target = {
             checkIns: state.checkIns,
             missionLogs: state.missionLogs,
-            rewardClaims: link.rewardClaims ?? [],
+            rewardClaims: state.economy.rewardClaims,
           };
           const { state: merged, summary } = mergeShare(target, payload);
           actions.importState({
             ...state,
             checkIns: merged.checkIns,
             missionLogs: merged.missionLogs,
+            economy: {
+              ...state.economy,
+              rewardClaims: merged.rewardClaims,
+            },
           });
           family.updateLink((prev) => ({
             ...prev,
-            rewardClaims: merged.rewardClaims,
             lastExchangeAt: new Date().toISOString(),
           }));
           setLastSummary(summary);

@@ -2,7 +2,7 @@
 
 **For the next AI session on another machine.** Read this file first, then `docs/COMMS.md`, then run `scripts/comms.sh open alvaro`.
 
-Last update: **2026-10-04, ~00:45** (Europe/Warsaw). Author of this handoff: Cursor on Álvaro's PC (after Fable's session). Human owner: **Álvaro** (git `Alvaro` / `alvarli678@gmail.com`).
+Last update: **2026-10-04, ~02:05** (Europe/Warsaw). Human owner: **Álvaro** (git `Alvaro` / `alvarli678@gmail.com`). Branch **`feat/l3-qr-link-ui`** merged with latest **`main`** (`48e623c`).
 
 ---
 
@@ -94,8 +94,10 @@ Before any PR: `git fetch origin && git merge origin/main`, then `pnpm check`.
 
 ## 6. Gaps to finish L3 (next session checklist)
 
-- [ ] **`pnpm check`** on `feat/l3-qr-link-ui` after merging latest `main`.
-- [ ] **Child entry to `/share`** — there is no button on `HomeScreen` yet; only direct URL. Add a discreet nav item or copy agreed with Claude (device role may move this).
+- [x] Merge latest **`main`** into `feat/l3-qr-link-ui` (2026-10-04).
+- [x] **L1 review fixes** (PR #59 list): merge id + `createdAt` winner, strict pairing schema, key length, frame caps, compression probe, dedupe check-ins, economy field names (`name`, `createdAt`, `doneAt`).
+- [x] **Child entry** — `Show parents` link on `HomeScreen` when `deviceRole` is `child` or `both`.
+- [ ] **`pnpm check`** — one flaky failure in `PatternsScreen.test.tsx` on this run (pre-existing E8); link tests 22/22 green.
 - [ ] **Manual QA on HTTPS** (localhost or Vercel): pairing round-trip, multi-frame share, photo/paste fallbacks. See `ERRORS.md` E5 (`crypto.subtle`).
 - [ ] **Open PR(s)** with `gh pr create`; link to issue if one exists. Screenshot at 360 px width.
 - [ ] **Comms:** `scripts/comms.sh send --from alvaro --to claude --type done --task L3` when PR is open; wait for review before L5.

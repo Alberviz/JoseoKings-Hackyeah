@@ -8,9 +8,15 @@ function sameCheckIn(a: CheckIn, b: CheckIn): boolean {
   return JSON.stringify({ ...a, id: "" }) === JSON.stringify({ ...b, id: "" });
 }
 
+function isNewerCheckIn(incoming: CheckIn, existing: CheckIn): boolean {
+  return incoming.createdAt.localeCompare(existing.createdAt) >= 0;
+}
+
 /**
- * Check-ins are keyed by day (one per day; the child's app is the source of truth, so its version
- * replaces an older one). Mission logs and reward claims are keyed by id and only ever added.
+ * Check-ins are keyed by day (one per day; the child's app is the source of truth). When both sides
+ * differ, the record with the later `createdAt` wins, but the id already on the parent phone is kept
+ * so `FoodEntry.relatedCheckInId` stays valid. Mission logs and reward claims are keyed by id and
+ * only ever added.
  */
 export function mergeShare<T extends ShareMergeTarget>(
   target: T,
@@ -30,8 +36,11 @@ export function mergeShare<T extends ShareMergeTarget>(
       checkIns.push(incoming);
       summary.checkInsAdded += 1;
     } else if (!sameCheckIn(checkIns[index], incoming)) {
-      checkIns[index] = incoming;
-      summary.checkInsReplaced += 1;
+      if (isNewerCheckIn(incoming, checkIns[index])) {
+        const existingId = checkIns[index].id;
+        checkIns[index] = { ...incoming, id: existingId };
+        summary.checkInsReplaced += 1;
+      }
     }
   }
 

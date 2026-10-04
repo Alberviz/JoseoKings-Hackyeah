@@ -43,47 +43,74 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
           <Text tone="muted">Daily summary for {childName}</Text>
         </Stack>
 
-        <Card label="Today's check-in">
+        <Card label="Today's performance">
           <Stack gap="md">
-            <Heading level={2}>Today&apos;s check-in</Heading>
-            {!todayCheckIn ? (
-              <Text tone="muted">None yet</Text>
-            ) : todayCheckIn.notToday ? (
-              <Stack gap="xs">
-                <Text tone="muted">Not today</Text>
-                <Text size="sm">The child chose not to check in today.</Text>
-              </Stack>
-            ) : (
-              <Stack gap="sm">
-                <Text>Answered</Text>
-                <FactList>
-                  <FactItem>
-                    <Text size="sm">Belly comfort</Text>
-                    <Text size="sm">
-                      Level {String(todayCheckIn.answers[QUESTION_IDS.bellyComfort] ?? "-")}
-                    </Text>
-                  </FactItem>
-                  <FactItem>
-                    <Text size="sm">Energy</Text>
-                    <Text size="sm">
-                      Level {String(todayCheckIn.answers[QUESTION_IDS.energy] ?? "-")}
-                    </Text>
-                  </FactItem>
-                  <FactItem>
-                    <Text size="sm">Play pace</Text>
-                    <Text size="sm">
-                      Level {String(todayCheckIn.answers[QUESTION_IDS.playPace] ?? "-")}
-                    </Text>
-                  </FactItem>
-                  {todayCheckIn.childNote ? (
+            <Heading level={2}>Today&apos;s performance</Heading>
+            <Stack gap="sm">
+              <Text size="sm" tone="muted">
+                Check-in
+              </Text>
+              {!todayCheckIn ? (
+                <Text tone="muted">None yet</Text>
+              ) : todayCheckIn.notToday ? (
+                <Stack gap="xs">
+                  <Text tone="muted">Not today</Text>
+                  <Text size="sm">The child chose not to check in today.</Text>
+                </Stack>
+              ) : (
+                <Stack gap="sm">
+                  <Text>Answered</Text>
+                  <FactList>
                     <FactItem>
-                      <Text size="sm">Note</Text>
-                      <Text size="sm">{todayCheckIn.childNote}</Text>
+                      <Text size="sm">Belly comfort</Text>
+                      <Text size="sm">
+                        Level {String(todayCheckIn.answers[QUESTION_IDS.bellyComfort] ?? "-")}
+                      </Text>
                     </FactItem>
-                  ) : null}
+                    <FactItem>
+                      <Text size="sm">Energy</Text>
+                      <Text size="sm">
+                        Level {String(todayCheckIn.answers[QUESTION_IDS.energy] ?? "-")}
+                      </Text>
+                    </FactItem>
+                    <FactItem>
+                      <Text size="sm">Play pace</Text>
+                      <Text size="sm">
+                        Level {String(todayCheckIn.answers[QUESTION_IDS.playPace] ?? "-")}
+                      </Text>
+                    </FactItem>
+                    {todayCheckIn.childNote ? (
+                      <FactItem>
+                        <Text size="sm">Note</Text>
+                        <Text size="sm">{todayCheckIn.childNote}</Text>
+                      </FactItem>
+                    ) : null}
+                  </FactList>
+                </Stack>
+              )}
+            </Stack>
+            <Stack gap="sm">
+              <Text size="sm" tone="muted">
+                Missions and play
+              </Text>
+              {todayMissions.length === 0 ? (
+                <Text tone="muted">None today</Text>
+              ) : (
+                <FactList>
+                  {todayMissions.map((log) => (
+                    <MissionItem key={log.id}>
+                      <MissionHeader>
+                        <Text>{formatMissionTitle(log.missionId)}</Text>
+                        <Chip label={confidenceLabel(log.company)} tone="default" />
+                      </MissionHeader>
+                      <Text size="sm" tone="muted">
+                        Status: {log.status === "completed" ? "Completed" : "Rest"}
+                      </Text>
+                    </MissionItem>
+                  ))}
                 </FactList>
-              </Stack>
-            )}
+              )}
+            </Stack>
           </Stack>
         </Card>
 
@@ -95,29 +122,6 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
             </LinkButton>
           </PromptCard>
         ) : null}
-
-        <Card label="Today's missions">
-          <Stack gap="md">
-            <Heading level={2}>Today&apos;s missions</Heading>
-            {todayMissions.length === 0 ? (
-              <Text tone="muted">None today</Text>
-            ) : (
-              <FactList>
-                {todayMissions.map((log) => (
-                  <MissionItem key={log.id}>
-                    <MissionHeader>
-                      <Text>{formatMissionTitle(log.missionId)}</Text>
-                      <Chip label={confidenceLabel(log.company)} tone="default" />
-                    </MissionHeader>
-                    <Text size="sm" tone="muted">
-                      Status: {log.status === "completed" ? "Completed" : "Rest"}
-                    </Text>
-                  </MissionItem>
-                ))}
-              </FactList>
-            )}
-          </Stack>
-        </Card>
 
         <Card label="Parent sections">
           <Stack gap="md">

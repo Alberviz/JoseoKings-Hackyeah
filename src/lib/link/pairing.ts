@@ -5,16 +5,8 @@ import { fromBase64Url, toBase64Url, utf8Decode, utf8Encode } from "./bytes";
 import { pairingPayloadSchema } from "./schemas";
 import { LINK_VERSION, LinkError, PAIRING_PREFIX, type PairingPayload } from "./types";
 
-/** Keys that must never appear in a pairing code, whatever the caller passes. */
-const FORBIDDEN_KEYS = ["checkIns", "missionLogs", "parentLogs", "foodEntries", "answers"];
-
 export function encodePairing(payload: PairingPayload): string {
   const validated = pairingPayloadSchema.parse(payload);
-  for (const key of FORBIDDEN_KEYS) {
-    if (key in (validated as object)) {
-      throw new Error(`A pairing code must not carry "${key}".`);
-    }
-  }
   return PAIRING_PREFIX + toBase64Url(utf8Encode(JSON.stringify(validated)));
 }
 

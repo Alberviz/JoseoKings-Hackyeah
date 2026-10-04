@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
 import type { CheckIn, MissionLog } from "@/types";
-import { fromBase64Url, toBase64Url } from "./bytes";
+import { fromBase64Url, toBase64Url, utf8Decode, utf8Encode } from "./bytes";
 import { isCompressionAvailable } from "./compress";
 import { decryptBytes, encryptBytes, generateFamilyId, generateFamilyKey } from "./crypto";
 import { FrameCollector, joinFrames, parseFrame, splitFrames } from "./frames";
@@ -48,7 +48,13 @@ function missionLog(date: string, suffix = "a"): MissionLog {
 }
 
 function claim(date: string): LinkRewardClaim {
-  return { id: `rc-${date}`, rewardId: "rw-dinner", date, status: "requested" };
+  return {
+    id: `rc-${date}`,
+    rewardId: "rw-dinner",
+    date,
+    createdAt: `${date}T18:00:00.000Z`,
+    status: "requested",
+  };
 }
 
 const pairing: PairingPayload = {
@@ -58,8 +64,8 @@ const pairing: PairingPayload = {
   nickname: "Lucas",
   allowedMissionIds: [MISSION_IDS.dragonBreathing, MISSION_IDS.bedStretch],
   specialRewards: [
-    { id: "rw-dinner", label: "Choose today's dinner", fireCost: 50 },
-    { id: "rw-board", label: "Board games night", fireCost: 80 },
+    { id: "rw-dinner", name: "Choose today's dinner", fireCost: 50 },
+    { id: "rw-board", name: "Board games night", fireCost: 80 },
   ],
   createdAt: "2026-10-03T20:00:00.000Z",
 };
@@ -131,6 +137,14 @@ describe("frames", () => {
     const progress = collector.add("CCD1:1/3:zzz");
     expect(progress).toEqual({ have: 1, total: 3, isComplete: false });
   });
+
+  it("rejects two different chunks for the same frame number", () => {
+    const collector = new FrameCollector();
+    collector.add("CCD1:1/2:abc");
+    expect(() => collector.add("CCD1:1/2:xyz")).toThrowError(
+      expect.objectContaining({ code: "corrupt" }),
+    );
+  });
 });
 
 describe("pairing code", () => {
@@ -157,11 +171,22 @@ describe("pairing code", () => {
       ...pairing,
       specialRewards: Array.from({ length: 9 }, (_, i) => ({
         id: `r${i}`,
-        label: "x",
+        name: "x",
         fireCost: 1,
       })),
     };
     expect(() => encodePairing(tooMany)).toThrow();
+  });
+
+  it("rejects health data smuggled in a pairing JSON object", () => {
+    const blob = JSON.parse(
+      utf8Decode(fromBase64Url(encodePairing(pairing).slice(PAIRING_PREFIX.length))),
+    ) as Record<string, unknown>;
+    blob.checkIns = [{ id: "x" }];
+    const tampered = PAIRING_PREFIX + toBase64Url(utf8Encode(JSON.stringify(blob)));
+    expect(() => decodePairing(tampered)).toThrowError(
+      expect.objectContaining({ code: "corrupt" }),
+    );
   });
 });
 
@@ -292,7 +317,7 @@ describe("merge", () => {
     const done: LinkRewardClaim = {
       ...claim("2026-10-02"),
       status: "done",
-      doneDate: "2026-10-03",
+      doneAt: "2026-10-03",
     };
     const target: ShareMergeTarget = { ...empty, rewardClaims: [done] };
     const payload = buildSharePayload(
@@ -303,5 +328,64 @@ describe("merge", () => {
     const { state, summary } = mergeShare(target, payload);
     expect(summary.rewardClaimsAdded).toBe(0);
     expect(state.rewardClaims).toEqual([done]);
+  });
+
+  it("keeps the parent check-in id when the child sends an update for that day", () => {
+    const parentId = "parent-check-in-id";
+    const target: ShareMergeTarget = {
+      ...empty,
+      checkIns: [{ ...checkIn("2026-10-01", 1), id: parentId }],
+    };
+    const childUpdate = checkIn("2026-10-01", 2);
+    childUpdate.id = "child-check-in-id";
+    childUpdate.createdAt = "2026-10-01T12:00:00.000Z";
+    const payload = buildSharePayload(
+      {
+        familyId: FAMILY_ID,
+        checkIns: [childUpdate],
+        missionLogs: [],
+        rewardClaims: [],
+      },
+      "2026-10-01",
+      "2026-10-01",
+    );
+    const { state } = mergeShare(target, payload);
+    expect(state.checkIns[0].id).toBe(parentId);
+    expect(state.checkIns[0].answers[QUESTION_IDS.bellyComfort]).toBe(2);
+  });
+
+  it("does not revert a day when an older child payload arrives later", () => {
+    const newer = checkIn("2026-10-01", 2);
+    newer.createdAt = "2026-10-01T18:00:00.000Z";
+    const target: ShareMergeTarget = { ...empty, checkIns: [newer] };
+    const older = checkIn("2026-10-01", 0);
+    older.createdAt = "2026-10-01T08:00:00.000Z";
+    const payload = buildSharePayload(
+      { familyId: FAMILY_ID, checkIns: [older], missionLogs: [], rewardClaims: [] },
+      "2026-10-01",
+      "2026-10-01",
+    );
+    const { state, summary } = mergeShare(target, payload);
+    expect(summary.checkInsReplaced).toBe(0);
+    expect(state.checkIns[0].answers[QUESTION_IDS.bellyComfort]).toBe(2);
+  });
+
+  it("dedupes duplicate check-in days in the share payload, keeping the newest", () => {
+    const older = checkIn("2026-10-01", 0);
+    older.createdAt = "2026-10-01T08:00:00.000Z";
+    const newer = checkIn("2026-10-01", 2);
+    newer.createdAt = "2026-10-01T18:00:00.000Z";
+    const payload = buildSharePayload(
+      {
+        familyId: FAMILY_ID,
+        checkIns: [older, newer],
+        missionLogs: [],
+        rewardClaims: [],
+      },
+      "2026-10-01",
+      "2026-10-01",
+    );
+    expect(payload.checkIns).toHaveLength(1);
+    expect(payload.checkIns[0].answers[QUESTION_IDS.bellyComfort]).toBe(2);
   });
 });

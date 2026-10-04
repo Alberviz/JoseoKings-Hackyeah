@@ -16,6 +16,8 @@ export function describeLinkError(error: unknown, side: "parent" | "child"): str
         return "This code is not from your family, or the scan was damaged. Try again.";
       case "corrupt":
         return "The code could not be read. Try again with more light.";
+      case "unsupported":
+        return "This phone cannot read that code yet. Try updating the browser or paste the text instead.";
     }
   }
   return "Something went wrong while reading the code. Try again.";
