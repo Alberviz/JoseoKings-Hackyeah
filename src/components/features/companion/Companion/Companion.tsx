@@ -37,6 +37,12 @@ import {
   SvgPath,
   SvgPolygon,
   SvgRect,
+  VisibleCapG,
+  VisibleGlassesG,
+  VisibleHatG,
+  VisibleSportShirtG,
+  VisibleSunglassesG,
+  VisibleTshirtG,
 } from "./Companion.style";
 
 export type CompanionSize = "sm" | "md" | "lg";
@@ -46,6 +52,64 @@ export const DRAGON_ARTWORK: Record<CompanionStage, string> = {
   1: "/dragon.png",
   2: "/dragon_stage2_teen.png",
   3: "/dragon_stage3_heroic.png",
+};
+
+export function getDragonArtwork(
+  stage: CompanionStage = 1,
+  equippedItemIds: string[] = [],
+): string {
+  const safeStage = stage === 2 || stage === 3 ? stage : 1;
+  const hasHead = equippedItemIds.includes("hat") || equippedItemIds.includes("cap");
+  const hasBody = equippedItemIds.includes("t-shirt") || equippedItemIds.includes("sport-shirt");
+  const hasFace = equippedItemIds.includes("glasses") || equippedItemIds.includes("sunglasses");
+
+  if (hasHead) {
+    return `/dragon_stage${safeStage}_all.png`;
+  }
+  if (hasBody) {
+    return `/dragon_stage${safeStage}_shirt.png`;
+  }
+  if (hasFace) {
+    return `/dragon_stage${safeStage}_glasses.png`;
+  }
+  return DRAGON_ARTWORK[safeStage] || "/dragon.png";
+}
+
+export const ACCESSORY_TRANSFORMS: Record<
+  CompanionStage,
+  {
+    hat: string;
+    cap: string;
+    glasses: string;
+    sunglasses: string;
+    tshirt: string;
+    sportShirt: string;
+  }
+> = {
+  1: {
+    hat: "translate(100, 44) scale(1.0)",
+    cap: "translate(100, 42) scale(0.98)",
+    glasses: "translate(100, 72) scale(1.0)",
+    sunglasses: "translate(100, 72) scale(1.0)",
+    tshirt: "translate(100, 130) scale(1.0, 1.0)",
+    sportShirt: "translate(100, 130) scale(1.0, 1.0)",
+  },
+  2: {
+    hat: "translate(107, 40) rotate(3)",
+    cap: "translate(107, 37) rotate(2)",
+    glasses: "translate(107, 68)",
+    sunglasses: "translate(107, 68)",
+    tshirt: "translate(109, 107) rotate(-4)",
+    sportShirt: "translate(109, 107) rotate(-4)",
+  },
+  3: {
+    hat: "translate(107, 42) rotate(2)",
+    cap: "translate(107, 40) rotate(1)",
+    glasses: "translate(107, 67)",
+    sunglasses: "translate(107, 67)",
+    tshirt: "translate(110, 107) rotate(-3)",
+    sportShirt: "translate(110, 107) rotate(-3)",
+  },
 };
 
 export type CompanionProps = {
@@ -96,10 +160,30 @@ export function Companion({
     }
   }
 
-  const hasHat = activeItemsBySlot.get("hat") === ITEM_IDS.hatExplorer;
   const isTeal = activeItemsBySlot.get("color") === ITEM_IDS.colorTeal;
   const hasCape = activeItemsBySlot.get("cape") === ITEM_IDS.capeStar;
-  const hasGoggles = activeItemsBySlot.get("gadget") === ITEM_IDS.gadgetGoggles;
+
+  // Head slot: cap has precedence if both present, otherwise hat (explorer hat)
+  const hasCap = equippedItemIds.includes("cap");
+  const hasExplorerHat =
+    !hasCap &&
+    (activeItemsBySlot.get("hat") === ITEM_IDS.hatExplorer || equippedItemIds.includes("hat"));
+  const hasHat = hasExplorerHat;
+
+  // Face slot: sunglasses has precedence if both present, otherwise classic glasses / goggles
+  const hasSunglasses = equippedItemIds.includes("sunglasses");
+  const hasClassicGlasses =
+    !hasSunglasses &&
+    (activeItemsBySlot.get("gadget") === ITEM_IDS.gadgetGoggles ||
+      equippedItemIds.includes("glasses"));
+  const hasGoggles = hasClassicGlasses;
+
+  // Body slot: sport-shirt has precedence if both present, otherwise star t-shirt
+  const hasSportShirt = equippedItemIds.includes("sport-shirt");
+  const hasStarTshirt = !hasSportShirt && equippedItemIds.includes("t-shirt");
+
+  const currentStage = stage || 1;
+  const transforms = ACCESSORY_TRANSFORMS[currentStage] || ACCESSORY_TRANSFORMS[1];
 
   // Kraków Dragon color tokens from currentTheme.colors (strictly no hardcoded hex literals)
   const colors = currentTheme.colors;
@@ -193,7 +277,7 @@ export function Companion({
 
         {/* --- OFFICIAL EXACT KRAKÓW DRAGON ARTWORK (Full fidelity transparent PNG) --- */}
         <SvgImage
-          href={DRAGON_ARTWORK[stage || 1] || "/dragon.png"}
+          href={getDragonArtwork(stage || 1, equippedItemIds)}
           x="10"
           y="10"
           width="180"
@@ -202,6 +286,794 @@ export function Companion({
           data-testid="companion-artwork"
           $isTeal={isTeal}
         />
+
+        {/* --- VISIBLE WEARABLE ACCESSORIES (Adapted to each dragon evolution stage) --- */}
+        {hasSportShirt && (
+          <VisibleSportShirtG
+            data-testid="companion-wearable-sport-shirt"
+            transform={transforms.sportShirt}
+          >
+            {stage === 2 ? (
+              // Teen Dragon: Athletic Vest tailored to 3/4 slender torso
+              <>
+                <SvgPath
+                  d="M -9 -14 Q 2 -18 13 -14 L 17 -5 Q 2 -9 -5 -5 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgPath
+                  d="M -11 -5 C -14 5 -12 16 -10 24 C -3 27 10 24 16 18 C 17 10 16 1 15 -5 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -11 -5 Q 2 0 15 -5 Q 2 -7 -11 -5 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgPath
+                  d="M -4 -3 L -3 22"
+                  stroke={whiteColor}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 2 -3 L 3 22"
+                  stroke={whiteColor}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgCircle
+                  cx="9"
+                  cy="7"
+                  r="3.5"
+                  fill={colors.dragonHornHighlight}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+              </>
+            ) : stage === 3 ? (
+              // Heroic Dragon: Muscular athletic armor vest hugging broad chest
+              <>
+                <SvgPath
+                  d="M -15 -13 Q 2 -17 19 -12 L 25 -2 Q 4 -6 -9 -2 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.8"
+                />
+                <SvgPath
+                  d="M -14 -2 C -21 8 -16 21 -10 29 C -2 32 15 30 23 25 C 26 14 25 3 22 -2 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -14 -2 Q 4 3 22 -2 Q 4 -4 -14 -2 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgPath
+                  d="M -4 0 L -3 27"
+                  stroke={whiteColor}
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 2 0 L 3 27"
+                  stroke={whiteColor}
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+                <SvgCircle
+                  cx="11"
+                  cy="10"
+                  r="4"
+                  fill={colors.dragonHornHighlight}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.2"
+                />
+                <SvgPath
+                  d="M -10 29 Q 5 32 23 25"
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                  fill="none"
+                />
+              </>
+            ) : (
+              // Baby Dragon: Classic cute frontal tee
+              <>
+                <SvgPath
+                  d="M -14 -18 Q 0 -13 14 -18 L 26 -15 L 36 -6 L 29 2 L 23 -2 L 24 23 Q 0 27 -24 23 L -23 -2 L -29 2 L -36 -6 L -26 -15 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -14 -18 Q 0 -12 14 -18 Q 0 -15 -14 -18 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgPath
+                  d="M -7 -6 L -7 24 M -2 -6 L -2 24"
+                  stroke={whiteColor}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgCircle
+                  cx="9"
+                  cy="6"
+                  r="4.5"
+                  fill={colors.dragonHornHighlight}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+              </>
+            )}
+          </VisibleSportShirtG>
+        )}
+
+        {hasStarTshirt && (
+          <VisibleTshirtG data-testid="companion-wearable-tshirt" transform={transforms.tshirt}>
+            {stage === 2 ? (
+              // Teen Dragon: Fitted star chest jersey
+              <>
+                <SvgPath
+                  d="M -9 -14 Q 2 -18 13 -14 L 17 -5 Q 2 -9 -5 -5 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgPath
+                  d="M -11 -5 C -14 5 -12 16 -10 24 C -3 27 10 24 16 18 C 17 10 16 1 15 -5 Z"
+                  fill={colors.lavender}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -11 -5 Q 2 0 15 -5 Q 2 -7 -11 -5 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgPolygon
+                  points="2,3 3.5,7 8,7 4.5,10 6,14 2,11 -2,14 -0.5,10 -4,7 0.5,7"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+                <SvgPath
+                  d="M -10 24 Q 2 26 16 18"
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                  fill="none"
+                />
+              </>
+            ) : stage === 3 ? (
+              // Heroic Dragon: Muscular battle star tunic
+              <>
+                <SvgPath
+                  d="M -15 -13 Q 2 -17 19 -12 L 25 -2 Q 4 -6 -9 -2 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.8"
+                />
+                <SvgPath
+                  d="M -14 -2 C -21 8 -16 21 -10 29 C -2 32 15 30 23 25 C 26 14 25 3 22 -2 Z"
+                  fill={colors.lavender}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -14 -2 Q 4 3 22 -2 Q 4 -4 -14 -2 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgPath
+                  d="M -5 7 Q 4 12 13 7"
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                  fill="none"
+                  opacity="0.6"
+                />
+                <SvgPolygon
+                  points="4,8 6,13 12,13 7.5,17 9.5,22 4,18 -1.5,22 0.5,17 -4,13 2,13"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.2"
+                />
+                <SvgPath
+                  d="M -10 29 Q 5 32 23 25"
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                  fill="none"
+                />
+              </>
+            ) : (
+              // Baby Dragon: Cute star t-shirt
+              <>
+                <SvgPath
+                  d="M -14 -18 Q 0 -13 14 -18 L 26 -15 L 36 -6 L 29 2 L 23 -2 L 24 23 Q 0 27 -24 23 L -23 -2 L -29 2 L -36 -6 L -26 -15 Z"
+                  fill={colors.lavender}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -14 -18 Q 0 -12 14 -18 Q 0 -15 -14 -18 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgPolygon
+                  points="0,-8 2,-2 8,-2 3,2 5,8 0,4 -5,8 -3,2 -8,-2 -2,-2"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+                <SvgPath
+                  d="M -23 -2 L -20 -14 M 23 -2 L 20 -14"
+                  stroke={colors.dragonEye}
+                  strokeOpacity="0.45"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </>
+            )}
+          </VisibleTshirtG>
+        )}
+
+        {hasSunglasses && (
+          <VisibleSunglassesG
+            data-testid="companion-wearable-sunglasses"
+            transform={transforms.sunglasses}
+          >
+            {stage === 2 ? (
+              // Teen Dragon: Aerodynamic wraparound 3/4 shades
+              <>
+                <SvgRect
+                  x="-19"
+                  y="-8"
+                  width="16"
+                  height="13"
+                  rx="3.5"
+                  fill={colors.dragonEye}
+                  stroke={colors.accent}
+                  strokeWidth="2"
+                  transform="rotate(-3)"
+                />
+                <SvgRect
+                  x="4"
+                  y="-8"
+                  width="13"
+                  height="12"
+                  rx="3"
+                  fill={colors.dragonEye}
+                  stroke={colors.accent}
+                  strokeWidth="2"
+                  transform="rotate(-1)"
+                />
+                <SvgPath
+                  d="M -3 -2 Q 1 -4 4 -2"
+                  stroke={colors.accent}
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <SvgPath
+                  d="M -19 -2 L -23 -3 M 17 -2 L 23 -3"
+                  stroke={colors.accent}
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M -15 2 L -9 -4"
+                  stroke={whiteColor}
+                  strokeOpacity="0.85"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 8 2 L 13 -3"
+                  stroke={whiteColor}
+                  strokeOpacity="0.85"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </>
+            ) : stage === 3 ? (
+              // Heroic Dragon: Fierce tactical 3/4 shades
+              <>
+                <SvgPolygon
+                  points="-18,-8 -3,-7 -4,4 -18,3"
+                  fill={colors.dragonEye}
+                  stroke={colors.accent}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPolygon
+                  points="5,-7 18,-8 17,3 5,3"
+                  fill={colors.dragonEye}
+                  stroke={colors.accent}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -3 -2.5 Q 1 -4.5 5 -2.5"
+                  stroke={colors.accent}
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <SvgPath
+                  d="M -18 -2.5 L -24 -3.5 M 18 -2.5 L 24 -3.5"
+                  stroke={colors.accent}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M -14 2 L -8 -4"
+                  stroke={whiteColor}
+                  strokeOpacity="0.85"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 9 2 L 15 -4"
+                  stroke={whiteColor}
+                  strokeOpacity="0.85"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </>
+            ) : (
+              // Baby Dragon: Cute frontal sunglasses
+              <>
+                <SvgRect
+                  x="-36"
+                  y="-10"
+                  width="25"
+                  height="18"
+                  rx="4"
+                  fill={colors.dragonEye}
+                  stroke={colors.accent}
+                  strokeWidth="2"
+                />
+                <SvgRect
+                  x="11"
+                  y="-10"
+                  width="25"
+                  height="18"
+                  rx="4"
+                  fill={colors.dragonEye}
+                  stroke={colors.accent}
+                  strokeWidth="2"
+                />
+                <SvgPath
+                  d="M -11 -3 Q 0 -6 11 -3"
+                  stroke={colors.accent}
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <SvgPath
+                  d="M -36 -2 L -42 -4 M 36 -2 L 42 -4"
+                  stroke={colors.accent}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M -30 4 L -21 -6"
+                  stroke={whiteColor}
+                  strokeOpacity="0.8"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 17 4 L 26 -6"
+                  stroke={whiteColor}
+                  strokeOpacity="0.8"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </>
+            )}
+          </VisibleSunglassesG>
+        )}
+
+        {hasClassicGlasses && (
+          <VisibleGlassesG data-testid="companion-wearable-glasses" transform={transforms.glasses}>
+            {stage === 2 ? (
+              // Teen Dragon: 3/4 perspective academic glasses
+              <>
+                <SvgRect
+                  x="-19"
+                  y="-8"
+                  width="16"
+                  height="14"
+                  rx="4"
+                  fill={colors.dragonEye}
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                  transform="rotate(-3)"
+                />
+                <SvgRect
+                  x="4"
+                  y="-8"
+                  width="13"
+                  height="13"
+                  rx="3.5"
+                  fill={colors.dragonEye}
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                  transform="rotate(-1)"
+                />
+                <SvgPath
+                  d="M -3 -2 Q 1 -4 4 -2"
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <SvgPath
+                  d="M 17 -2 L 23 -3 M -19 -2 L -23 -3"
+                  stroke={colors.dragonHorn}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M -16 2 L -10 -5"
+                  stroke={whiteColor}
+                  strokeOpacity="0.8"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 7 2 L 12 -4"
+                  stroke={whiteColor}
+                  strokeOpacity="0.8"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </>
+            ) : stage === 3 ? (
+              // Heroic Dragon: Sharp determined 3/4 frames
+              <>
+                <SvgPolygon
+                  points="-18,-9 -3,-8 -4,5 -18,4"
+                  fill={colors.dragonEye}
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPolygon
+                  points="5,-8 18,-9 17,4 5,4"
+                  fill={colors.dragonEye}
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -3 -3 Q 1 -5 5 -3"
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <SvgPath
+                  d="M -18 -3 L -24 -4 M 18 -3 L 24 -4"
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M -15 2 L -9 -6"
+                  stroke={whiteColor}
+                  strokeOpacity="0.8"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 8 2 L 14 -6"
+                  stroke={whiteColor}
+                  strokeOpacity="0.8"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </>
+            ) : (
+              // Baby Dragon: Cute roundish glasses
+              <>
+                <SvgRect
+                  x="-36"
+                  y="-10"
+                  width="25"
+                  height="19"
+                  rx="5"
+                  fill={colors.dragonEye}
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                />
+                <SvgRect
+                  x="11"
+                  y="-10"
+                  width="25"
+                  height="19"
+                  rx="5"
+                  fill={colors.dragonEye}
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                />
+                <SvgPath
+                  d="M -11 -3 Q 0 -6 11 -3"
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <SvgPath
+                  d="M -36 -2 L -42 -4 M 36 -2 L 42 -4"
+                  stroke={colors.dragonHorn}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M -31 5 L -23 -7"
+                  stroke={whiteColor}
+                  strokeOpacity="0.75"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M -25 6 L -20 -1"
+                  stroke={whiteColor}
+                  strokeOpacity="0.45"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 16 5 L 24 -7"
+                  stroke={whiteColor}
+                  strokeOpacity="0.75"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <SvgPath
+                  d="M 22 6 L 27 -1"
+                  stroke={whiteColor}
+                  strokeOpacity="0.45"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </>
+            )}
+          </VisibleGlassesG>
+        )}
+
+        {hasCap && (
+          <VisibleCapG data-testid="companion-wearable-cap" transform={transforms.cap}>
+            {stage === 2 ? (
+              // Teen Dragon: Tilted athletic cap
+              <>
+                <SvgPath
+                  d="M -16 4 C -16 -10 -9 -18 3 -18 C 14 -18 19 -10 19 4 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M 9 4 L 27 3 C 29 4 29 7 22 8 L -1 8 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+                <SvgPolygon
+                  points="2,-11 3.5,-7.5 7,-7.5 4,-5 5,-1.5 2,-4 -1,-1.5 0,-5 -3,-7.5 0.5,-7.5"
+                  fill={whiteColor}
+                  stroke={colors.dragonEye}
+                  strokeWidth="0.8"
+                />
+                <SvgCircle
+                  cx="2"
+                  cy="-18"
+                  r="2"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+              </>
+            ) : stage === 3 ? (
+              // Heroic Dragon: Bold heroic star cap
+              <>
+                <SvgPath
+                  d="M -17 4 C -17 -11 -10 -19 3 -19 C 15 -19 20 -11 20 4 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M 10 4 L 30 3 C 32 4 32 7.5 24 8.5 L -1 8.5 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPolygon
+                  points="2,-12 3.5,-8.5 7.5,-8.5 4.5,-6 5.5,-2 2,-4.5 -1.5,-2 -0.5,-6 -3.5,-8.5 0.5,-8.5"
+                  fill={whiteColor}
+                  stroke={colors.dragonEye}
+                  strokeWidth="0.8"
+                />
+                <SvgCircle
+                  cx="2"
+                  cy="-19"
+                  r="2.2"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+              </>
+            ) : (
+              // Baby Dragon: Chibi frontal cap
+              <>
+                <SvgPath
+                  d="M -22 4 C -22 -14 -14 -24 4 -24 C 18 -24 24 -14 24 4 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M 12 4 L 34 3 C 37 4 37 8 28 9 L -2 9 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+                <SvgPolygon
+                  points="4,-16 5.5,-12 10,-12 6.5,-9 8,-4 4,-7 0,-4 1.5,-9 -2,-12 2.5,-12"
+                  fill={whiteColor}
+                  stroke={colors.dragonEye}
+                  strokeWidth="0.8"
+                />
+                <SvgCircle
+                  cx="4"
+                  cy="-24"
+                  r="2.5"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+              </>
+            )}
+          </VisibleCapG>
+        )}
+
+        {hasExplorerHat && (
+          <VisibleHatG data-testid="companion-wearable-hat" transform={transforms.hat}>
+            {stage === 2 ? (
+              // Teen Dragon: Explorer fedora angled between horns
+              <>
+                <SvgPath
+                  d="M -16 0 C -15 -11 -11 -18 -4 -19 C 2 -19 7 -17 12 -17 C 15 -14 16 -8 17 0 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -16 0 C -8 1 8 1 17 0 L 17 -4 C 8 -3 -8 -3 -16 -4 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.2"
+                />
+                <SvgRect
+                  x="-1"
+                  y="-4"
+                  width="4.5"
+                  height="4"
+                  rx="0.8"
+                  fill={colors.dragonHornHighlight}
+                  stroke={colors.dragonEye}
+                  strokeWidth="0.8"
+                />
+                <SvgPath
+                  d="M -26 0 C -26 5 25 5 25 0 C 25 -3 -26 -3 -26 0 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                />
+              </>
+            ) : stage === 3 ? (
+              // Heroic Dragon: Adventurer ranger hat fitted to skull
+              <>
+                <SvgPath
+                  d="M -18 0 C -17 -13 -12 -21 -4 -22 C 3 -22 9 -20 14 -20 C 18 -16 19 -9 20 0 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -18 0 C -9 1 9 1 20 0 L 20 -4.5 C 9 -3.5 -9 -3.5 -18 -4.5 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgRect
+                  x="-1"
+                  y="-4.5"
+                  width="5"
+                  height="4.5"
+                  rx="1"
+                  fill={colors.dragonHornHighlight}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+                <SvgPath
+                  d="M -29 0 C -29 6 28 6 28 0 C 28 -3.5 -29 -3.5 -29 0 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                />
+              </>
+            ) : (
+              // Baby Dragon: Cute explorer hat
+              <>
+                <SvgPath
+                  d="M -23 0 C -22 -14 -18 -22 -12 -24 C -6 -25 0 -22 4 -22 C 8 -22 14 -25 18 -24 C 21 -21 22 -14 23 0 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <SvgPath
+                  d="M -23 0 C -15 2 15 2 23 0 L 23 -6 C 15 -4 -15 -4 -23 -6 Z"
+                  fill={colors.accent}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1.5"
+                />
+                <SvgRect
+                  x="-3"
+                  y="-5.5"
+                  width="6"
+                  height="5"
+                  rx="1"
+                  fill={colors.dragonHornHighlight}
+                  stroke={colors.dragonEye}
+                  strokeWidth="1"
+                />
+                <SvgPath
+                  d="M -38 0 C -38 7 38 7 38 0 C 38 -5 -38 -5 -38 0 Z"
+                  fill={colors.dragonHorn}
+                  stroke={colors.dragonEye}
+                  strokeWidth="2"
+                />
+                <SvgPath
+                  d="M -14 -18 C -11 -21 -4 -22 -1 -21"
+                  stroke={whiteColor}
+                  strokeOpacity="0.55"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </>
+            )}
+          </VisibleHatG>
+        )}
 
         {/* --- Semantic Vector Structure for Test Compatibility & Layout --- */}
         <HiddenSemanticG>

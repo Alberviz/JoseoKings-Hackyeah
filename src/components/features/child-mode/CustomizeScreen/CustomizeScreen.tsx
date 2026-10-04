@@ -5,6 +5,7 @@ import { Companion } from "@/components/features/companion";
 import { Heading, LinkButton, Screen, Stack, Text } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { SHOP_ITEMS, type ShopItemConfig } from "@/config/economy";
+import { getDragonEvolution } from "@/lib/economy";
 import { useAppState } from "@/hooks/useAppState";
 import type { ShopItemId } from "@/types";
 import {
@@ -12,6 +13,7 @@ import {
   EmptyStateCard,
   ItemLabel,
   Stage,
+  SvgCircle,
   SvgEllipse,
   SvgPath,
   SvgRect,
@@ -27,8 +29,11 @@ import {
 
 const WEARABLE_NAMES: Record<string, string> = {
   glasses: "Glasses",
+  sunglasses: "Sun Glasses",
   "t-shirt": "T-shirt",
+  "sport-shirt": "Sport T-shirt",
   hat: "Hat",
+  cap: "Cap",
 };
 
 function WearableIcon({ id }: { id: string }) {
@@ -74,6 +79,46 @@ function WearableIcon({ id }: { id: string }) {
     );
   }
 
+  if (id === "sunglasses") {
+    return (
+      <SvgWearableIcon viewBox="0 0 32 32" aria-hidden="true">
+        <SvgRect
+          x="4"
+          y="11"
+          width="10"
+          height="9"
+          rx="3"
+          fill={theme.colors.ink}
+          stroke={theme.colors.accent}
+          strokeWidth="2"
+        />
+        <SvgRect
+          x="18"
+          y="11"
+          width="10"
+          height="9"
+          rx="3"
+          fill={theme.colors.ink}
+          stroke={theme.colors.accent}
+          strokeWidth="2"
+        />
+        <SvgPath
+          d="M14 15 Q16 13 18 15"
+          stroke={theme.colors.accent}
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+        />
+        <SvgPath
+          d="M6 14 L10 18 M20 14 L24 18"
+          stroke={theme.colors.onPrimary}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </SvgWearableIcon>
+    );
+  }
+
   if (id === "t-shirt") {
     return (
       <SvgWearableIcon viewBox="0 0 32 32" aria-hidden="true">
@@ -95,7 +140,65 @@ function WearableIcon({ id }: { id: string }) {
     );
   }
 
-  // Hat
+  if (id === "sport-shirt") {
+    return (
+      <SvgWearableIcon viewBox="0 0 32 32" aria-hidden="true">
+        <SvgPath
+          d="M10 8 L5 12 L8 16 L11 14 L11 26 L21 26 L21 14 L24 16 L27 12 L22 8 Q16 11 10 8 Z"
+          fill={theme.colors.accent}
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <SvgPath
+          d="M11 18 L21 18"
+          stroke={theme.colors.onPrimary}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <SvgPath
+          d="M12 8 Q16 11 20 8"
+          stroke={theme.colors.ink}
+          strokeWidth="1.5"
+          fill="none"
+          strokeLinecap="round"
+        />
+      </SvgWearableIcon>
+    );
+  }
+
+  if (id === "cap") {
+    return (
+      <SvgWearableIcon viewBox="0 0 32 32" aria-hidden="true">
+        {/* Cap dome */}
+        <SvgPath
+          d="M7 21 C7 12 12 10 19 10 C24 10 26 13 26 21 Z"
+          fill={theme.colors.accent}
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+        />
+        {/* Visor */}
+        <SvgPath
+          d="M19 21 L30 21 C31 22 30 24 25 24 L14 24"
+          fill={theme.colors.highlight}
+          stroke={theme.colors.ink}
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        {/* Top button */}
+        <SvgCircle
+          cx="18"
+          cy="10"
+          r="2"
+          fill={theme.colors.highlight}
+          stroke={theme.colors.ink}
+          strokeWidth="1"
+        />
+      </SvgWearableIcon>
+    );
+  }
+
+  // Hat (Explorer Hat)
   return (
     <SvgWearableIcon viewBox="0 0 32 32" aria-hidden="true">
       <SvgPath
@@ -162,6 +265,8 @@ export function CustomizeScreen() {
     }
   };
 
+  const evolution = getDragonEvolution(state.economy ?? { fire: 0 });
+
   return (
     <Screen>
       <CustomizeRoot>
@@ -177,7 +282,13 @@ export function CustomizeScreen() {
         </Stack>
 
         <Stage aria-label="Companion preview stage">
-          <Companion pose="idle" equippedItemIds={equippedItemIds} name={companionName} size="lg" />
+          <Companion
+            pose="idle"
+            equippedItemIds={equippedItemIds}
+            name={companionName}
+            size="lg"
+            stage={evolution.stage}
+          />
         </Stage>
 
         <WardrobeSection aria-label="Your Accessories">

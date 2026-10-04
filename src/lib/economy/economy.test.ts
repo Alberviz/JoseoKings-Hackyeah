@@ -344,55 +344,51 @@ describe("dragon evolution and non-dropping stage rule", () => {
   const today = "2026-10-04" as const;
   const now = new Date("2026-10-04T12:00:00.000Z");
 
-  it("determines Baby Dragon at fire below 40", () => {
+  it("determines Baby Dragon at fire below 50", () => {
     const evo0 = getDragonEvolution({ fire: 0 });
     expect(evo0.stage).toBe(1);
     expect(evo0.title).toBe("Baby Dragon");
-    expect(evo0.nextThreshold).toBe(40);
-    expect(evo0.fireNeededForNext).toBe(40);
+    expect(evo0.nextThreshold).toBe(50);
+    expect(evo0.fireNeededForNext).toBe(50);
 
-    const evo39 = getDragonEvolution({ fire: 39 });
-    expect(evo39.stage).toBe(1);
-    expect(evo39.fireNeededForNext).toBe(1);
+    const evo49 = getDragonEvolution({ fire: 49 });
+    expect(evo49.stage).toBe(1);
+    expect(evo49.fireNeededForNext).toBe(1);
   });
 
-  it("determines Young Dragon at fire between 40 and 79", () => {
-    const evo40 = getDragonEvolution({ fire: 40 });
-    expect(evo40.stage).toBe(2);
-    expect(evo40.title).toBe("Young Dragon");
-    expect(evo40.nextThreshold).toBe(80);
-    expect(evo40.fireNeededForNext).toBe(40);
+  it("determines Young Dragon at fire between 50 and 99", () => {
+    const evo50 = getDragonEvolution({ fire: 50 });
+    expect(evo50.stage).toBe(2);
+    expect(evo50.title).toBe("Young Dragon");
+    expect(evo50.nextThreshold).toBe(100);
+    expect(evo50.fireNeededForNext).toBe(50);
 
-    const evo79 = getDragonEvolution({ fire: 79 });
-    expect(evo79.stage).toBe(2);
-    expect(evo79.fireNeededForNext).toBe(1);
+    const evo99 = getDragonEvolution({ fire: 99 });
+    expect(evo99.stage).toBe(2);
+    expect(evo99.fireNeededForNext).toBe(1);
   });
 
-  it("determines Hero Dragon at fire 80 and above", () => {
-    const evo80 = getDragonEvolution({ fire: 80 });
-    expect(evo80.stage).toBe(3);
-    expect(evo80.title).toBe("Hero Dragon");
-    expect(evo80.nextThreshold).toBeNull();
-    expect(evo80.fireNeededForNext).toBe(0);
-
+  it("determines Hero Dragon at fire 100 and above", () => {
     const evo100 = getDragonEvolution({ fire: 100 });
     expect(evo100.stage).toBe(3);
     expect(evo100.title).toBe("Hero Dragon");
+    expect(evo100.nextThreshold).toBeNull();
+    expect(evo100.fireNeededForNext).toBe(0);
   });
 
   it("stage never drops when the child spends fire on special rewards (highestFire rule)", () => {
-    // 1. Start economy and give food until fire reaches 40 (Young Dragon stage)
+    // 1. Start economy and give food until fire reaches 50 (Young Dragon stage)
     let economy: EconomyState = {
       ...createDefaultEconomy(),
-      inventory: { food: 4 },
+      inventory: { food: 5 },
     };
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       const fed = giveFood(economy);
       expect(fed.ok).toBe(true);
       if (fed.ok) economy = fed.economy;
     }
-    expect(economy.fire).toBe(40);
-    expect(economy.highestFire).toBe(40);
+    expect(economy.fire).toBe(50);
+    expect(economy.highestFire).toBe(50);
 
     // Verify it is Young Dragon (stage 2)
     const evoBefore = getDragonEvolution(economy);
@@ -404,15 +400,15 @@ describe("dragon evolution and non-dropping stage rule", () => {
     expect(claimed.ok).toBe(true);
     if (!claimed.ok) return;
 
-    // Fire dropped from 40 to 10
-    expect(claimed.economy.fire).toBe(10);
-    // Highest fire stays 40
-    expect(claimed.economy.highestFire).toBe(40);
+    // Fire dropped from 50 to 20
+    expect(claimed.economy.fire).toBe(20);
+    // Highest fire stays 50
+    expect(claimed.economy.highestFire).toBe(50);
 
     // CRITICAL: Stage MUST remain Stage 2 (Young Dragon) and NOT revert to Baby Dragon
     const evoAfter = getDragonEvolution(claimed.economy);
     expect(evoAfter.stage).toBe(2);
     expect(evoAfter.title).toBe("Young Dragon");
-    expect(evoAfter.fireNeededForNext).toBe(40); // 80 - 40 = 40 needed to reach Hero
+    expect(evoAfter.fireNeededForNext).toBe(50); // 100 - 50 = 50 needed to reach Hero
   });
 });
