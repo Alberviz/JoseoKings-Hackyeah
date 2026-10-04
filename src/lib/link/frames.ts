@@ -2,6 +2,7 @@
 // The receiver collects frames in any order and joins them when the set is complete. Scanning the
 // same frame twice is harmless.
 
+import { APP_NAME } from "@/config/app";
 import { LinkError } from "./types";
 
 /** Characters per frame body. Phones scan QR codes of this size reliably; bigger ones often fail. */
@@ -40,7 +41,7 @@ export function splitFrames(
 
 export function parseFrame(text: string): Frame {
   const match = FRAME_PATTERN.exec(text.trim());
-  if (!match) throw new LinkError("not-a-code", "This is not a MyCrohnie code.");
+  if (!match) throw new LinkError("not-a-code", `This is not a ${APP_NAME} code.`);
   const index = Number(match[2]);
   const total = Number(match[3]);
   if (index < 1 || total < 1 || index > total || total > MAX_FRAME_COUNT) {
