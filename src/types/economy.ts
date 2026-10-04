@@ -39,10 +39,26 @@ export type RewardClaim = {
  */
 export type EconomyState = {
   fire: number;
+  /** Highest fire ever reached by the child. The evolution stage never drops below this. */
+  highestFire?: number;
   coinsSpent: number;
   inventory: { food: number };
   ownedItemIds: ShopItemId[];
   equippedItemIds: ShopItemId[];
   specialRewards: SpecialReward[];
   rewardClaims: RewardClaim[];
+};
+
+export type DragonStageId = 1 | 2 | 3;
+
+export type DragonEvolutionConfig = {
+  stage: DragonStageId;
+  title: string;
+  nextThreshold: number | null;
+  description: string;
+};
+
+export type DragonEvolutionInfo = DragonEvolutionConfig & {
+  fireNeededForNext: number;
+  highestFire: number;
 };

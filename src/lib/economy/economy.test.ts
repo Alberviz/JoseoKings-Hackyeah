@@ -24,6 +24,7 @@ import {
   coinsEarned,
   createDefaultEconomy,
   equipItem,
+  getDragonEvolution,
   giveFood,
   markClaimDone,
   setSpecialRewards,
@@ -336,5 +337,82 @@ describe("storage migration", () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...createEmptyState(), economy }));
     expect(loadState().economy).toEqual(economy);
     localStorage.clear();
+  });
+});
+
+describe("dragon evolution and non-dropping stage rule", () => {
+  const today = "2026-10-04" as const;
+  const now = new Date("2026-10-04T12:00:00.000Z");
+
+  it("determines Baby Dragon at fire below 40", () => {
+    const evo0 = getDragonEvolution({ fire: 0 });
+    expect(evo0.stage).toBe(1);
+    expect(evo0.title).toBe("Baby Dragon");
+    expect(evo0.nextThreshold).toBe(40);
+    expect(evo0.fireNeededForNext).toBe(40);
+
+    const evo39 = getDragonEvolution({ fire: 39 });
+    expect(evo39.stage).toBe(1);
+    expect(evo39.fireNeededForNext).toBe(1);
+  });
+
+  it("determines Young Dragon at fire between 40 and 79", () => {
+    const evo40 = getDragonEvolution({ fire: 40 });
+    expect(evo40.stage).toBe(2);
+    expect(evo40.title).toBe("Young Dragon");
+    expect(evo40.nextThreshold).toBe(80);
+    expect(evo40.fireNeededForNext).toBe(40);
+
+    const evo79 = getDragonEvolution({ fire: 79 });
+    expect(evo79.stage).toBe(2);
+    expect(evo79.fireNeededForNext).toBe(1);
+  });
+
+  it("determines Hero Dragon at fire 80 and above", () => {
+    const evo80 = getDragonEvolution({ fire: 80 });
+    expect(evo80.stage).toBe(3);
+    expect(evo80.title).toBe("Hero Dragon");
+    expect(evo80.nextThreshold).toBeNull();
+    expect(evo80.fireNeededForNext).toBe(0);
+
+    const evo100 = getDragonEvolution({ fire: 100 });
+    expect(evo100.stage).toBe(3);
+    expect(evo100.title).toBe("Hero Dragon");
+  });
+
+  it("stage never drops when the child spends fire on special rewards (highestFire rule)", () => {
+    // 1. Start economy and give food until fire reaches 40 (Young Dragon stage)
+    let economy: EconomyState = {
+      ...createDefaultEconomy(),
+      inventory: { food: 4 },
+    };
+    for (let i = 0; i < 4; i++) {
+      const fed = giveFood(economy);
+      expect(fed.ok).toBe(true);
+      if (fed.ok) economy = fed.economy;
+    }
+    expect(economy.fire).toBe(40);
+    expect(economy.highestFire).toBe(40);
+
+    // Verify it is Young Dragon (stage 2)
+    const evoBefore = getDragonEvolution(economy);
+    expect(evoBefore.stage).toBe(2);
+    expect(evoBefore.title).toBe("Young Dragon");
+
+    // 2. Child spends 30 fire to claim a special reward ("phone-minutes" = 30 fire)
+    const claimed = claimReward(economy, "phone-minutes", today, { now });
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok) return;
+
+    // Fire dropped from 40 to 10
+    expect(claimed.economy.fire).toBe(10);
+    // Highest fire stays 40
+    expect(claimed.economy.highestFire).toBe(40);
+
+    // CRITICAL: Stage MUST remain Stage 2 (Young Dragon) and NOT revert to Baby Dragon
+    const evoAfter = getDragonEvolution(claimed.economy);
+    expect(evoAfter.stage).toBe(2);
+    expect(evoAfter.title).toBe("Young Dragon");
+    expect(evoAfter.fireNeededForNext).toBe(40); // 80 - 40 = 40 needed to reach Hero
   });
 });
