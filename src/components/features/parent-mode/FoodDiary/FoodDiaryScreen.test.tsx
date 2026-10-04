@@ -2,7 +2,7 @@ import { fireEvent, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppStateProvider } from "@/components/providers/AppStateProvider";
-import { DISCOMFORT_THRESHOLD, MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
+import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { sessionStore } from "@/hooks/useParentSession";
 import { todayKey } from "@/lib/dates";
 import { buildDemoState } from "@/lib/demo-data";
@@ -49,7 +49,6 @@ describe("FoodDiaryScreen (Task T13)", () => {
       child: { nickname: "Lucas" },
       settings: {
         ...pinRecord,
-        allowedMissionIds: Object.values(MISSION_IDS),
       },
     };
     saveState(state);
@@ -72,7 +71,6 @@ describe("FoodDiaryScreen (Task T13)", () => {
       child: { nickname: "Lucas" },
       settings: {
         ...pinRecord,
-        allowedMissionIds: Object.values(MISSION_IDS),
       },
       foodEntries: [],
     };
@@ -124,7 +122,6 @@ describe("FoodDiaryScreen (Task T13)", () => {
       child: { nickname: "Lucas" },
       settings: {
         ...pinRecord,
-        allowedMissionIds: Object.values(MISSION_IDS),
       },
       checkIns: [discomfortCheckIn],
       foodEntries: [],
@@ -163,7 +160,6 @@ describe("FoodDiaryScreen (Task T13)", () => {
       child: { nickname: "Lucas" },
       settings: {
         ...pinRecord,
-        allowedMissionIds: Object.values(MISSION_IDS),
       },
     };
     saveState(state);

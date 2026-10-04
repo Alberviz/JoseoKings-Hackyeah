@@ -35,7 +35,6 @@ describe("Local Notifications System (on-device)", () => {
   const baseSettings: ParentSettings = {
     pinHash: "mock-hash",
     pinSalt: "mock-salt",
-    allowedMissionIds: ["dragon-breathing"],
     reminderEnabled: true,
     reminderTime: "20:00",
   };

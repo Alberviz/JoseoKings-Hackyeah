@@ -104,38 +104,6 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(await screen.findByText("PINs do not match.")).toBeDefined();
     });
 
-    it("validates that at least one mission must be enabled", async () => {
-      renderWithTheme(
-        <ProviderWrapper>
-          <SetupScreen />
-        </ProviderWrapper>,
-      );
-
-      await screen.findByRole("heading", { name: "Parent mode setup" });
-
-      const nicknameInput = screen.getByLabelText("Child's name");
-      const pinInput = screen.getByLabelText("Create 4-digit PIN");
-      const confirmPinInput = screen.getByLabelText("Confirm 4-digit PIN");
-      const submitBtn = screen.getByRole("button", { name: "Complete setup" });
-
-      fireEvent.change(nicknameInput, { target: { value: "Lucas" } });
-      fireEvent.change(pinInput, { target: { value: "1234" } });
-      fireEvent.change(confirmPinInput, { target: { value: "1234" } });
-
-      // Deselect all missions
-      const allMissionIds = Object.values(MISSION_IDS);
-      for (const id of allMissionIds) {
-        const chip = screen.getByRole("button", {
-          pressed: true,
-          name: new RegExp(id.replace(/-/g, " "), "i"),
-        });
-        fireEvent.click(chip);
-      }
-
-      fireEvent.click(submitBtn);
-      expect(await screen.findByText("Choose at least one mission.")).toBeDefined();
-    });
-
     it("submits valid setup, unlocks session and navigates to /parent", async () => {
       renderWithTheme(
         <ProviderWrapper>
@@ -160,30 +128,6 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(sessionStore.getSnapshot().isUnlocked).toBe(true);
     });
 
-    it("routes to / when device role is set to child", async () => {
-      renderWithTheme(
-        <ProviderWrapper>
-          <SetupScreen />
-        </ProviderWrapper>,
-      );
-
-      await screen.findByRole("heading", { name: "Parent mode setup" });
-
-      fireEvent.change(screen.getByLabelText("Child's name"), { target: { value: "Lucas" } });
-      fireEvent.click(screen.getByRole("button", { name: "My child" }));
-      fireEvent.change(screen.getByLabelText("Create 4-digit PIN"), { target: { value: "1234" } });
-      fireEvent.change(screen.getByLabelText("Confirm 4-digit PIN"), { target: { value: "1234" } });
-
-      fireEvent.click(screen.getByRole("button", { name: "Complete setup" }));
-
-      await waitFor(
-        () => {
-          expect(mockPush).toHaveBeenCalledWith(ROUTES.home);
-        },
-        { timeout: 5000 },
-      );
-    });
-
     it("shows notice and settings link when child and PIN already exist", async () => {
       const pinRecord = await createPinRecord("1234");
       const existingState: AppState = {
@@ -191,7 +135,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(existingState);
@@ -221,7 +164,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -282,7 +224,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -324,7 +265,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         settings: {
           pinHash: "",
           pinSalt: "",
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -346,7 +286,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -553,7 +492,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -619,7 +557,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -647,7 +584,8 @@ describe("Parent Mode Shell (Task T10)", () => {
         </ProviderWrapper>,
       );
 
-      expect(screen.getByRole("heading", { name: "Enabled missions" })).toBeDefined();
+      expect(screen.queryByRole("heading", { name: "Enabled missions" })).toBeNull();
+      expect(screen.queryByRole("heading", { name: "This phone is for" })).toBeNull();
       expect(screen.getByRole("heading", { name: "Daily care reminder" })).toBeDefined();
       expect(screen.getByRole("heading", { name: "Change PIN" })).toBeDefined();
       expect(screen.getByRole("heading", { name: "Backup and restore" })).toBeDefined();
@@ -661,7 +599,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -711,7 +648,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -758,7 +694,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         },
       };
       saveState(state);
@@ -792,7 +727,6 @@ describe("Parent Mode Shell (Task T10)", () => {
         child: { nickname: "Lucas" },
         settings: {
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
           reminderEnabled: true,
           reminderTime: "00:00", // definitely due today
         },

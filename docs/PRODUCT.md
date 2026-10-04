@@ -35,7 +35,7 @@ Scope of disease: **inflammatory bowel disease** (Crohn's and ulcerative colitis
 
 ## 4. How the app works
 
-One installable PWA. One device, **two modes**: child mode (default) and parent mode (protected by a PIN). Everything is stored on the device by default. The setup asks what the phone is for (child, parent or both). Two phones can share data only through the **family link**: the parent shows a pairing QR, the child phone answers with an encrypted data QR. There is no server for the link.
+One installable PWA. One device, **two modes**: child mode (default) and parent mode (protected by a PIN). Everything is stored on the device by default. The same device is used by the child and the parent; the PIN separates the two modes.
 
 Optionally, a parent can connect the child's **smartwatch** (section 5.6, task W1). That is the only data source that does not come from the family typing or tapping.
 
@@ -43,7 +43,7 @@ Optionally, a parent can connect the child's **smartwatch** (section 5.6, task W
 
 1. **Daily check-in.** A few taps on drawings. The exact questions are written by the biomedical team from real sources and live in `src/content/check-in-questions.ts`. The check-in always includes **"I don't feel like it today"**, which is a valid answer.
 2. **The companion.** A character that does the movement mission _together with the child_ and shows the exercise on screen. It is not a pet to look after: it never gets sick, sad or hungry, and it never loses anything. It only gains things.
-3. **Missions.** Short (1 to 2 minutes), gentle (breathing, stretching, balance, wall sit), guided step by step by the companion. **No impact and no jumping in v1.** The child picks one of the missions that the parents enabled. The child can do a mission:
+3. **Missions.** Short (1 to 2 minutes), gentle (breathing, stretching, balance, wall sit), guided step by step by the companion. **No impact and no jumping in v1.** All missions are available to the child. The child can do a mission:
    - **alone**,
    - **with a parent or carer**, or
    - **with someone else** (sibling, grandparent, friend).
@@ -59,7 +59,7 @@ Optionally, a parent can connect the child's **smartwatch** (section 5.6, task W
 - **Patterns:** a colour calendar, weekly charts, and a list of foods that appeared on days with discomfort (counts only, never causes).
 - **Watch card (only when a watch is connected):** steps, heart rate and sleep stages read from the child's smartwatch, shown as plain totals, averages and ranges and always labelled "From the watch (Google Health)". Days without data show "No watch data yet". No interpretation, no advice, no alerts. Rules in section 5.6.
 - **Consultations:** parents mark the date of each visit; the report covers the time since the previous one.
-- **Settings:** choose which missions are enabled, change the PIN, export or import a backup file.
+- **Settings:** change the PIN, export or import a backup file.
 
 ### 4.3 Doctor report
 
@@ -109,7 +109,7 @@ Labels are about how the record was made, not about trust. Never write "declared
 ### 5.4 No medical advice
 
 - No diagnosis, no treatment suggestions, no predictions ("tomorrow he will be tired"), no scores or indexes that look clinical, no claims that exercise treats or prevents anything (bones, inflammation, flares).
-- The app **never answers a health question** and never assigns exercise by symptom. The child only picks from missions the parents enabled.
+- The app **never answers a health question** and never assigns exercise by symptom. All missions are available to the child.
 - The app records, shows and summarises what the family entered. It describes ("on 4 of the 6 days with discomfort, a dairy entry was logged") and never explains why.
 - Food entries show **co-occurrence only**, as a count, never ranked as causes.
 - Watch data gets **no risk scores, no alerts, no predictions and no clinical thresholds** (no "normal range", no "too high"). Summaries are descriptive: totals, averages and ranges. The app never claims that the watch detects flares or any condition.
@@ -169,7 +169,7 @@ Task W1 (watch data, section 5.6) runs in parallel on its own folders. It is bui
 
 - The restroom map and the menu reader (paused, see [`DECISIONS.md`](DECISIONS.md)).
 - Watch data is **in scope** through the Google Health API (section 5.6, task W1). Still out of scope: Google Fit (closed), live or real-time streaming, notifications from watch data, and any watch-based reward, score or alert. Motion detection from the phone and camera pose estimation: roadmap.
-- Push notifications, family accounts or login, cloud sync of check-ins, the parent log or the food diary, online play. The family QR link is in scope (section 4); a second app and the web home are optional extras.
+- Push notifications, family accounts or login, cloud sync of check-ins, the parent log or the food diary, online play. The family QR link, a second app and the web home are out of scope (one shared device).
 - Impact exercise (jumping) and anything that assigns exercise by symptom.
 - Predictions, "energy percentage" or any invented index.
 - Adolescent privacy mode, other languages, other diseases.

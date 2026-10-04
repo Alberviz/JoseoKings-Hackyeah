@@ -16,12 +16,6 @@ export const StyledForm = styled.form`
   width: 100%;
 `;
 
-export const ChipWrap = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
 export const HiddenFileInput = styled.input`
   display: none;
 `;

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { useEffect } from "react";
 import { AppStateProvider } from "@/components/providers/AppStateProvider";
-import { MISSION_IDS } from "@/config/content-ids";
 import { sessionStore } from "@/hooks/useParentSession";
 import { useAppState } from "@/hooks/useAppState";
 import { buildDemoState } from "@/lib/demo-data";
@@ -18,13 +17,11 @@ function DemoLoader({ children }: { children: React.ReactNode }) {
         const demo = buildDemoState({
           settings: {
             ...pinRecord,
-            allowedMissionIds: Object.values(MISSION_IDS),
           },
         });
         actions.loadDemo(demo);
         actions.setSettings({
           ...pinRecord,
-          allowedMissionIds: Object.values(MISSION_IDS),
         });
       });
     }
