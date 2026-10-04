@@ -23,20 +23,42 @@ export function teamStarsForMission(log: Pick<MissionLog, "status" | "company">)
   return log.status === "completed" && log.company !== "alone" ? TEAM_STARS_PER_MISSION : 0;
 }
 
+/** One check-in per date (the first one wins), like the coin count in the economy. */
+function uniqueCheckIns<T extends Pick<CheckIn, "date">>(checkIns: readonly T[]): T[] {
+  const byDate = new Map<DateKey, T>();
+  for (const checkIn of checkIns) {
+    if (!byDate.has(checkIn.date)) {
+      byDate.set(checkIn.date, checkIn);
+    }
+  }
+  return Array.from(byDate.values());
+}
+
+/** One mission log per id (the first one wins), like the coin count in the economy. */
+function uniqueMissionLogs<T extends Pick<MissionLog, "id">>(missionLogs: readonly T[]): T[] {
+  const byId = new Map<string, T>();
+  for (const log of missionLogs) {
+    if (!byId.has(log.id)) {
+      byId.set(log.id, log);
+    }
+  }
+  return Array.from(byId.values());
+}
+
 export function totalPoints(
-  checkIns: readonly Pick<CheckIn, "notToday">[],
-  missionLogs: readonly Pick<MissionLog, "status">[],
+  checkIns: readonly Pick<CheckIn, "date" | "notToday">[],
+  missionLogs: readonly Pick<MissionLog, "id" | "status">[],
 ): number {
   return (
-    checkIns.reduce((sum, c) => sum + pointsForCheckIn(c), 0) +
-    missionLogs.reduce((sum, m) => sum + pointsForMission(m), 0)
+    uniqueCheckIns(checkIns).reduce((sum, c) => sum + pointsForCheckIn(c), 0) +
+    uniqueMissionLogs(missionLogs).reduce((sum, m) => sum + pointsForMission(m), 0)
   );
 }
 
 export function totalTeamStars(
-  missionLogs: readonly Pick<MissionLog, "status" | "company">[],
+  missionLogs: readonly Pick<MissionLog, "id" | "status" | "company">[],
 ): number {
-  return missionLogs.reduce((sum, m) => sum + teamStarsForMission(m), 0);
+  return uniqueMissionLogs(missionLogs).reduce((sum, m) => sum + teamStarsForMission(m), 0);
 }
 
 /** Days with at least one check-in or mission. A running total: it only goes up and is never reset. */

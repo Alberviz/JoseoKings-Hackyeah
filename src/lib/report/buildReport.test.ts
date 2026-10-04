@@ -394,6 +394,47 @@ describe("buildReport", () => {
     ]);
   });
 
+  it("counts a food once per day and groups spellings that differ only in case", () => {
+    const state = makeEmptyState();
+    const badDay1 = addDays(TODAY, -3);
+    const badDay2 = addDays(TODAY, -2);
+    state.checkIns = [badDay1, badDay2].map((date, i) => ({
+      id: `ci-${i}`,
+      date,
+      answers: { [QUESTION_IDS.bellyComfort]: 2 },
+      notToday: false,
+      createdAt: `${date}T10:00:00Z`,
+    }));
+    state.foodEntries = [
+      { id: "f-1", date: badDay1, text: "Milk", createdAt: `${badDay1}T08:00:00Z` },
+      { id: "f-2", date: badDay1, text: "Milk", createdAt: `${badDay1}T16:00:00Z` },
+      { id: "f-3", date: badDay2, text: " milk ", createdAt: `${badDay2}T08:00:00Z` },
+    ];
+
+    const report = buildReport(state, TODAY);
+
+    expect(report.foodsOnDiscomfortDays).toEqual([{ text: "Milk", count: 2 }]);
+  });
+
+  it("ignores out-of-range or fractional answers like missing ones", () => {
+    const state = makeEmptyState();
+    const day = addDays(TODAY, -2);
+    state.checkIns = [
+      {
+        id: "ci-bad",
+        date: day,
+        answers: { [QUESTION_IDS.bellyComfort]: 5, [QUESTION_IDS.energy]: 1.5 },
+        notToday: false,
+        createdAt: `${day}T10:00:00Z`,
+      },
+    ];
+    state.foodEntries = [{ id: "f-1", date: day, text: "Pizza", createdAt: `${day}T12:00:00Z` }];
+
+    const report = buildReport(state, TODAY);
+
+    expect(report.foodsOnDiscomfortDays).toEqual([]);
+  });
+
   it("does not treat a skipped check-in day as a discomfort day or pull its foods in", () => {
     const state = makeEmptyState();
     const skipped = addDays(TODAY, -3);

@@ -131,6 +131,18 @@ describe("the team track is separate from the main track", () => {
   });
 });
 
+describe("totals ignore duplicated records", () => {
+  it("counts one check-in per date and one mission log per id", () => {
+    const first = checkIn("2026-10-01", {});
+    const sameDate = { ...checkIn("2026-10-01", {}, true), id: "c-other" };
+    const log = mission("2026-10-01", { company: "family" });
+    const copy = { ...log };
+
+    expect(totalPoints([first, sameDate], [log, copy])).toBe(CHECK_IN_POINTS + MISSION_POINTS);
+    expect(totalTeamStars([log, copy])).toBe(1);
+  });
+});
+
 describe("progress only goes up", () => {
   it("adding a check-in or a mission never lowers points or care days", () => {
     const base = stateWith([checkIn("2026-10-01", {})], [mission("2026-10-01")]);
