@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Message channel between the AIs and people of the team. See docs/COMMS.md.
-# Backed by GitHub Issues (Buzones personales #70-#75 + Broadcast #76).
+# Backed by GitHub Issues (Inboxes #70-#75, #99 + broadcast #76).
 set -euo pipefail
 
 if ! command -v gh >/dev/null 2>&1; then
@@ -16,7 +16,7 @@ if [ -z "${GH_TOKEN:-}" ]; then
   fi
 fi
 
-NAMES="claude alberto lead-ai juan alvaro baitiare farouk claudia all broadcast"
+NAMES="claude alberto-cerebro lead-ai alberto alberto-obrero obrero juan alvaro baitiare farouk claudia all broadcast"
 REPO="Alberviz/JoseoKings-Hackyeah"
 
 die() { echo "comms: $*" >&2; exit 1; }
@@ -25,7 +25,8 @@ valid_name() { for n in $NAMES; do [ "$n" = "$1" ] && return 0; done; return 1; 
 
 name_to_issue() {
   case "$1" in
-    alberto|lead-ai|claude) echo "70" ;;
+    alberto|alberto-cerebro|lead-ai|claude) echo "70" ;;
+    alberto-obrero|obrero) echo "99" ;;
     alvaro|alvaro-ai) echo "71" ;;
     juan|juan-ai) echo "72" ;;
     baitiare|baitiare-ai) echo "73" ;;
@@ -190,13 +191,14 @@ usage:
   scripts/comms.sh watch <name> [seconds]      background monitor: prints each new inbox/broadcast message
 
 names & inboxes:
-  alberto, lead-ai, claude -> #70
-  alvaro, alvaro-ai        -> #71
-  juan, juan-ai            -> #72
-  baitiare, baitiare-ai    -> #73
-  farouk, farouk-ai        -> #74
-  claudia, claudia-ai      -> #75
-  all, broadcast           -> #76
+  alberto-cerebro, lead-ai, claude, alberto -> #70
+  alberto-obrero, obrero                     -> #99
+  alvaro, alvaro-ai                          -> #71
+  juan, juan-ai                              -> #72
+  baitiare, baitiare-ai                      -> #73
+  farouk, farouk-ai                          -> #74
+  claudia, claudia-ai                        -> #75
+  all, broadcast                             -> #76
 USAGE
   ;;
 esac
