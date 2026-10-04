@@ -15,12 +15,16 @@ export function getDaySummaries(state: AppState, range: DateRange): DaySummary[]
 
   const checkInByDate = new Map<DateKey, CheckIn>();
   for (const checkIn of state.checkIns) {
-    checkInByDate.set(checkIn.date, checkIn);
+    if (!checkInByDate.has(checkIn.date)) {
+      checkInByDate.set(checkIn.date, checkIn);
+    }
   }
 
   const parentLogByDate = new Map<DateKey, ParentLog>();
   for (const parentLog of state.parentLogs) {
-    parentLogByDate.set(parentLog.date, parentLog);
+    if (!parentLogByDate.has(parentLog.date)) {
+      parentLogByDate.set(parentLog.date, parentLog);
+    }
   }
 
   const missionLogsByDate = new Map<DateKey, MissionLog[]>();

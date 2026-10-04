@@ -5,6 +5,7 @@ import { ParentBanner, PinGate } from "@/components/features/parent-mode";
 import { Screen, Stack, Text } from "@/components/ui";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
+import { todayKey } from "@/lib/dates";
 import { hasPin } from "@/lib/pin";
 import { buildReport } from "@/lib/report";
 import { loadWearableState } from "@/lib/storage/wearableStore";
@@ -16,10 +17,14 @@ export function ReportScreen() {
   const { state, isReady } = useAppState();
   const session = useParentSession();
 
-  const report = useMemo(
-    () => (isReady ? buildReport(state, undefined, loadWearableState()) : null),
-    [state, isReady],
-  );
+  // Wearable data lives on the device: read it again whenever the report is (re)built or
+  // unlocked, and take "today" at that moment so a tab left open overnight is not stale.
+  const isUnlocked = session.isUnlocked;
+  const report = useMemo(() => {
+    if (!isReady) return null;
+    void isUnlocked;
+    return buildReport(state, todayKey(), loadWearableState());
+  }, [state, isReady, isUnlocked]);
 
   if (!isReady || !report) {
     return (
