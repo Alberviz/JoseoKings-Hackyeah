@@ -1,5 +1,6 @@
 "use client";
 
+import { SECTION_BUTTON_VARIANT } from "@/components/features/parent-mode";
 import { Button } from "@/components/ui";
 import { APP_NAME } from "@/config/app";
 import type { DoctorReportData } from "@/lib/report/types";
@@ -86,12 +87,6 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                 {data.isDemo && <DemoBadge>Demo data</DemoBadge>}
               </HeaderMetaRow>
             </HeaderTitleGroup>
-
-            <ScreenOnly>
-              <Button onClick={handlePrint} variant="primary">
-                Save as PDF / Print
-              </Button>
-            </ScreenOnly>
           </HeaderTopRow>
         </ReportHeader>
 
@@ -263,6 +258,12 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
           <DisclaimerTitle>Mandatory Notice</DisclaimerTitle>
           <DisclaimerText>{data.disclaimer}</DisclaimerText>
         </DisclaimerBanner>
+
+        <ScreenOnly>
+          <Button fullWidth onClick={handlePrint} variant={SECTION_BUTTON_VARIANT.more}>
+            Save as PDF / Print
+          </Button>
+        </ScreenOnly>
       </ReportContainer>
     </>
   );

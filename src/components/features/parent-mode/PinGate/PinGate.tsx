@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { Button, Card, Chip, Heading, LinkButton, Stack, Text, TextField } from "@/components/ui";
+import { Button, Chip, LinkButton, Stack, Text, TextField } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { authenticateBiometric, isBiometricAvailable, isBiometricEnrolled } from "@/lib/biometrics";
 import { hasPin } from "@/lib/pin";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
+import { SectionCard } from "../SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "../sections";
 import { AlertBox, GateContainer, GateForm } from "./PinGate.style";
 
 type PinGateProps = {
@@ -96,18 +99,21 @@ export function PinGate({
   return (
     <GateContainer>
       <Stack gap="lg">
-        <Stack gap="xs">
-          <Heading level={1}>{title}</Heading>
-          <Text tone="muted">{description}</Text>
-        </Stack>
+        <ParentBanner
+          section="more"
+          icon="lock"
+          title={title}
+          subtitle={description}
+          stickers={0}
+        />
 
         {state.isDemo ? (
-          <Card label="Demo mode indicator">
+          <AlertBox $variant="info" aria-label="Demo mode indicator">
             <Stack gap="xs" direction="row" align="center">
               <Chip label="Demo data" tone="primary" />
               <Text size="sm">Demo PIN: 1234</Text>
             </Stack>
-          </Card>
+          </AlertBox>
         ) : null}
 
         {!session.isCryptoAvailable ? (
@@ -118,14 +124,14 @@ export function PinGate({
         ) : null}
 
         {!isConfigured ? (
-          <Card label="Setup required">
+          <SectionCard section="more" title="Setup required">
             <Stack gap="md">
               <Text>No PIN has been created yet.</Text>
-              <LinkButton href={ROUTES.parentSetup} variant="primary">
+              <LinkButton href={ROUTES.parentSetup} variant={SECTION_BUTTON_VARIANT.more}>
                 Set up parent PIN
               </LinkButton>
             </Stack>
-          </Card>
+          </SectionCard>
         ) : (
           <GateForm onSubmit={handleSubmit}>
             {session.isLockedOut ? (
@@ -168,7 +174,7 @@ export function PinGate({
             <Stack gap="sm">
               <Button
                 type="submit"
-                variant="primary"
+                variant={SECTION_BUTTON_VARIANT.more}
                 disabled={
                   pin.length !== 4 ||
                   session.isLockedOut ||

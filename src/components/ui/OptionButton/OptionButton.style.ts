@@ -1,7 +1,10 @@
 import styled from "styled-components";
+import type { AppTheme } from "@/theme/theme";
 import { pressable } from "../Button/Button.style";
 
-export const StyledOptionButton = styled.button<{ $selected: boolean }>`
+type OptionSection = keyof AppTheme["sections"] | undefined;
+
+export const StyledOptionButton = styled.button<{ $selected: boolean; $section?: OptionSection }>`
   ${pressable}
   display: flex;
   flex-direction: column;
@@ -11,8 +14,14 @@ export const StyledOptionButton = styled.button<{ $selected: boolean }>`
   min-height: 96px;
   min-width: ${({ theme }) => theme.touchTarget};
   padding: ${({ theme }) => theme.spacing.md};
-  background: ${({ theme, $selected }) => ($selected ? theme.colors.highlight : theme.colors.surface)};
-  color: ${({ theme }) => theme.colors.ink};
+  background: ${({ theme, $selected, $section }) =>
+    $selected
+      ? $section
+        ? theme.sections[$section].strong
+        : theme.colors.highlight
+      : theme.colors.surface};
+  color: ${({ theme, $selected, $section }) =>
+    $selected && $section ? theme.sections[$section].onStrong : theme.colors.ink};
   border-radius: ${({ theme }) => theme.radius.leaf};
   font: inherit;
   font-size: ${({ theme }) => theme.fontSize.md};
@@ -23,7 +32,12 @@ export const StyledOptionButton = styled.button<{ $selected: boolean }>`
   ${({ $selected }) => ($selected ? "box-shadow: none; transform: translate(2px, 3px);" : "")}
 
   &:hover:not(:disabled) {
-    background: ${({ theme, $selected }) => ($selected ? theme.colors.highlight : theme.colors.primarySoft)};
+    background: ${({ theme, $selected, $section }) =>
+      $selected
+        ? $section
+          ? theme.sections[$section].strong
+          : theme.colors.highlight
+        : theme.colors.primarySoft};
   }
 
   &:disabled {
