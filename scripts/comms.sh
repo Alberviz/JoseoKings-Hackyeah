@@ -126,20 +126,50 @@ cmd_log() {
   gh issue view 76 -R "$REPO" --json comments --jq ".comments[-$limit:][] | \"\\(.createdAt[11:16]) [\\(.author.login)]: \\(.body)\"" 2>/dev/null || true
 }
 
+# Number of comments of issue $1; prints nothing when gh fails (transient error).
+watch_count() {
+  gh issue view "$1" -R "$REPO" --json comments --jq '.comments | length' 2>/dev/null || true
+}
+
+# Prints every comment of issue $2 after the first $3, one NEW MESSAGE style line each.
+# Prints nothing and never fails when gh errors out.
+watch_print_new() {
+  gh issue view "$2" -R "$REPO" --json comments \
+    --jq ".comments[$3:][] | \"$1 [#$2] \\(.createdAt[11:16]) [\\(.author.login)]: \\(.body)\"" 2>/dev/null || true
+}
+
 cmd_watch() {
   local me="${1:-${COMMS_NAME:-}}" every="${2:-30}"
   [ -n "$me" ] || die "usage: comms.sh watch <name> [seconds]"
-  echo "Notice: continuous background watch burns context tokens. Consider checking 'open' only on events." >&2
-  local issue_id
-  issue_id="$(name_to_issue "$me")"
-  local last_count=0 count=0
+  valid_name "$me" || die "unknown name '$me'"
+  case "$every" in ''|*[!0-9]*) die "seconds must be a positive number" ;; esac
+  [ "$every" -gt 0 ] || die "seconds must be a positive number"
+  local inbox
+  inbox="$(name_to_issue "$me")"
+  [ -n "$inbox" ] || die "no inbox issue found for '$me'"
+
+  echo "Watching inbox #$inbox for $me every ${every}s"
+
+  # Counts start empty: the first successful read only sets the baseline.
+  # A failed gh call leaves the baseline untouched, so nothing is lost or repeated.
+  local inbox_last="" bcast_last="" count=""
   while true; do
-    count="$(gh issue view "$issue_id" -R "$REPO" --json comments --jq '.comments | length' 2>/dev/null || echo 0)"
-    if [ "$count" -gt "$last_count" ] && [ "$last_count" -gt 0 ]; then
-      echo "NEW MESSAGE IN INBOX #$issue_id ($me):"
-      gh issue view "$issue_id" -R "$REPO" --json comments --jq '.comments[-1] | "\(.createdAt[11:16]) [\(.author.login)]: \(.body)"' 2>/dev/null || true
+    count="$(watch_count "$inbox")"
+    if [ -n "$count" ]; then
+      if [ -n "$inbox_last" ] && [ "$count" -gt "$inbox_last" ]; then
+        watch_print_new "NEW MESSAGE" "$inbox" "$inbox_last"
+      fi
+      inbox_last="$count"
     fi
-    last_count="$count"
+    if [ "$inbox" != "76" ]; then
+      count="$(watch_count 76)"
+      if [ -n "$count" ]; then
+        if [ -n "$bcast_last" ] && [ "$count" -gt "$bcast_last" ]; then
+          watch_print_new "BROADCAST" 76 "$bcast_last"
+        fi
+        bcast_last="$count"
+      fi
+    fi
     sleep "$every"
   done
 }
@@ -157,7 +187,7 @@ usage:
   scripts/comms.sh send --from <you> --to <name> --type <question|answer|blocked|done|info> \\
                         --subject "..." --body "..." [--task T5] [--re <id>]
   scripts/comms.sh log [n]                     last n broadcast messages
-  scripts/comms.sh watch <name> [seconds]      print a line when a new inbox message arrives
+  scripts/comms.sh watch <name> [seconds]      background monitor: prints each new inbox/broadcast message
 
 names & inboxes:
   alberto, lead-ai, claude -> #70
