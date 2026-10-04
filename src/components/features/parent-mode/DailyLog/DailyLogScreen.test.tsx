@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppStateProvider } from "@/components/providers/AppStateProvider";
 import { MISSION_IDS } from "@/config/content-ids";
 import { sessionStore } from "@/hooks/useParentSession";
-import { todayKey } from "@/lib/dates";
+import { addDays, todayKey } from "@/lib/dates";
 import { createDefaultEconomy } from "@/lib/economy";
 import { createPinRecord } from "@/lib/pin";
 import { saveState, STORAGE_KEY } from "@/lib/storage";
@@ -200,6 +200,46 @@ describe("DailyLogScreen (T12)", () => {
         stoolConsistency: "unknown",
         stoolBlood: "unknown",
       });
+    });
+  }, 15000);
+
+  it("schedules an upcoming appointment, displays countdown, and allows removal", async () => {
+    await seedReadyState();
+    sessionStore.setUnlocked(true);
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <DailyLogScreen />
+      </ProviderWrapper>,
+    );
+
+    await screen.findByRole("heading", { name: "Daily log" });
+
+    const futureDate = addDays(todayKey(), 7);
+    fireEvent.change(screen.getByLabelText("Consultation date"), {
+      target: { value: futureDate },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add consultation date" }));
+
+    expect(await screen.findByText("Consultation date added.")).toBeTruthy();
+    expect(screen.getByText("Upcoming appointments")).toBeTruthy();
+    expect(screen.getByText(futureDate)).toBeTruthy();
+    expect(screen.getByText("In 7 days")).toBeTruthy();
+
+    await waitFor(() => {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed = JSON.parse(raw as string) as AppState;
+      expect(parsed.consultations.some((item) => item.date === futureDate)).toBe(true);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: `Remove appointment ${futureDate}` }));
+    expect(await screen.findByText("Consultation removed.")).toBeTruthy();
+    expect(screen.queryByText(futureDate)).toBeNull();
+
+    await waitFor(() => {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed = JSON.parse(raw as string) as AppState;
+      expect(parsed.consultations.some((item) => item.date === futureDate)).toBe(false);
     });
   }, 15000);
 });

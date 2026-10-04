@@ -8,10 +8,17 @@ import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
 import { shouldShowInAppReminder } from "@/lib/reminder/reminder";
+import {
+  formatAppointmentCountdown,
+  formatConsultationDaysAgo,
+  getConsultationSummary,
+} from "@/lib/consultation/consultation";
 import { formatMissionTitle } from "../missionLabels";
 import {
   AnswerLabel,
   AnswerValue,
+  AppointmentDateText,
+  AppointmentRow,
   DegreeFaceCircle,
   DegreeFaceEye,
   DegreeFaceMouth,
@@ -101,6 +108,10 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
 
   const bellyAnswer = todayCheckIn?.answers[QUESTION_IDS.bellyComfort];
   const hasDiscomfort = typeof bellyAnswer === "number" && bellyAnswer >= DISCOMFORT_THRESHOLD;
+
+  const consultationSummary = getConsultationSummary(state.consultations, today);
+  const nextAppointment = consultationSummary.nextAppointment;
+  const lastConsultation = consultationSummary.lastConsultation;
 
   return (
     <SummaryContainer>
@@ -203,6 +214,48 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
             </LinkButton>
           </PromptCard>
         ) : null}
+
+        <Card label="Doctor appointments">
+          <Stack gap="md">
+            <Heading level={2}>Doctor appointments</Heading>
+            <Stack gap="xs">
+              <Text size="sm" tone="muted">
+                Next appointment
+              </Text>
+              {nextAppointment ? (
+                <AppointmentRow>
+                  <AppointmentDateText>{nextAppointment.date}</AppointmentDateText>
+                  <Chip
+                    label={formatAppointmentCountdown(today, nextAppointment.date)}
+                    tone="primary"
+                  />
+                </AppointmentRow>
+              ) : (
+                <Text tone="muted">No upcoming appointment scheduled</Text>
+              )}
+            </Stack>
+
+            <Stack gap="xs">
+              <Text size="sm" tone="muted">
+                Last consultation
+              </Text>
+              {lastConsultation ? (
+                <AppointmentRow>
+                  <AppointmentDateText>{lastConsultation.date}</AppointmentDateText>
+                  <Text size="sm" tone="muted">
+                    {formatConsultationDaysAgo(today, lastConsultation.date)}
+                  </Text>
+                </AppointmentRow>
+              ) : (
+                <Text tone="muted">No past consultations recorded</Text>
+              )}
+            </Stack>
+
+            <LinkButton href={ROUTES.parentLog} variant="secondary" fullWidth>
+              Manage appointments
+            </LinkButton>
+          </Stack>
+        </Card>
 
         <Card label="Parent sections">
           <Stack gap="md">

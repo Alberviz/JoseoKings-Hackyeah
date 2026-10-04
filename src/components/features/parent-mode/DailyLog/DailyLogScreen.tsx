@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Button,
   Card,
+  Chip,
   Heading,
   LinkButton,
   OptionButton,
@@ -17,6 +18,11 @@ import {
 import { ROUTES } from "@/config/app";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
+import {
+  formatAppointmentCountdown,
+  formatConsultationDaysAgo,
+  getConsultationSummary,
+} from "@/lib/consultation/consultation";
 import { addDays, isDateKey, todayKey } from "@/lib/dates";
 import { hasPin } from "@/lib/pin";
 import type {
@@ -34,7 +40,9 @@ import { PinGate } from "../PinGate/PinGate";
 import {
   AlertBox,
   ConsultationItem,
+  ConsultationItemContent,
   ConsultationList,
+  ConsultationRemoveButton,
   DailyLogContainer,
   DateLabel,
   DateNav,
@@ -87,7 +95,7 @@ const STOOL_NIGHT_OPTIONS: Array<{ value: StoolNight; label: string }> = [
 const STOOL_CONSISTENCY_OPTIONS: Array<{ value: StoolConsistency; label: string }> = [
   { value: "formed", label: "Formed / Normal" },
   { value: "looser", label: "Looser than usual" },
-  { value: "watery", label: "Watery / Diarrhea" },
+  { value: "watery", label: "Watery / Liquid" },
   { value: "unknown", label: "Don't know" },
 ];
 
@@ -416,6 +424,13 @@ export function DailyLogScreen() {
     [state.consultations],
   );
 
+  const today = todayKey();
+
+  const consultationSummary = useMemo(
+    () => getConsultationSummary(state.consultations, today),
+    [state.consultations, today],
+  );
+
   useEffect(() => {
     if (!isReady) return;
     if (!state.child || !hasConfiguredPin) {
@@ -463,7 +478,6 @@ export function DailyLogScreen() {
   }
 
   const childName = state.child.nickname.trim();
-  const today = todayKey();
   const canGoNext = selectedDate < today;
 
   const handleAddConsultation = (event: FormEvent) => {
@@ -489,6 +503,11 @@ export function DailyLogScreen() {
     actions.addConsultation(consultation);
     setConsultationDate("");
     setConsultationMessage("Consultation date added.");
+  };
+
+  const handleRemoveConsultation = (id: string) => {
+    actions.removeConsultation(id);
+    setConsultationMessage("Consultation removed.");
   };
 
   return (
@@ -539,9 +558,10 @@ export function DailyLogScreen() {
 
           <Card label="Consultations">
             <Stack gap="md">
-              <Heading level={2}>Consultations</Heading>
+              <Heading level={2}>Consultations and appointments</Heading>
               <Text size="sm" tone="muted">
-                Mark visit dates. The doctor report uses the time since the last consultation.
+                Mark past visits or schedule your next appointment. The doctor report uses the time
+                since the last consultation.
               </Text>
 
               <StyledForm onSubmit={handleAddConsultation}>
@@ -560,6 +580,7 @@ export function DailyLogScreen() {
                   type="date"
                   value={consultationDate}
                   onChange={setConsultationDate}
+                  hint="Select a past consultation date or future appointment."
                   required
                 />
                 <Button type="submit" variant="secondary" fullWidth>
@@ -570,13 +591,58 @@ export function DailyLogScreen() {
               {sortedConsultations.length === 0 ? (
                 <Text tone="muted">No consultation dates yet.</Text>
               ) : (
-                <ConsultationList aria-label="Consultation dates">
-                  {sortedConsultations.map((item) => (
-                    <ConsultationItem key={item.id}>
-                      <Text>{item.date}</Text>
-                    </ConsultationItem>
-                  ))}
-                </ConsultationList>
+                <Stack gap="md">
+                  {consultationSummary.upcoming.length > 0 ? (
+                    <Stack gap="sm">
+                      <Heading level={3}>Upcoming appointments</Heading>
+                      <ConsultationList aria-label="Upcoming appointments">
+                        {consultationSummary.upcoming.map((item) => (
+                          <ConsultationItem key={item.id}>
+                            <ConsultationItemContent>
+                              <Text>{item.date}</Text>
+                              <Chip
+                                label={formatAppointmentCountdown(today, item.date)}
+                                tone="primary"
+                              />
+                            </ConsultationItemContent>
+                            <ConsultationRemoveButton
+                              type="button"
+                              aria-label={`Remove appointment ${item.date}`}
+                              onClick={() => handleRemoveConsultation(item.id)}
+                            >
+                              Remove
+                            </ConsultationRemoveButton>
+                          </ConsultationItem>
+                        ))}
+                      </ConsultationList>
+                    </Stack>
+                  ) : null}
+
+                  {consultationSummary.past.length > 0 ? (
+                    <Stack gap="sm">
+                      <Heading level={3}>Past consultations</Heading>
+                      <ConsultationList aria-label="Past consultations">
+                        {consultationSummary.past.map((item) => (
+                          <ConsultationItem key={item.id}>
+                            <ConsultationItemContent>
+                              <Text>{item.date}</Text>
+                              <Text size="sm" tone="muted">
+                                {formatConsultationDaysAgo(today, item.date)}
+                              </Text>
+                            </ConsultationItemContent>
+                            <ConsultationRemoveButton
+                              type="button"
+                              aria-label={`Remove consultation ${item.date}`}
+                              onClick={() => handleRemoveConsultation(item.id)}
+                            >
+                              Remove
+                            </ConsultationRemoveButton>
+                          </ConsultationItem>
+                        ))}
+                      </ConsultationList>
+                    </Stack>
+                  ) : null}
+                </Stack>
               )}
             </Stack>
           </Card>

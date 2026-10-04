@@ -7,7 +7,7 @@ import { Button, Stack, Text } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { DISCOMFORT_THRESHOLD, MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
 import { sessionStore, useParentSession } from "@/hooks/useParentSession";
-import { todayKey } from "@/lib/dates";
+import { addDays, todayKey } from "@/lib/dates";
 import { buildDemoState } from "@/lib/demo-data";
 import { createPinRecord } from "@/lib/pin";
 import { saveState, STORAGE_KEY } from "@/lib/storage";
@@ -434,6 +434,12 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(screen.getByText("Done with family")).toBeDefined();
       expect(screen.getByText("Status: Completed")).toBeDefined();
 
+      // Doctor appointments card
+      expect(screen.getByRole("heading", { name: "Doctor appointments" })).toBeDefined();
+      expect(screen.getByText("No upcoming appointment scheduled")).toBeDefined();
+      expect(screen.getByText("30 days ago")).toBeDefined();
+      expect(screen.getByRole("link", { name: "Manage appointments" })).toBeDefined();
+
       // Navigation links
       expect(screen.getByRole("link", { name: "Daily log" })).toBeDefined();
       expect(screen.getByRole("link", { name: "Food diary" })).toBeDefined();
@@ -444,6 +450,20 @@ describe("Parent Mode Shell (Task T10)", () => {
       // Lock button
       fireEvent.click(screen.getByRole("button", { name: "Lock" }));
       expect(onLock).toHaveBeenCalled();
+    });
+
+    it("renders upcoming appointment countdown badge when scheduled", () => {
+      const today = todayKey();
+      const demoState = buildDemoState({ today });
+      demoState.consultations.push({
+        id: "c-future",
+        date: addDays(today, 5),
+      });
+
+      renderWithTheme(<SummaryCard state={demoState} onLock={vi.fn()} />);
+
+      expect(screen.getByText(addDays(today, 5))).toBeDefined();
+      expect(screen.getByText("In 5 days")).toBeDefined();
     });
   });
 
