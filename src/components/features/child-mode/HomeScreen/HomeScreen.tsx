@@ -305,11 +305,16 @@ export function HomeScreen() {
         </ActionsNav>
       </BottomArea>
 
-      {isChildOnly && (
+      {deviceRole === "child" || deviceRole === "both" ? (
+        <SmallParentLink href={ROUTES.share} aria-label="Show parents">
+          Show parents
+        </SmallParentLink>
+      ) : null}
+      {isChildOnly ? (
         <SmallParentLink href={ROUTES.parent} aria-label="Parent mode">
           Parent mode
         </SmallParentLink>
-      )}
+      ) : null}
     </HomeScreenRoot>
   );
 }
