@@ -57,6 +57,7 @@ export type DragonEvolutionConfig = {
   title: string;
   nextThreshold: number | null;
   description: string;
+  background?: string;
 };
 
 export type DragonEvolutionInfo = DragonEvolutionConfig & {

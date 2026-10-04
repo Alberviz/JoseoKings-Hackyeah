@@ -223,6 +223,39 @@ export const DragonStage = styled.section`
   z-index: 1;
 `;
 
+export const StageEnvironmentCard = styled.div<{ $bgImage?: string }>`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1.05;
+  border-radius: 24px;
+  overflow: hidden;
+  background-image: ${({ $bgImage }) => ($bgImage ? `url(${$bgImage})` : "none")};
+  background-size: cover;
+  background-position: center;
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  box-shadow:
+    0 10px 24px rgba(18, 119, 130, 0.16),
+    ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
+  transition: background-image 400ms ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(0, 0, 0, 0.08) 100%
+    );
+    pointer-events: none;
+  }
+`;
+
 export const StageBadge = styled.div`
   display: inline-flex;
   align-items: center;
