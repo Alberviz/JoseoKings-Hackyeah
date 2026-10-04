@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   Button,
   Card,
-  Chip,
   Heading,
   LinkButton,
   OptionButton,
@@ -22,8 +21,7 @@ import { useParentSession } from "@/hooks/useParentSession";
 import { createPinRecord, hasPin, isValidPin } from "@/lib/pin";
 import { buildDemoState } from "@/lib/demo-data";
 import type { DeviceRole } from "@/types";
-import { formatMissionTitle } from "../missionLabels";
-import { AlertBox, ChipWrap, ErrorText, SetupContainer, SetupForm } from "./SetupScreen.style";
+import { AlertBox, SetupContainer, SetupForm } from "./SetupScreen.style";
 
 const ALL_MISSIONS = Object.values(MISSION_IDS);
 
@@ -36,12 +34,10 @@ export function SetupScreen() {
   const [deviceRole, setDeviceRole] = useState<DeviceRole>("both");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
-  const [enabledMissions, setEnabledMissions] = useState<string[]>(ALL_MISSIONS);
 
   const [nicknameError, setNicknameError] = useState<string | undefined>(undefined);
   const [pinError, setPinError] = useState<string | undefined>(undefined);
   const [confirmPinError, setConfirmPinError] = useState<string | undefined>(undefined);
-  const [missionsError, setMissionsError] = useState<string | undefined>(undefined);
   const [generalError, setGeneralError] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -100,17 +96,6 @@ export function SetupScreen() {
     if (confirmPinError) setConfirmPinError(undefined);
   };
 
-  const toggleMission = (id: string) => {
-    setEnabledMissions((prev) => {
-      const exists = prev.includes(id);
-      const next = exists ? prev.filter((item) => item !== id) : [...prev, id];
-      if (next.length > 0 && missionsError) {
-        setMissionsError(undefined);
-      }
-      return next;
-    });
-  };
-
   const handleLoadDemo = () => {
     const demo = buildDemoState();
     actions.loadDemo(demo);
@@ -136,11 +121,6 @@ export function SetupScreen() {
       hasValidationError = true;
     }
 
-    if (enabledMissions.length === 0) {
-      setMissionsError("Choose at least one mission.");
-      hasValidationError = true;
-    }
-
     if (hasValidationError) {
       return;
     }
@@ -160,7 +140,7 @@ export function SetupScreen() {
       actions.setChild({ nickname: nickname.trim() });
       actions.setSettings({
         ...pinRecord,
-        allowedMissionIds: enabledMissions,
+        allowedMissionIds: ALL_MISSIONS,
         deviceRole,
       });
 
@@ -182,10 +162,7 @@ export function SetupScreen() {
         <Stack gap="lg">
           <Stack gap="xs">
             <Heading level={1}>Parent mode setup</Heading>
-            <Text tone="muted">
-              Set up your child profile, parent PIN, and choose which movement missions are
-              available.
-            </Text>
+            <Text tone="muted">Set up your child profile and parent PIN.</Text>
           </Stack>
 
           {!session.isCryptoAvailable ? (
@@ -272,27 +249,6 @@ export function SetupScreen() {
                 </Stack>
               </Card>
 
-              <Card label="Enabled missions">
-                <Stack gap="md">
-                  <Heading level={2}>Enabled missions</Heading>
-                  <Text size="sm" tone="muted">
-                    Choose which gentle movement missions your child can pick from. You can change
-                    this anytime in settings.
-                  </Text>
-                  <ChipWrap>
-                    {ALL_MISSIONS.map((missionId) => (
-                      <Chip
-                        key={missionId}
-                        label={formatMissionTitle(missionId)}
-                        selected={enabledMissions.includes(missionId)}
-                        onToggle={() => toggleMission(missionId)}
-                      />
-                    ))}
-                  </ChipWrap>
-                  {missionsError ? <ErrorText role="alert">{missionsError}</ErrorText> : null}
-                </Stack>
-              </Card>
-
               <Stack gap="sm">
                 <Button
                   type="submit"
@@ -305,7 +261,6 @@ export function SetupScreen() {
                 <Button type="button" variant="secondary" onClick={handleLoadDemo} fullWidth>
                   Quick Start: Load demo data & explore
                 </Button>
-                {/* No "Back to child mode" here: before the setup there is no child, so "/" would send the family right back to this screen. */}
               </Stack>
             </Stack>
           </SetupForm>

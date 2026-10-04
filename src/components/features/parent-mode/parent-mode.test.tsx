@@ -104,38 +104,6 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(await screen.findByText("PINs do not match.")).toBeDefined();
     });
 
-    it("validates that at least one mission must be enabled", async () => {
-      renderWithTheme(
-        <ProviderWrapper>
-          <SetupScreen />
-        </ProviderWrapper>,
-      );
-
-      await screen.findByRole("heading", { name: "Parent mode setup" });
-
-      const nicknameInput = screen.getByLabelText("Child's name");
-      const pinInput = screen.getByLabelText("Create 4-digit PIN");
-      const confirmPinInput = screen.getByLabelText("Confirm 4-digit PIN");
-      const submitBtn = screen.getByRole("button", { name: "Complete setup" });
-
-      fireEvent.change(nicknameInput, { target: { value: "Lucas" } });
-      fireEvent.change(pinInput, { target: { value: "1234" } });
-      fireEvent.change(confirmPinInput, { target: { value: "1234" } });
-
-      // Deselect all missions
-      const allMissionIds = Object.values(MISSION_IDS);
-      for (const id of allMissionIds) {
-        const chip = screen.getByRole("button", {
-          pressed: true,
-          name: new RegExp(id.replace(/-/g, " "), "i"),
-        });
-        fireEvent.click(chip);
-      }
-
-      fireEvent.click(submitBtn);
-      expect(await screen.findByText("Choose at least one mission.")).toBeDefined();
-    });
-
     it("submits valid setup, unlocks session and navigates to /parent", async () => {
       renderWithTheme(
         <ProviderWrapper>
