@@ -10,6 +10,7 @@ import { createDefaultEconomy } from "@/lib/economy";
 import type {
   ActivityLevel,
   AppState,
+  BathroomEntry,
   CheckIn,
   CheckInAnswer,
   ChildProfile,
@@ -212,19 +213,33 @@ export const rewardClaimSchema: z.ZodType<RewardClaim> = z.object({
   doneAt: dateKeySchema.optional(),
 });
 
-/** Old saves have no economy, and corrupt economy data resets to defaults without touching the rest. */
+/** An array that keeps the items passing the item schema and drops the others one by one. */
+function lenientArray<T>(item: z.ZodType<T>) {
+  return z.preprocess(
+    (value) => (Array.isArray(value) ? value.filter((v) => item.safeParse(v).success) : value),
+    z.array(item),
+  );
+}
+
+/**
+ * Old saves have no economy, and a corrupt economy resets to defaults without touching the rest.
+ * A bad item inside one of the lists is dropped on its own, so the other items are kept.
+ */
 export const economyStateSchema: z.ZodType<EconomyState> = z
   .object({
     fire: z.number().int().min(0).max(FIRE_MAX),
     highestFire: z.number().int().min(0).max(FIRE_MAX).optional(),
     coinsSpent: z.number().int().nonnegative(),
     inventory: z.object({ food: z.number().int().nonnegative() }),
-    ownedItemIds: z.array(shopItemIdSchema),
-    equippedItemIds: z.array(shopItemIdSchema),
-    specialRewards: z.array(specialRewardSchema),
-    rewardClaims: z.array(rewardClaimSchema),
+    ownedItemIds: lenientArray(shopItemIdSchema),
+    equippedItemIds: lenientArray(shopItemIdSchema),
+    specialRewards: lenientArray(specialRewardSchema),
+    rewardClaims: lenientArray(rewardClaimSchema),
   })
-  .catch(() => createDefaultEconomy());
+  .catch(() => createDefaultEconomy()) as unknown as z.ZodType<EconomyState>;
+
+/** Loose entries of dailyLogs and parentObservations: unknown keys are kept as they are. */
+const bathroomEntrySchema: z.ZodType<BathroomEntry> = z.looseObject({});
 
 export const appStateSchema: z.ZodType<AppState> = z.object({
   schemaVersion: z.literal(1),
@@ -238,4 +253,6 @@ export const appStateSchema: z.ZodType<AppState> = z.object({
   parentLogs: z.array(parentLogSchema),
   foodEntries: z.array(foodEntrySchema),
   consultations: z.array(consultationSchema),
+  dailyLogs: lenientArray(bathroomEntrySchema).optional(),
+  parentObservations: lenientArray(bathroomEntrySchema).optional(),
 });
