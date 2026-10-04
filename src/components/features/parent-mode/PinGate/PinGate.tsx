@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Button, Card, Chip, Heading, LinkButton, Stack, Text, TextField } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
+import { authenticateBiometric, isBiometricAvailable, isBiometricEnrolled } from "@/lib/biometrics";
 import { hasPin } from "@/lib/pin";
 import { AlertBox, GateContainer, GateForm } from "./PinGate.style";
 
@@ -17,6 +18,7 @@ type PinGateProps = {
 export function PinGate({
   title = "Parent mode",
   description = "Enter your 4-digit PIN to access parent mode.",
+  onSuccess,
 }: PinGateProps) {
   const { state } = useAppState();
   const session = useParentSession();
@@ -24,8 +26,43 @@ export function PinGate({
   const [pin, setPin] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = useState(false);
+  const [isBiometricAuthenticating, setIsBiometricAuthenticating] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    void isBiometricAvailable().then((avail) => {
+      if (mounted) {
+        setBiometricAvailable(avail);
+        setBiometricEnrolled(isBiometricEnrolled());
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const isConfigured = hasPin(state.settings);
+
+  const handleBiometricUnlock = async () => {
+    if (isBiometricAuthenticating || session.isLockedOut) return;
+
+    setIsBiometricAuthenticating(true);
+    setErrorMessage(undefined);
+
+    try {
+      const result = await authenticateBiometric();
+      if (result.success) {
+        session.setUnlocked(true);
+        onSuccess?.();
+      } else if (result.error && !result.error.toLowerCase().includes("cancelled")) {
+        setErrorMessage(result.error);
+      }
+    } finally {
+      setIsBiometricAuthenticating(false);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -95,6 +132,25 @@ export function PinGate({
               <AlertBox $variant="urgent" role="alert">
                 Too many failed attempts. Locked for {session.remainingLockSeconds} seconds.
               </AlertBox>
+            ) : null}
+
+            {biometricAvailable && biometricEnrolled ? (
+              <Stack gap="xs" align="center">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleBiometricUnlock}
+                  disabled={
+                    session.isLockedOut || isBiometricAuthenticating || !session.isCryptoAvailable
+                  }
+                  fullWidth
+                >
+                  {isBiometricAuthenticating ? "Verifying..." : "Unlock with Face ID / Fingerprint"}
+                </Button>
+                <Text size="sm" tone="muted">
+                  or enter 4-digit PIN
+                </Text>
+              </Stack>
             ) : null}
 
             <TextField
