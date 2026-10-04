@@ -8,6 +8,7 @@ import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
 import { formatMissionTitle } from "../missionLabels";
+import { WatchSummary } from "../WatchSummary/WatchSummary";
 import {
   AnswerLabel,
   AnswerValue,
@@ -176,6 +177,8 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
             </Stack>
           </Stack>
         </Card>
+
+        <WatchSummary state={state} />
 
         {hasDiscomfort ? (
           <PromptCard role="region" aria-label="Food note prompt">
