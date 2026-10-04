@@ -67,8 +67,8 @@ describe("buildReport", () => {
       { company: "other", label: confidenceLabel("other"), count: 0 },
     ]);
     expect(report.activity.byCorroboration).toEqual([
-      { method: "wearable", label: "Wearable verified", count: 0 },
-      { method: "motion", label: "Motion sensor verified", count: 0 },
+      { method: "wearable", label: "Movement noted by the wearable", count: 0 },
+      { method: "motion", label: "Movement noted by the phone", count: 0 },
       { method: "none", label: "Self-reported only", count: 0 },
     ]);
     expect(report.activity.corroborationTotals).toEqual({ wearable: 0, motion: 0, none: 0 });
@@ -514,8 +514,8 @@ describe("buildReport wearable and observed sections", () => {
       none: 1,
     });
     expect(report.activity.byCorroboration).toEqual([
-      { method: "wearable", label: "Wearable verified", count: 1 },
-      { method: "motion", label: "Motion sensor verified", count: 1 },
+      { method: "wearable", label: "Movement noted by the wearable", count: 1 },
+      { method: "motion", label: "Movement noted by the phone", count: 1 },
       { method: "none", label: "Self-reported only", count: 1 },
     ]);
   });

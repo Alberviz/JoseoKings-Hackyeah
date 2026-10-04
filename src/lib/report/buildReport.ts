@@ -239,8 +239,12 @@ export function buildReport(
   const noneCorroboratedCount = completedMissions.filter((m) => !m.corroboration).length;
 
   const byCorroboration: MissionCorroborationCount[] = [
-    { method: "wearable", label: "Wearable verified", count: wearableCorroboratedCount },
-    { method: "motion", label: "Motion sensor verified", count: motionCorroboratedCount },
+    {
+      method: "wearable",
+      label: "Movement noted by the wearable",
+      count: wearableCorroboratedCount,
+    },
+    { method: "motion", label: "Movement noted by the phone", count: motionCorroboratedCount },
     { method: "none", label: "Self-reported only", count: noneCorroboratedCount },
   ];
 
