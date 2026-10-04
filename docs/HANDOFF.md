@@ -2,7 +2,7 @@
 
 Snapshot of the team's state for anyone (human or AI) who joins or restarts a session. Keep it short and update it at each checkpoint. It does not replace `AGENTS.md` (rules), `docs/PRODUCT.md` (the product) or `docs/DECISIONS.md` (confirmed decisions).
 
-Last update: 2026-10-03, 18:15 (beta scope frozen).
+Last update: 2026-10-04, 09:30 (all features built; final polish and submission).
 
 ---
 
@@ -15,9 +15,9 @@ Last update: 2026-10-03, 18:15 (beta scope frozen).
 ## 2. Product status
 
 - **Agreed (2026-10-03):** a family app for children aged 8 to 12 with inflammatory bowel disease. Child mode (check-in on drawings, companion, gentle missions), parent mode behind a PIN, and a doctor report built on the device. Full definition: [`PRODUCT.md`](PRODUCT.md). Technical contract: [`ARCHITECTURE.md`](ARCHITECTURE.md).
-- **Paused and not linked:** the restroom map and the menu reader. Their code stays in the repo and must not be edited.
+- **Removed:** the restroom map and the menu reader (paused on 2026-10-03, then deleted from the tree; they are in git history).
 - **Defaults pending Alberto's decision:** see `PRODUCT.md` section 9 (pitch story, when parents see what the child marked, energy indicator, wording of the confidence labels).
-- **Shared code already in place:** `src/types/` (the data model) and `ROUTES` in `src/config/app.ts`. No feature code yet.
+- **Built and on main:** child mode (check-in, home, play, shop, food, customize), the companion, parent mode (PIN, summary, log, food diary, patterns, rewards, settings), the doctor report and the optional wearable connection (W1). Shared code: `src/types/` and `ROUTES` in `src/config/app.ts`.
 
 ## 2b. Beta scope (decided by Alberto, 2026-10-03)
 
