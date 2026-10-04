@@ -17,13 +17,14 @@ import {
   TabButton,
   TabLink,
 } from "./ParentNav.style";
+import type { ParentSection } from "../sections";
 import { ParentNavIcon, type ParentNavIconKey } from "./ParentNavIcons";
 
-const TABS: { href: string; label: string; icon: ParentNavIconKey }[] = [
-  { href: ROUTES.parent, label: "Summary", icon: "summary" },
-  { href: ROUTES.parentLog, label: "Log", icon: "log" },
-  { href: ROUTES.parentFoods, label: "Food", icon: "food" },
-  { href: ROUTES.parentPatterns, label: "Patterns", icon: "patterns" },
+const TABS: { href: string; label: string; icon: ParentNavIconKey; section: ParentSection }[] = [
+  { href: ROUTES.parent, label: "Summary", icon: "summary", section: "summary" },
+  { href: ROUTES.parentLog, label: "Log", icon: "log", section: "log" },
+  { href: ROUTES.parentFoods, label: "Food", icon: "food", section: "food" },
+  { href: ROUTES.parentPatterns, label: "Patterns", icon: "patterns", section: "patterns" },
 ];
 
 const MORE_ROUTES: string[] = [ROUTES.parentReport, ROUTES.parentLink];
@@ -82,6 +83,7 @@ export function ParentNav() {
                 <TabLink
                   href={tab.href}
                   $isActive={isActive}
+                  $section={tab.section}
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => setMoreOpenPath(null)}
                 >
@@ -95,6 +97,7 @@ export function ParentNav() {
             <TabButton
               type="button"
               $isActive={isMoreActive}
+              $section="more"
               aria-expanded={isMoreOpen}
               onClick={() => setMoreOpenPath(isMoreOpen ? null : pathname)}
             >

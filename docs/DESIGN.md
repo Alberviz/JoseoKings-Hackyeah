@@ -1,42 +1,79 @@
 # Design: parent area
 
-Visual rules for every parent screen. Use the theme tokens in `src/theme/theme.ts` and the primitives in `src/components/ui`. Mockups: Tailscale `:8443` (`colorful.html`, `parent-style.html`). Status: proposed by Alberto's stream, colour level (option 1 or 2) pending his choice.
+**Status: decided by Alberto (2026-10-04).** Drawn icons, colour by section, floating tab bar. This file is the spec: follow it literally and do not invent variants. Questions go to Claude. Mockups (Tailscale `:8443`): `colorful.html`, `parent-style.html` (option 1, icon mode "Drawn").
 
-## Look
+Scope: every screen under `/parent` and the parent PIN gate. The child screens keep their own look.
+
+## 1. Look
 
 Hand-made notebook: cream grid paper, navy ink outlines, flat marker fills, a solid offset shadow like a cut-out sticker. Friendly, never clinical.
 
-- Outline: `theme.borderWidth` in `theme.colors.ink`. Shadow: `theme.shadowPress` in ink, no blur. Pressed: shadow gone, element moves 2px right and 3px down (the `pressable` mixin).
-- Radius: cards `theme.radius.lg`, buttons 12 to 14px, tray 22px, round buttons `theme.radius.pill`.
-- Fonts: headings Bricolage Grotesque, body Atkinson Hyperlegible. No emoji anywhere: icons are drawn.
-- Touch targets at least `theme.touchTarget` (48px). Text contrast at least 4.5:1. Text on any colour fill is ink, except white on teal and on red.
+- Outline: `theme.borderWidth` in `theme.colors.ink`. Shadow: `theme.shadowPress` in ink, no blur.
+- Pressed: shadow gone, element moves 2px right and 3px down (`pressable` in `Button.style.ts`). Never put `pressable` on a container that holds other buttons.
+- Radius: banner and section cards `theme.radius.lg`; buttons use the `Button` primitive as it is; tray 22px; round buttons `theme.radius.pill`.
+- Fonts: headings Bricolage Grotesque, body Atkinson Hyperlegible (already in the theme). No emoji anywhere.
+- Touch targets at least `theme.touchTarget`. Text contrast at least 4.5:1. No horizontal scroll at 360px.
+- Colour is never the only signal: every answer pill carries its words.
 
-## Section colours (option 1)
+## 2. Section colours
 
-| Section                       | Fill          | Strong (main button) |
-| :---------------------------- | :------------ | :------------------- |
-| Summary                       | `primarySoft` | `primary`            |
-| Log                           | `mint`        | `success`            |
-| Food                          | coral tint    | `accent`             |
-| Patterns                      | lavender tint | `lavender`           |
-| More (Report, Link, Settings) | yellow tint   | `highlight`          |
+Defined once in `theme.sections` (`src/theme/theme.ts`). Never write these hex values in a component.
 
-Option 2 keeps teal for every section: colour only in icons, answer pills and charts. New colours must be added to `theme.ts` and to `contrast.test.ts`, never written inline.
+| Section  | `fill` (banner, card headers, active tab) | `strong` (main button) | Text on `strong` | Button variant | Routes                                  |
+| :------- | :---------------------------------------- | :--------------------- | :--------------- | :------------- | :-------------------------------------- |
+| summary  | `#D5F1F0` primarySoft                     | `#127782` primary      | white            | `primary`      | `/parent`                               |
+| log      | `#E0F7EC` mint                            | `#1E7A46` success      | white            | `success`      | `/parent/log`                           |
+| food     | `#FFD9CC` coralSoft                       | `#FF7A59` accent       | ink              | `accent`       | `/parent/foods`                         |
+| patterns | `#E6DDF5` lavenderSoft                    | `#C6B5E8` lavender     | ink              | `lavender`     | `/parent/patterns`                      |
+| more     | `#FFF0B8` highlightSoft                   | `#FFC93C` highlight    | ink              | `highlight`    | report, link, settings; PIN gate, setup |
 
-## Parts
+Text on every `fill` is ink. Destructive actions always use `urgent` (red, white text), whatever the section.
 
-- **Banner** (top of each screen): rounded sticker with the drawn section icon, title and a short subtitle, filled with the section colour.
-- **Settings gear:** round 48px sticker, top right of every parent screen except Settings. Scrolls with the page, hidden when printing.
-- **Card:** surface fill, ink outline and shadow; a header strip in the section colour with the title.
-- **Answer pill:** small rounded label for what the family entered (mint good, yellow mixed, coral harder). The label always says it in words, colour is never the only signal.
-- **Buttons:** main action in the section's strong colour, secondary on surface, destructive in `urgent`. One main action per screen.
-- **Floating tab bar** (`ParentNav`): rounded tray 12px above the bottom edge and 10px from the sides, five tabs (Summary, Log, Food, Patterns, More). The active tab is a pill with an ink outline. More opens a floating sheet with Doctor report, Family link, Lock and Back to child mode. The bar appears only after the PIN and never on setup. Hidden when printing.
-- **Icons:** drawn in the style of `CheckInIcons`: 2.4px navy stroke, round caps, flat fills from the theme. Decorative (`aria-hidden`), the label is next to them.
+## 3. Parts
 
-## Rules
+Build screens only from these parts (all in `src/components/features/parent-mode/` unless noted).
 
-- Back navigation lives in the tab bar; do not add "Back to parent summary" links.
+1. **`ParentBanner`**: first element of every screen. Props: `section`, `icon`, `title`, `subtitle?`, `hasGear?` (default true; false on Settings and the PIN gate). A rounded sticker (`radius.lg`, ink outline, shadow, `fill` background), min height 56px: drawn icon 34px, then `Heading` level 1 and a short muted subtitle. Reserves room on the right for the gear (`touchTarget` + `spacing.sm`). Demo data chip goes in the subtitle row.
+2. **Settings gear** (`SettingsLink` in `ParentNav`): 48px round sticker on the banner row, right edge, `surface` fill with the drawn yellow-centred gear. Hidden on Settings, in print and when locked.
+3. **`SectionCard`**: surface body with ink outline, shadow and `radius.lg`, and a header strip in the section `fill` with an ink bottom border holding the card title (`Heading` level 2). Body padding `spacing.md`. Replaces `Card` on parent screens.
+4. **`Chip`** (`src/components/ui`): the answer pill. Tones: `success` (good day, mint), `mixed` (yellow), `harder` (coral), `primary` (teal), `default` (surface). Always ink text.
+5. **`Button` / `LinkButton`**: one main action per screen, in the section `Button` variant (table above), full width. Secondary actions use `secondary`. Lock and destructive actions never use a section colour.
+6. **`ParentNav`** (floating tab bar): tray 12px above the bottom edge and 10px from the sides, `surface`, outline, shadow, radius 22px. Tabs: Summary, Log, Food, Patterns, More, each with its drawn icon (`ParentNavIcon`) and a label under it. The active tab is a pill filled with that section's `fill` and an ink outline. More opens a floating sheet with Doctor report, Family link, Lock and Back to child mode (never on a parent-only phone). Appears only after the PIN; never on setup; hidden when printing.
+7. **Icons**: `ParentNavIcon` only (drawn, 2.4px navy stroke, flat theme fills). Decorative (`aria-hidden`). New icons are added to that file in the same style, never emoji or images.
+
+## 4. Screen recipe
+
+Every parent screen has the same skeleton, inside `Screen`:
+
+```
+ParentBanner (section, icon, title, subtitle)
+SectionCard x N        (the content, in the order the screen already has)
+one main Button        (section variant, full width, last)
+```
+
+| Screen         | Section  | Icon       | Banner title    | Subtitle                          |
+| :------------- | :------- | :--------- | :-------------- | :-------------------------------- |
+| Summary        | summary  | `summary`  | Parent mode     | Daily summary for {child}         |
+| Daily log      | log      | `log`      | Daily log       | Facts for the day                 |
+| Food diary     | food     | `food`     | Food diary      | Notes to share with the care team |
+| Patterns       | patterns | `patterns` | Patterns        | Last 7 days                       |
+| Doctor report  | more     | `log`      | Doctor report   | Since the last visit              |
+| Family link    | more     | `more`     | Family link     | Pair the two phones               |
+| Settings       | more     | `settings` | Parent settings | This phone                        |
+| PIN gate/setup | more     | `more`     | (its own title) | (its own text)                    |
+
+## 5. Rules
+
+- Keep every heading, label and button text that exists today, so tests and screen readers keep working. Style changes only, except the removals below.
+- Navigation lives in the tab bar: no "Back to parent summary" links. Lock and "Back to child mode" live in the More sheet (and stay on the Summary).
 - On a parent-only phone (`deviceRole === "parent"`) never show "Back to child mode".
-- Keep the wording of `docs/PRODUCT.md` section 6: no medical claims, no scores, no alarming colours for the child's answers.
-- A screen with a table or chart still fits 360px wide with no sideways scroll; tablets use the wider column from the responsive task.
-- Do not tap-highlight: `-webkit-tap-highlight-color: transparent` is global, keep `:focus-visible` outlines.
+- Wording follows `docs/PRODUCT.md` section 6: no medical claims, no scores, no alarming colours for the child's answers. Harder days use coral, not red.
+- The doctor report is printed: print CSS removes the banner colours, the tab bar and the gear.
+- Styles follow `AGENTS.md` section 3.2 (`.tsx` composes, `.style.ts` styles, theme tokens, `$` props). New colours go into `theme.ts` and `contrast.test.ts`.
+- `-webkit-tap-highlight-color: transparent` is global; keep `:focus-visible` outlines.
+
+## 6. Done when
+
+- No parent screen shows a plain black-and-white card: each has its banner and coloured card headers.
+- `pnpm check` passes, `contrast.test.ts` covers every `sections` pair.
+- Looked at 360px and at 768px wide with the tab bar open and closed.

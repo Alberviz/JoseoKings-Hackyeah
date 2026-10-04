@@ -41,6 +41,18 @@ export const theme = {
     dragonCheek: "#F29AA8",
     playButton: "#7054C7",
     childHomeBg: "#BFEAF3",
+    // Soft fills for the parent section colours and the answer pills (docs/DESIGN.md).
+    coralSoft: "#FFD9CC",
+    lavenderSoft: "#E6DDF5",
+    highlightSoft: "#FFF0B8",
+  },
+  // Colour by section in the parent area. fill: banner, card headers, active tab. strong: main button.
+  sections: {
+    summary: { fill: "#D5F1F0", strong: "#127782", onStrong: "#FFFFFF" },
+    log: { fill: "#E0F7EC", strong: "#1E7A46", onStrong: "#FFFFFF" },
+    food: { fill: "#FFD9CC", strong: "#FF7A59", onStrong: "#1F2F6B" },
+    patterns: { fill: "#E6DDF5", strong: "#C6B5E8", onStrong: "#1F2F6B" },
+    more: { fill: "#FFF0B8", strong: "#FFC93C", onStrong: "#1F2F6B" },
   },
   spacing: {
     xs: "4px",

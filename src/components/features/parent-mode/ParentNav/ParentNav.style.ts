@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styled from "styled-components";
+import type { ParentSection } from "../sections";
 import { pressable } from "@/components/ui/Button/Button.style";
 
 const TAB_HEIGHT = "56px";
@@ -50,11 +51,12 @@ export const NavItem = styled.li`
   min-width: 0;
 `;
 
-type TabProps = { $isActive: boolean };
+type TabProps = { $isActive: boolean; $section: ParentSection };
 
 const tabStyles = ({
   theme,
   $isActive,
+  $section,
 }: TabProps & { theme: import("styled-components").DefaultTheme }) => `
   display: flex;
   flex-direction: column;
@@ -66,7 +68,7 @@ const tabStyles = ({
   padding: 3px 1px;
   border: ${theme.borderWidth} solid ${$isActive ? theme.colors.ink : "transparent"};
   border-radius: 16px;
-  background: ${$isActive ? theme.colors.primarySoft : "transparent"};
+  background: ${$isActive ? theme.sections[$section].fill : "transparent"};
   color: ${$isActive ? theme.colors.ink : theme.colors.textMuted};
   font-family: inherit;
   font-size: ${theme.fontSize.sm};
@@ -119,7 +121,7 @@ export const MoreInner = styled.div`
 export const SettingsLink = styled(Link)`
   ${pressable}
   position: absolute;
-  top: ${({ theme }) => theme.spacing.sm};
+  top: calc(${({ theme }) => theme.spacing.lg} + 4px);
   right: max(
     ${({ theme }) => theme.spacing.md},
     calc((100vw - ${({ theme }) => theme.maxContentWidth}) / 2 + ${({ theme }) => theme.spacing.md})

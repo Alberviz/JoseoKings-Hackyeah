@@ -34,9 +34,26 @@ describe("theme contrast (WCAG AA)", () => {
     ["success on background", colors.success, colors.background],
   ];
 
-  it.each(textPairs)("%s is at least 4.5:1", (_name, foreground, background) => {
-    expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
-  });
+  const sectionPairs: [string, string, string][] = Object.entries(theme.sections).flatMap(
+    ([name, { fill, strong, onStrong }]) => [
+      [`ink on ${name} fill`, colors.ink, fill] as [string, string, string],
+      [`text on ${name} strong`, onStrong, strong] as [string, string, string],
+    ],
+  );
+  const pillPairs: [string, string, string][] = [
+    ["ink on coralSoft", colors.ink, colors.coralSoft],
+    ["ink on lavenderSoft", colors.ink, colors.lavenderSoft],
+    ["ink on highlightSoft", colors.ink, colors.highlightSoft],
+    ["ink on mint", colors.ink, colors.mint],
+    ["ink on successSoft", colors.ink, colors.successSoft],
+  ];
+
+  it.each([...textPairs, ...sectionPairs, ...pillPairs])(
+    "%s is at least 4.5:1",
+    (_name, foreground, background) => {
+      expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 
   it.each([
     ["focus on background", colors.focus, colors.background],
