@@ -146,8 +146,8 @@ describe("browserGoogleHealth", () => {
 
     const steps = result.samples.filter((s) => s.metric === "steps");
     expect(steps.map((s) => [s.source, s.value])).toEqual([
-      ["watch-uid-1", 120],
-      ["Google|Pixel 8|PHONE", 95],
+      ["com.fitbit.FitbitMobile|watch-uid-1", 120],
+      ["com.google.android.apps.fitness", 95],
     ]);
     expect(result.samples.filter((s) => s.metric === "heartRate")).toHaveLength(1);
     expect(

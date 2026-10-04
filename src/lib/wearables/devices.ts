@@ -10,9 +10,44 @@ export const AUTOMATIC_SELECTION: DeviceSelection = { steps: null, heartRate: nu
 export type DeviceInfo = { id: string; kind: WatchDeviceKind; label: string };
 
 const UNKNOWN_ID = "unknown";
+const PHONE_APP_PREFIX = "com.android.healthconnect.phone";
+const THIS_PHONE = "This phone";
+
+/**
+ * Apps that are known to feed Google Health (directly or through Health Connect). Matched by
+ * package name prefix, the longest prefix wins. The kind is only a fallback: a wrist form factor
+ * or a phone form factor on a point always decides first.
+ */
+const KNOWN_APPS: readonly { prefix: string; label: string; kind: WatchDeviceKind }[] = [
+  { prefix: "com.huami.watch.hmwatchmanager", label: "Zepp (Amazfit)", kind: "watch" },
+  { prefix: "com.huami", label: "Zepp (Amazfit)", kind: "watch" },
+  { prefix: "com.zepp", label: "Zepp (Amazfit)", kind: "watch" },
+  { prefix: "com.fitbit", label: "Fitbit", kind: "watch" },
+  { prefix: "com.google.android.apps.fitness", label: "Google Fit", kind: "other" },
+  { prefix: "com.garmin.android.apps.connectmobile", label: "Garmin Connect", kind: "watch" },
+  { prefix: "com.xiaomi.wearable", label: "Mi Fitness", kind: "watch" },
+  { prefix: "com.mi.health", label: "Mi Fitness", kind: "watch" },
+  { prefix: "com.huawei.health", label: "Huawei Health", kind: "watch" },
+  { prefix: "com.samsung.android.wear", label: "Samsung Health", kind: "other" },
+  { prefix: "com.sec.android.app.shealth", label: "Samsung Health", kind: "other" },
+  { prefix: "com.google.android.apps.wear", label: "Pixel Watch", kind: "watch" },
+  { prefix: "com.google.android.wearable", label: "Pixel Watch", kind: "watch" },
+  { prefix: "com.ouraring.oura", label: "Oura", kind: "watch" },
+  { prefix: "com.withings", label: "Withings", kind: "other" },
+  { prefix: PHONE_APP_PREFIX, label: THIS_PHONE, kind: "phone" },
+];
 
 function clean(value: string | undefined): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function knownApp(packageName: string): { label: string; kind: WatchDeviceKind } | null {
+  const pkg = packageName.toLowerCase();
+  let best: (typeof KNOWN_APPS)[number] | null = null;
+  for (const app of KNOWN_APPS) {
+    if (pkg.startsWith(app.prefix) && (!best || app.prefix.length > best.prefix.length)) best = app;
+  }
+  return best ? { label: best.label, kind: best.kind } : null;
 }
 
 /** formFactor is an open string; wrist, band and ring shapes count as a watch. */
@@ -33,33 +68,81 @@ function deviceName(manufacturer: string, model: string): string {
   return model || manufacturer;
 }
 
-/** Stable id, kind and readable label for the source of one data point. */
-export function describeDevice(source: HealthDataSource | undefined): DeviceInfo {
+function lastSegment(packageName: string): string {
+  const part = packageName.split(".").filter(Boolean).pop() ?? "";
+  return part ? part.charAt(0).toUpperCase() + part.slice(1) : "";
+}
+
+/** What one data point says about its source. */
+type PointFacts = {
+  id: string;
+  /** "watch" or "phone" when this point shows a wrist or phone form factor or a phone app. */
+  formKind: "watch" | "phone" | null;
+  appKind: WatchDeviceKind | null;
+  name: string;
+  appLabel: string;
+};
+
+function readPoint(source: HealthDataSource | undefined): PointFacts {
   const device = source?.device;
   const manufacturer = clean(device?.manufacturer);
   const model = clean(device?.model);
   const formFactor = clean(device?.formFactor);
   const uid = clean(device?.uid);
-  const app = clean(source?.application?.name) || clean(source?.application?.packageName);
+  const packageName = clean(source?.application?.packageName);
+  const appName = clean(source?.application?.name);
+  const known = packageName ? knownApp(packageName) : null;
 
+  // The source app is the identity: devices often come with empty fields (Health Connect).
   let id = UNKNOWN_ID;
-  if (uid) id = uid;
-  else if (manufacturer || model || formFactor) id = `${manufacturer}|${model}|${formFactor}`;
-  else if (app) id = app;
+  if (packageName) id = uid ? `${packageName}|${uid}` : packageName;
+  else if (uid) id = uid;
+  else if (manufacturer || model || formFactor) {
+    id = [manufacturer, model, formFactor].filter(Boolean).join("|");
+  } else if (appName) id = appName;
 
-  const kind = deviceKindFromFormFactor(formFactor);
-  const name = deviceName(manufacturer, model);
-  let label: string;
-  if (name) {
-    label = kind === "watch" ? `Watch · ${name}` : kind === "phone" ? `Phone · ${name}` : name;
-  } else if (kind === "watch") {
-    label = "Unnamed watch";
-  } else if (kind === "phone") {
-    label = "Unnamed phone";
-  } else {
-    label = app || "Unknown device";
+  const fromForm = deviceKindFromFormFactor(formFactor);
+  const isPhoneApp = packageName.toLowerCase().startsWith(PHONE_APP_PREFIX);
+  const formKind =
+    fromForm === "watch" ? "watch" : fromForm === "phone" || isPhoneApp ? "phone" : null;
+
+  return {
+    id,
+    formKind,
+    appKind: known?.kind ?? null,
+    name: deviceName(manufacturer, model),
+    appLabel: known?.label || appName || lastSegment(packageName),
+  };
+}
+
+function pickKind(
+  watch: boolean,
+  phone: boolean,
+  appKind: WatchDeviceKind | null,
+): WatchDeviceKind {
+  if (watch) return "watch";
+  if (phone) return "phone";
+  return appKind ?? "other";
+}
+
+function buildLabel(kind: WatchDeviceKind, name: string, appLabel: string): string {
+  if (kind === "watch") {
+    const shown = name || appLabel;
+    return shown ? `Watch · ${shown}` : "Unnamed watch";
   }
-  return { id, kind, label };
+  if (kind === "phone") {
+    if (name) return `Phone · ${name}`;
+    if (appLabel && appLabel !== THIS_PHONE) return `Phone · ${appLabel}`;
+    return THIS_PHONE;
+  }
+  return name || appLabel || "Unknown device";
+}
+
+/** Stable id, kind and readable label for the source of one data point. */
+export function describeDevice(source: HealthDataSource | undefined): DeviceInfo {
+  const facts = readPoint(source);
+  const kind = pickKind(facts.formKind === "watch", facts.formKind === "phone", facts.appKind);
+  return { id: facts.id, kind, label: buildLabel(kind, facts.name, facts.appLabel) };
 }
 
 /** Points per metric, as read from the API. Daily resting heart rate belongs under "heartRate". */
@@ -67,16 +150,38 @@ export type DevicePoints = Partial<Record<DeviceMetric, HealthDataPoint[]>>;
 
 /** Which devices sent data, and which kinds of data each one has. Sorted: watches, phones, others. */
 export function buildDeviceList(points: DevicePoints): WatchDevice[] {
-  const byId = new Map<string, WatchDevice>();
+  type Merged = {
+    device: WatchDevice;
+    watch: boolean;
+    phone: boolean;
+    appKind: WatchDeviceKind | null;
+    name: string;
+    appLabel: string;
+  };
+  const byId = new Map<string, Merged>();
   for (const metric of DEVICE_METRICS) {
     for (const point of points[metric] ?? []) {
       if (metric === "sleep" && point.sleep?.metadata?.nap === true) continue;
-      const info = describeDevice(point.dataSource);
-      let device = byId.get(info.id);
-      if (!device) {
-        device = { ...info, metrics: [], sampleCounts: {} };
-        byId.set(info.id, device);
+      const facts = readPoint(point.dataSource);
+      let m = byId.get(facts.id);
+      if (!m) {
+        m = {
+          device: { id: facts.id, kind: "other", label: "", metrics: [], sampleCounts: {} },
+          watch: false,
+          phone: false,
+          appKind: null,
+          name: "",
+          appLabel: "",
+        };
+        byId.set(facts.id, m);
       }
+      // One app can report several form factors (the watch and the phone it runs on): merge them.
+      if (facts.formKind === "watch") m.watch = true;
+      if (facts.formKind === "phone") m.phone = true;
+      m.appKind = m.appKind ?? facts.appKind;
+      if (facts.name.length > m.name.length) m.name = facts.name;
+      m.appLabel = m.appLabel || facts.appLabel;
+      const { device } = m;
       if (!device.metrics.includes(metric)) device.metrics.push(metric);
       const counts = device.sampleCounts ?? {};
       counts[metric] = (counts[metric] ?? 0) + 1;
@@ -84,8 +189,13 @@ export function buildDeviceList(points: DevicePoints): WatchDevice[] {
     }
   }
 
+  const merged: WatchDevice[] = [...byId.values()].map((m) => {
+    const kind = pickKind(m.watch, m.phone, m.appKind);
+    return { ...m.device, kind, label: buildLabel(kind, m.name, m.appLabel) };
+  });
+
   const rank: Record<WatchDeviceKind, number> = { watch: 0, phone: 1, other: 2 };
-  const devices = [...byId.values()].sort(
+  const devices = merged.sort(
     (a, b) =>
       rank[a.kind] - rank[b.kind] || a.label.localeCompare(b.label) || a.id.localeCompare(b.id),
   );

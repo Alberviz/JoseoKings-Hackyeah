@@ -12,7 +12,7 @@ How the watch data gets into the app, in English. Rules and privacy guardrails a
   - The old `health.fitness.*` scopes are wrong; do not use them.
 - Everything stays on the device (`localStorage`, key `crohncare_watch_daily`): the days, the device list, the per-metric choice and the raw samples (dropped when storage is full).
 - Watch numbers are descriptive only: no scores, alerts, thresholds or rewards. The child never sees them. They are labelled "From the watch (Google Health)".
-- Caveat: officially only Fitbit devices and the Pixel Watch feed this API. Other watches (Amazfit, Garmin, Galaxy...) only appear if their data reaches Google Health some other way. "No watch data yet" is shown for a gap and is never filled.
+- Caveat: the API is officially documented for Fitbit devices and the Pixel Watch. In practice, data from apps that write to Health Connect also appears, and `platform` is then `"HEALTH_CONNECT"` (for example a Zepp/Amazfit watch through its app on an Android phone). Watches that never reach Google Health or Health Connect do not appear. "No watch data yet" is shown for a gap and is never filled.
 
 Code: `src/lib/wearables/googleHealthV4.ts` (shapes, converters), `browserGoogleHealth.ts` (requests), `devices.ts` (device list and choice), `daily.ts` and `buildWatchDays.ts` (per-day figures), `src/hooks/useWatchSync.ts`, `src/components/features/parent-mode/WatchConnectCard/`.
 
@@ -41,10 +41,13 @@ Errors: `{ error: { code, message, status, details: [{ reason }] } }`. 401 and 4
 
 ## 3. Devices and the per-metric selector
 
-- A device id is `device.uid`, else `manufacturer|model|formFactor`, else the application name, else `unknown`. Its kind comes from `formFactor`: wrist, band, ring and watch shapes are `watch`; phone and tablet are `phone`; anything else is `other`.
+- Real data comes through Health Connect, and the `device` fields are often empty (`{}`), with no `uid` and no `model`; only the source app is reliable. So a device is identified by its **source app**: the id is `application.packageName`, plus `|uid` only when `device.uid` exists. Without a package name the id is `uid`, else the non-empty parts of `manufacturer|model|formFactor`, else the application name, else `unknown`. Ids never have empty segments.
+- All points with the same id are one device, even when they carry different form factors. One Zepp watch can send points with `device: {}` and points with `formFactor: "FITNESS_BAND"`; both are the same device, so its heart rate readings stay together.
+- Kind of a merged device: `watch` if any point has a wrist, band, ring or watch form factor; else `phone` if any point is PHONE/TABLET or the package starts with `com.android.healthconnect.phone`; else it comes from a small known-apps map (Zepp, Fitbit, Garmin Connect, Mi Fitness, Huawei Health, Samsung Health, Pixel Watch, Oura, Withings, Google Fit); else `other`.
+- Label: "Watch · Zepp (Amazfit)", "Phone · Xiaomi" (manufacturer or model when known, else the app name, else "This phone"). A raw package name is shown only as its last segment, capitalised, when nothing nicer is known.
 - Steps, heart rate and sleep each have their own choice: `deviceSelection = { steps, heartRate, sleep }`, where `null` is automatic. Resting heart rate follows the heart-rate choice.
 - Automatic: among the devices that have that metric, a watch first, then a phone, then others; the device with the most records wins a tie. Devices are never combined, so steps from a phone and a watch are never added together.
-- A saved choice for a device that is gone falls back to automatic.
+- A saved choice for a device that is gone, including an id saved with the older id format, falls back to automatic.
 - The parent settings card shows "Data from": one device gives a plain line, several give "Automatic (...)" plus one chip per device. After a sync it lists what each metric returned (for example "Heart rate: 812 readings" or "Heart rate: could not be read (Google said: ...)").
 - Changing a choice rebuilds the days from the saved raw samples. If they were not kept, the card says "Sync again to apply the new device."
 

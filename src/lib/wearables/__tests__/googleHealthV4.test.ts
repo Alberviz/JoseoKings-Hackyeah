@@ -23,8 +23,12 @@ describe("googleHealthV4 converters", () => {
       stepsWatch("2026-09-01T11:00:00Z", "2026-09-01T11:01:00Z", "not-a-number"),
     ]);
     expect(rows).toHaveLength(2);
-    expect(rows[0]).toMatchObject({ metric: "steps", value: 120, source: "watch-uid-1" });
-    expect(rows[1]).toMatchObject({ value: 95, source: "Google|Pixel 8|PHONE" });
+    expect(rows[0]).toMatchObject({
+      metric: "steps",
+      value: 120,
+      source: "com.fitbit.FitbitMobile|watch-uid-1",
+    });
+    expect(rows[1]).toMatchObject({ value: 95, source: "com.google.android.apps.fitness" });
   });
 
   it("reads heart rate from sampleTime only and keeps one reading per minute per device", () => {
@@ -66,14 +70,14 @@ describe("googleHealthV4 converters", () => {
         startAt: "2026-09-01",
         endAt: "2026-09-01",
         value: 61,
-        source: "watch-uid-1",
+        source: "com.fitbit.FitbitMobile|watch-uid-1",
       },
       {
         metric: "restingHrDaily",
         startAt: "2026-09-02",
         endAt: "2026-09-02",
         value: 63,
-        source: "watch-uid-1",
+        source: "com.fitbit.FitbitMobile|watch-uid-1",
       },
     ]);
   });

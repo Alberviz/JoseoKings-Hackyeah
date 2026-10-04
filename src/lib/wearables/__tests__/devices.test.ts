@@ -9,30 +9,56 @@ import {
   sanitizeDeviceSelection,
 } from "../devices";
 import {
+  HC_PHONE_SOURCE,
+  heartRateFrom,
   heartRateWatch,
   PHONE_SOURCE,
   restingDailyString,
+  sleepFrom,
   sleepWatch,
+  stepsFrom,
   stepsPhone,
   stepsWatch,
   WATCH_SOURCE,
+  ZEPP_BAND_SOURCE,
+  ZEPP_EMPTY_DEVICE_SOURCE,
 } from "./fixtures";
 
 describe("describeDevice", () => {
   it("uses the uid as id and builds a labelled name for a watch", () => {
     expect(describeDevice(WATCH_SOURCE)).toEqual({
-      id: "watch-uid-1",
+      id: "com.fitbit.FitbitMobile|watch-uid-1",
       kind: "watch",
       label: "Watch · Fitbit Charge 6",
     });
   });
 
-  it("falls back to manufacturer, model and form factor when there is no uid", () => {
+  it("uses the source app as id, with the uid only when there is one", () => {
     expect(describeDevice(PHONE_SOURCE)).toEqual({
-      id: "Google|Pixel 8|PHONE",
+      id: "com.google.android.apps.fitness",
       kind: "phone",
       label: "Phone · Google Pixel 8",
     });
+  });
+
+  it("falls back to uid, then manufacturer, model and form factor without a package name", () => {
+    expect(describeDevice({ device: { uid: "abc", formFactor: "WATCH" } }).id).toBe("abc");
+    expect(describeDevice({ device: { manufacturer: "Acme", formFactor: "PHONE" } }).id).toBe(
+      "Acme|PHONE",
+    );
+    expect(describeDevice({ device: { model: "X1" } }).id).toBe("X1");
+  });
+
+  it("never builds an id with an empty segment", () => {
+    for (const source of [
+      { device: { formFactor: "FITNESS_BAND" } },
+      { device: {} },
+      { device: { manufacturer: " ", model: "" } },
+      undefined,
+    ]) {
+      expect(describeDevice(source).id).not.toMatch(/(^\|)|(\|\|)|(\|$)/);
+    }
+    expect(describeDevice({ device: {} }).id).toBe("unknown");
   });
 
   it("does not repeat the manufacturer when the model already starts with it", () => {
@@ -48,9 +74,12 @@ describe("describeDevice", () => {
       kind: "other",
       label: "Health Sync",
     });
-    expect(describeDevice({ application: { packageName: "com.example.app" } }).id).toBe(
-      "com.example.app",
-    );
+    // Unknown package: the last dotted segment, only as a last resort.
+    expect(describeDevice({ application: { packageName: "com.example.hmwatchmanager" } })).toEqual({
+      id: "com.example.hmwatchmanager",
+      kind: "other",
+      label: "Hmwatchmanager",
+    });
     expect(describeDevice(undefined)).toEqual({
       id: "unknown",
       kind: "other",
@@ -60,7 +89,24 @@ describe("describeDevice", () => {
 
   it("names devices that have a form factor but no name", () => {
     expect(describeDevice({ device: { formFactor: "WRISTBAND" } }).label).toBe("Unnamed watch");
-    expect(describeDevice({ device: { formFactor: "PHONE" } }).label).toBe("Unnamed phone");
+    expect(describeDevice({ device: { formFactor: "PHONE" } }).label).toBe("This phone");
+  });
+
+  it("knows the common source apps and never shows a raw package name for them", () => {
+    expect(describeDevice(ZEPP_EMPTY_DEVICE_SOURCE)).toEqual({
+      id: "com.huami.watch.hmwatchmanager",
+      kind: "watch",
+      label: "Watch · Zepp (Amazfit)",
+    });
+    expect(
+      describeDevice({ application: { packageName: "com.garmin.android.apps.connectmobile" } }),
+    ).toMatchObject({ kind: "watch", label: "Watch · Garmin Connect" });
+    expect(
+      describeDevice({ application: { packageName: "com.google.android.apps.fitness" } }),
+    ).toMatchObject({ kind: "other", label: "Google Fit" });
+    expect(
+      describeDevice({ application: { packageName: "com.android.healthconnect.phone.x" } }),
+    ).toMatchObject({ kind: "phone", label: "This phone" });
   });
 
   it("maps open form factor strings to a kind", () => {
@@ -93,6 +139,10 @@ describe("buildDeviceList", () => {
 
   it("lists each device once, watch first, with the metrics and counts it has", () => {
     expect(list.map((d) => d.label)).toEqual(["Watch · Fitbit Charge 6", "Phone · Google Pixel 8"]);
+    expect(list.map((d) => d.id)).toEqual([
+      "com.fitbit.FitbitMobile|watch-uid-1",
+      "com.google.android.apps.fitness",
+    ]);
     expect(list[0].metrics).toEqual(["steps", "heartRate", "sleep"]);
     expect(list[0].sampleCounts).toEqual({ steps: 1, heartRate: 2, sleep: 1 });
     expect(list[1].metrics).toEqual(["steps"]);
@@ -102,6 +152,7 @@ describe("buildDeviceList", () => {
   it("keeps two same-named devices apart", () => {
     const twin = { device: { formFactor: "PHONE", model: "Pixel 8", uid: "a" } };
     const twin2 = { device: { formFactor: "PHONE", model: "Pixel 8", uid: "b" } };
+    expect(describeDevice(twin).id).not.toBe(describeDevice(twin2).id);
     const out = buildDeviceList({
       steps: [
         { ...stepsPhone("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "1"), dataSource: twin },
@@ -159,5 +210,72 @@ describe("automatic device choice", () => {
       heartRate: null,
       sleep: null,
     });
+  });
+});
+
+describe("one Zepp watch seen through Health Connect", () => {
+  // Shapes of a live capture, with synthetic numbers: the watch app sends points with an empty
+  // device object, others with only FITNESS_BAND, and the phone app has a hashed package name.
+  const T = "2026-09-01T";
+  const points = {
+    steps: [
+      stepsFrom(ZEPP_EMPTY_DEVICE_SOURCE, `${T}08:00:00Z`, `${T}08:01:00Z`, "30"),
+      stepsFrom(ZEPP_EMPTY_DEVICE_SOURCE, `${T}09:00:00Z`, `${T}09:01:00Z`, "40"),
+      stepsFrom(ZEPP_EMPTY_DEVICE_SOURCE, `${T}10:00:00Z`, `${T}10:01:00Z`, "50"),
+      stepsFrom(HC_PHONE_SOURCE, `${T}11:00:00Z`, `${T}11:01:00Z`, "5"),
+    ],
+    heartRate: [
+      heartRateFrom(ZEPP_EMPTY_DEVICE_SOURCE, `${T}08:00:00Z`, "70"),
+      heartRateFrom(ZEPP_EMPTY_DEVICE_SOURCE, `${T}08:05:00Z`, "72"),
+      heartRateFrom(ZEPP_EMPTY_DEVICE_SOURCE, `${T}08:10:00Z`, "71"),
+      heartRateFrom(ZEPP_BAND_SOURCE, `${T}09:00:00Z`, "65"),
+    ],
+    sleep: [sleepFrom(ZEPP_BAND_SOURCE, "2026-08-31T22:00:00Z", `${T}06:00:00Z`, "450")],
+  };
+  const list = buildDeviceList(points);
+
+  it("lists exactly two devices: the watch app and the phone", () => {
+    expect(list).toHaveLength(2);
+    expect(list.map((d) => d.label)).toEqual(["Watch · Zepp (Amazfit)", "Phone · Xiaomi"]);
+    expect(list.every((d) => !/(^\|)|(\|\|)|(\|$)/.test(d.id))).toBe(true);
+  });
+
+  it("merges the empty-device and the FITNESS_BAND points into one watch", () => {
+    const zepp = list[0];
+    expect(zepp.id).toBe("com.huami.watch.hmwatchmanager");
+    expect(zepp.kind).toBe("watch");
+    expect(zepp.metrics).toEqual(["steps", "heartRate", "sleep"]);
+    expect(zepp.sampleCounts).toEqual({ steps: 3, heartRate: 4, sleep: 1 });
+    expect(list[1].kind).toBe("phone");
+    expect(list[1].metrics).toEqual(["steps"]);
+  });
+
+  it("picks the Zepp watch automatically for steps, heart rate and sleep", () => {
+    expect(resolveDeviceSelection(list)).toEqual({
+      steps: "com.huami.watch.hmwatchmanager",
+      heartRate: "com.huami.watch.hmwatchmanager",
+      sleep: "com.huami.watch.hmwatchmanager",
+    });
+  });
+
+  it("uses the same id as the sample source, so all heart rate points stay together", () => {
+    const ids = new Set(points.heartRate.map((p) => describeDevice(p.dataSource).id));
+    expect(ids).toEqual(new Set(["com.huami.watch.hmwatchmanager"]));
+  });
+
+  it("drops a saved selection made with an old-style id and goes back to automatic", () => {
+    const old = {
+      steps: "com.huami.watch.hmwatchmanager",
+      heartRate: "||FITNESS_BAND",
+      sleep: "Xiaomi||PHONE",
+    };
+    expect(sanitizeDeviceSelection(list, old)).toEqual({
+      steps: "com.huami.watch.hmwatchmanager",
+      heartRate: null,
+      sleep: null,
+    });
+    const resolved = resolveDeviceSelection(list, old);
+    expect(resolved.heartRate).toBe("com.huami.watch.hmwatchmanager");
+    expect(resolved.sleep).toBe("com.huami.watch.hmwatchmanager");
   });
 });
