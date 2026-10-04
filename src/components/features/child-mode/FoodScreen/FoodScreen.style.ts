@@ -51,7 +51,7 @@ export const FloatingFirePuff = styled.div`
   gap: 4px;
   padding: 4px 10px;
   background: ${({ theme }) => theme.colors.accent};
-  color: #ffffff;
+  color: ${({ theme }) => theme.colors.onAccent};
   border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
   border-radius: ${({ theme }) => theme.radius.pill};
   font-family: ${({ theme }) => theme.fontFamily.heading};
