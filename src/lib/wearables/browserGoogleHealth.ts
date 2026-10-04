@@ -72,7 +72,6 @@ type ListSpec = {
   dataType: string;
   filter: string;
   pageSize: number;
-  dataSourceFamily?: string;
 };
 
 class MetricFailure extends Error {
@@ -92,9 +91,6 @@ async function listAll(
     const url = new URL(`${baseUrl}/dataTypes/${spec.dataType}/dataPoints`);
     url.searchParams.set("filter", spec.filter);
     url.searchParams.set("pageSize", String(spec.pageSize));
-    if (spec.dataSourceFamily) {
-      url.searchParams.set("dataSourceFamily", spec.dataSourceFamily);
-    }
     if (pageToken) url.searchParams.set("pageToken", pageToken);
 
     let res: Response;
