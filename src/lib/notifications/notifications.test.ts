@@ -174,7 +174,7 @@ describe("Local Notifications System (on-device)", () => {
       expect(claimNotif?.title).toBe("Family reward requested");
       expect(claimNotif?.body).toContain("Movie night");
       expect(claimNotif?.body).toContain("Lucas");
-      expect(claimNotif?.actionUrl).toBe(ROUTES.parent);
+      expect(claimNotif?.actionUrl).toBe(ROUTES.parentRewards);
       expect(claimNotif?.actionLabel).toBe("Review rewards");
     });
 

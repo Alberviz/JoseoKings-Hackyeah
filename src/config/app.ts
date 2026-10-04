@@ -13,6 +13,7 @@ export const ROUTES = {
   parentFoods: "/parent/foods",
   parentPatterns: "/parent/patterns",
   parentReport: "/parent/report",
+  parentRewards: "/parent/rewards",
   parentSettings: "/parent/settings",
   offline: "/~offline",
   play: "/play",
