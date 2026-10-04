@@ -100,7 +100,7 @@ Defined in `src/config/app.ts` (`ROUTES`). Do not hard-code paths.
 | `/parent/report`   | Doctor report view and print                                        | parent |
 | `/parent/settings` | PIN, backup export and import, consultations                        | parent |
 
-The v2 child routes (Play flow, Shop, Food, Customize) are planned in `docs/V2-CHILD-PLAN.md` and will be added to `ROUTES` with it.
+The v2 child routes (Play flow, Shop, Food, Customize) were planned in `docs/V2-CHILD-PLAN.md` and are now in `ROUTES` (`/play`, `/shop`, `/food`, `/customize`).
 
 First run: if `AppState.child` is `null`, `/` redirects to `/parent/setup`.
 
