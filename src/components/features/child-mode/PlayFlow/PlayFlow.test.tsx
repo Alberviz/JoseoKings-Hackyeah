@@ -173,6 +173,9 @@ describe("PlayFlow (Task V5)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Great/i }));
 
     // Step 7: Chest
+    expect(await screen.findByRole("button", { name: /Open chest/i })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Open chest/i }));
+
     expect(await screen.findByText("+12")).toBeTruthy();
     expect(screen.getByText("Every time you play, you get a chest.")).toBeTruthy();
     expect(screen.getByRole("img", { name: /Open treasure chest/i })).toBeTruthy();
@@ -210,8 +213,27 @@ describe("PlayFlow (Task V5)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Chill/i }));
 
     // Chest gives +6 for rest
+    expect(await screen.findByRole("button", { name: /Open chest/i })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Open chest/i }));
+
     expect(await screen.findByText("+6")).toBeTruthy();
     expect(screen.getByText("Every time you play, you get a chest.")).toBeTruthy();
+  });
+
+  it("opens chest directly when tapping the closed chest graphic", async () => {
+    renderWithTheme(
+      <ProviderWrapper>
+        <PlayFlow initialStep="chest" />
+      </ProviderWrapper>,
+    );
+
+    expect(await screen.findByText("Tap the chest to open your reward!")).toBeTruthy();
+    const chestButton = screen.getByTestId("open-treasure-chest");
+    fireEvent.click(chestButton);
+
+    expect(await screen.findByText("+12")).toBeTruthy();
+    expect(screen.getByText("Every time you play, you get a chest.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Back home/i })).toBeTruthy();
   });
 
   it("Step 5 with Someone else (other): asks partner to confirm", async () => {

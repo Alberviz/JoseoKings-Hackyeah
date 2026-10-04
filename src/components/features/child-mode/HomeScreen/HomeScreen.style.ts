@@ -25,20 +25,22 @@ export const TopBar = styled.header`
   width: 100%;
   max-width: 440px;
   min-height: 48px;
-  gap: ${({ theme }) => theme.spacing.xs};
+  gap: ${({ theme }) => theme.spacing.sm};
   box-sizing: border-box;
   position: relative;
   z-index: 1;
 `;
 
 export const FireBar = styled.div`
-  display: inline-flex;
+  display: flex;
+  flex: 1;
+  min-width: 0;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.xs};
   padding: 6px 10px;
   background: ${({ theme }) => theme.colors.surface};
   border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
-  border-radius: ${({ theme }) => theme.radius.sm};
+  border-radius: ${({ theme }) => theme.radius.pill};
   box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
   min-height: 40px;
   box-sizing: border-box;
@@ -55,14 +57,14 @@ export const FlameIconWrapper = styled.span`
 `;
 
 export const FireTrack = styled.div`
-  width: 48px;
-  height: 12px;
+  flex: 1;
+  min-width: 50px;
+  height: 14px;
   background: ${({ theme }) => theme.colors.paper};
   border: 1.5px solid ${({ theme }) => theme.colors.ink};
-  border-radius: 3px;
+  border-radius: ${({ theme }) => theme.radius.pill};
   overflow: hidden;
   position: relative;
-  flex-shrink: 0;
 `;
 
 export const FireFill = styled.div.attrs<{ $percent: number }>(({ $percent }) => ({
@@ -270,6 +272,12 @@ export const DragonWrapper = styled.div`
   position: relative;
   z-index: 1;
   filter: drop-shadow(0 14px 28px rgba(18, 119, 130, 0.22));
+
+  & > svg {
+    width: clamp(250px, 68vw, 320px);
+    max-height: 45vh;
+    height: auto;
+  }
 `;
 
 export const BottomArea = styled.section`
@@ -277,7 +285,7 @@ export const BottomArea = styled.section`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 380px;
+  max-width: 440px;
   gap: ${({ theme }) => theme.spacing.sm};
   margin-top: auto;
   margin-bottom: 4px;
@@ -372,8 +380,9 @@ export const PlayButtonContainer = styled.div`
   box-sizing: border-box;
 
   & > button {
-    min-height: 56px;
+    min-height: 58px;
     font-size: ${({ theme }) => theme.fontSize.lg};
+    border-radius: ${({ theme }) => theme.radius.lg};
   }
 `;
 
@@ -406,8 +415,9 @@ export const ActionButtonWrapper = styled.div`
   box-sizing: border-box;
 
   & > button {
-    min-height: ${({ theme }) => theme.touchTarget};
+    min-height: 50px;
     padding: 8px 4px;
+    border-radius: ${({ theme }) => theme.radius.md};
   }
 `;
 

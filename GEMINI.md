@@ -26,8 +26,9 @@ You implement **one task from `docs/TASKS.md` at a time**, on its own branch, an
 ## Product rules you must not break
 
 - No medical advice, no predictions, no invented indexes. Use only the wording allowed in `docs/PRODUCT.md` section 6.
-- Rewards never depend on the child's answers or on the mission kind. No punishment mechanics.
-- No health data to any server. No backend, no accounts, no analytics.
+- Rewards never depend on the child's answers, on the mission kind or on watch data. No punishment mechanics.
+- Health data stays on the device. The only exception is the watch pipeline of task W1 (Google Health API, read-only, parent consent), under the guardrails in `AGENTS.md`. Check-ins, parent log and food diary never go to a server. No accounts for the family, no analytics.
+- Watch data is labelled as measured by the watch, is never used for scores, alerts, predictions or rewards, and is not shown to the child.
 - Do not build the removed restroom map or menu reader (they are in git history only).
 - If an older file says something different from `docs/PRODUCT.md`, follow `docs/PRODUCT.md` and tell the human.
 
