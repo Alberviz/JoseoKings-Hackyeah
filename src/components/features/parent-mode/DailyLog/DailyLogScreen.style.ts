@@ -53,6 +53,37 @@ export const ConsultationItem = styled.li`
   background: ${({ theme }) => theme.colors.background};
 `;
 
+export const ConsultationItemContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  flex-wrap: wrap;
+`;
+
+export const ConsultationRemoveButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: ${({ theme }) => theme.touchTarget};
+  padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.urgent};
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  cursor: pointer;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.urgent};
+    background: ${({ theme }) => theme.colors.background};
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+`;
+
 export const AlertBox = styled.div<{ $variant?: "urgent" | "success" | "info" }>`
   padding: ${({ theme }) => theme.spacing.md};
   border-radius: ${({ theme }) => theme.radius.md};
@@ -83,6 +114,7 @@ export const FormSection = styled.div`
   padding-top: ${({ theme }) => theme.spacing.md};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
 `;
+
 export const SleepSliderCard = styled.div`
   display: flex;
   flex-direction: column;

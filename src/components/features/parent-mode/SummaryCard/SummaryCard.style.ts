@@ -98,3 +98,17 @@ export const PromptCard = styled.aside`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
 `;
+
+export const AppointmentRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.xs} 0;
+`;
+
+export const AppointmentDateText = styled.span`
+  font-size: ${({ theme }) => theme.fontSize.md};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.text};
+`;
