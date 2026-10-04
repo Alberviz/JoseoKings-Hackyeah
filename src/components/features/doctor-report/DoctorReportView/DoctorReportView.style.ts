@@ -26,8 +26,12 @@ export const PrintGlobalStyle = createGlobalStyle`
       display: none !important;
     }
 
-    /* Ensure everything fits compactly and avoid unwanted page breaks */
-    section, table, tr, figure, article, aside {
+    /*
+     * Keep small blocks whole, but let the report, its sections and long tables
+     * flow across pages: a whole report that may not split is pushed to page 2
+     * and leaves page 1 empty.
+     */
+    tr, figure, aside {
       break-inside: avoid;
       page-break-inside: avoid;
     }
@@ -174,8 +178,6 @@ export const ReportSection = styled.section`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
-  break-inside: avoid;
-  page-break-inside: avoid;
 
   @media print {
     gap: 4px !important;
