@@ -286,4 +286,150 @@ describe("PlayFlow (Task V5)", () => {
 
     expect(await screen.findByText("How do you feel after playing?")).toBeTruthy();
   });
+
+  it("Exercise step: auto-advances to the next exercise step 2 seconds after countdown finishes if Next step is not clicked", () => {
+    vi.useFakeTimers();
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <PlayFlow initialStep="exercise" initialCompany="alone" initialLevel={1} />
+      </ProviderWrapper>,
+    );
+
+    // Initial step: Step 1 of 4
+    expect(screen.getByText("Step 1 of 4")).toBeTruthy();
+    const nextBtn = screen.getByRole("button", { name: /Next step/i });
+    expect((nextBtn as HTMLButtonElement).disabled).toBe(true);
+
+    // Advance 15s to finish the first exercise countdown (15s duration)
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+    expect((nextBtn as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByText("Step 1 of 4")).toBeTruthy();
+
+    // 1 second after countdown finishes: still on Step 1 of 4
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText("Step 1 of 4")).toBeTruthy();
+
+    // At 2 seconds (1000ms more): automatically advances to Step 2 of 4 without clicking
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText("Step 2 of 4")).toBeTruthy();
+  });
+
+  it("Exercise step: clicking Next step before 2 seconds advances immediately and cancels auto-advance", () => {
+    vi.useFakeTimers();
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <PlayFlow initialStep="exercise" initialCompany="alone" initialLevel={1} />
+      </ProviderWrapper>,
+    );
+
+    expect(screen.getByText("Step 1 of 4")).toBeTruthy();
+
+    // Finish countdown
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+
+    const nextBtn = screen.getByRole("button", { name: /Next step/i });
+    expect((nextBtn as HTMLButtonElement).disabled).toBe(false);
+
+    // User clicks at 500ms (before 2s)
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    fireEvent.click(nextBtn);
+
+    // Immediately on Step 2 of 4
+    expect(screen.getByText("Step 2 of 4")).toBeTruthy();
+
+    // Advance by 2000ms: stays on Step 2 of 4 (new exercise is counting down, no double-advance)
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByText("Step 2 of 4")).toBeTruthy();
+  });
+
+  it("Exercise step: clicking Rest now cancels auto-advance timer", () => {
+    vi.useFakeTimers();
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <PlayFlow initialStep="exercise" initialCompany="alone" initialLevel={1} />
+      </ProviderWrapper>,
+    );
+
+    // Finish countdown
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+
+    // User clicks Rest now
+    fireEvent.click(screen.getByRole("button", { name: /Rest now/i }));
+
+    expect(screen.getByText("How do you feel after playing?")).toBeTruthy();
+
+    // Advance by 5000ms: still on mood selection, auto-advance did not fire
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(screen.getByText("How do you feel after playing?")).toBeTruthy();
+  });
+
+  it("Exercise step: auto-advances from the final step to confirmation after 2 seconds", () => {
+    vi.useFakeTimers();
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <PlayFlow initialStep="exercise" initialCompany="alone" initialLevel={1} />
+      </ProviderWrapper>,
+    );
+
+    // Step 1 of 4 (15s duration + 2s auto-advance)
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByText("Step 2 of 4")).toBeTruthy();
+
+    // Step 2 of 4 (15s duration + 2s auto-advance)
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByText("Step 3 of 4")).toBeTruthy();
+
+    // Step 3 of 4 (15s duration + 2s auto-advance)
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByText("Step 4 of 4")).toBeTruthy();
+
+    // Step 4 of 4 (20s duration): finish countdown
+    act(() => {
+      vi.advanceTimersByTime(20000);
+    });
+    const doneBtn = screen.getByRole("button", { name: /Done/i });
+    expect((doneBtn as HTMLButtonElement).disabled).toBe(false);
+
+    // Wait 2s without clicking Done -> advances to confirmation
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByText("All done!")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /I did it/i })).toBeTruthy();
+  });
 });
