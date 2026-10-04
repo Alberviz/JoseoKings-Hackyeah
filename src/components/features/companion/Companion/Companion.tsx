@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { ThemeContext } from "styled-components";
 import { theme as defaultTheme } from "@/theme/theme";
 import { ITEM_IDS } from "@/config/content-ids";
@@ -160,11 +160,20 @@ export function Companion({
 }: CompanionProps) {
   const currentTheme = useContext(ThemeContext) || defaultTheme;
   const [isTapped, setIsTapped] = useState(false);
+  const tapTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const timeoutRef = tapTimeoutRef;
+    return () => {
+      if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const handleClick = () => {
     if (interactive && animated) {
       setIsTapped(true);
-      setTimeout(() => setIsTapped(false), 700);
+      if (tapTimeoutRef.current !== null) clearTimeout(tapTimeoutRef.current);
+      tapTimeoutRef.current = window.setTimeout(() => setIsTapped(false), 700);
     }
     onTap?.();
     onClick?.();

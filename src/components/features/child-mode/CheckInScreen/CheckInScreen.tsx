@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Companion } from "@/components/features/companion";
 import { Button, Heading, LinkButton, ProgressBar, Screen, Stack, Text } from "@/components/ui";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
@@ -55,6 +55,14 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
   const [isCompleted, setIsCompleted] = useState(false);
   const [notToday, setNotToday] = useState(false);
   const [companionPose, setCompanionPose] = useState<"idle" | "cheer">("idle");
+  const poseTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const timeoutRef = poseTimeoutRef;
+    return () => {
+      if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const companionName = state.companion.name || "Your companion";
   const currentQuestion = questions[currentStep];
@@ -89,7 +97,8 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
       [currentQuestion.id]: optionValue,
     });
 
-    window.setTimeout(() => {
+    if (poseTimeoutRef.current !== null) window.clearTimeout(poseTimeoutRef.current);
+    poseTimeoutRef.current = window.setTimeout(() => {
       setCompanionPose("idle");
     }, 1200);
   };
