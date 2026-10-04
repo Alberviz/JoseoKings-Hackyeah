@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { GAME_IDS, MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
 import {
   CHECK_IN_QUESTIONS,
-  CHILD_VISIBILITY_NOTE,
   GAME_MOVE_KEYS,
   GENTLE_MISSIONS,
   MISSION_STOP_MESSAGE,
@@ -225,11 +224,6 @@ describe("Disclaimers", () => {
     expect(PATTERNS_DISCLAIMER).toMatch(/medical assessment/i);
   });
 
-  it("exports CHILD_VISIBILITY_NOTE reassuring the child about parent visibility", () => {
-    expect(CHILD_VISIBILITY_NOTE.trim().length).toBeGreaterThan(0);
-    expect(CHILD_VISIBILITY_NOTE).toMatch(/parents/i);
-  });
-
   it("exports MISSION_STOP_MESSAGE reassuring about stopping early and resting", () => {
     expect(MISSION_STOP_MESSAGE.trim().length).toBeGreaterThan(0);
     expect(MISSION_STOP_MESSAGE).toMatch(/body|rest/i);
@@ -244,7 +238,6 @@ describe("Content safety and guidelines", () => {
     ...MISSIONS.flatMap((m) => [m.title, m.parentNote, ...m.steps.map((s) => s.text)]),
     // Authored disclaimers
     PATTERNS_DISCLAIMER,
-    CHILD_VISIBILITY_NOTE,
     MISSION_STOP_MESSAGE,
   ];
 
