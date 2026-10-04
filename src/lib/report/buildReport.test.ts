@@ -48,6 +48,7 @@ describe("buildReport", () => {
     expect(report.period.startDate).toBe(addDays(TODAY, -29));
     expect(report.period.totalDays).toBe(30);
     expect(report.period.previousConsultationDate).toBeNull();
+    expect(report.period.nextAppointmentDate).toBeNull();
 
     // Metrics are zero/null
     expect(report.metrics.checkInDaysCount).toBe(0);
@@ -137,6 +138,7 @@ describe("buildReport", () => {
     const report = buildReport(state, TODAY);
 
     expect(report.period.previousConsultationDate).toBe(addDays(TODAY, -10));
+    expect(report.period.nextAppointmentDate).toBe(addDays(TODAY, 5));
     expect(report.period.startDate).toBe(addDays(TODAY, -9));
     expect(report.period.endDate).toBe(TODAY);
     expect(report.period.totalDays).toBe(10);

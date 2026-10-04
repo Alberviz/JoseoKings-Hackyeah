@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -30,6 +30,19 @@ import {
   saveWatchState,
 } from "@/lib/storage";
 import type { DeviceRole } from "@/types";
+import {
+  DEFAULT_REMINDER_TIME,
+  getNotificationPermission,
+  isNotificationSupported,
+  requestNotificationPermission,
+  triggerLocalReminder,
+} from "@/lib/reminder/reminder";
+import {
+  clearBiometric,
+  isBiometricAvailable,
+  isBiometricEnrolled,
+  registerBiometric,
+} from "@/lib/biometrics";
 import { formatMissionTitle } from "../missionLabels";
 import { PinGate } from "../PinGate/PinGate";
 import { WatchConnectCard } from "../WatchConnectCard/WatchConnectCard";
@@ -49,6 +62,12 @@ export function SettingsScreen() {
   const session = useParentSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Daily care reminder state
+  const [notificationPermission, setNotificationPermission] = useState(() =>
+    getNotificationPermission(),
+  );
+  const [reminderMessage, setReminderMessage] = useState<string | undefined>(undefined);
+
   // Enabled missions state
   const [missionsError, setMissionsError] = useState<string | undefined>(undefined);
 
@@ -67,6 +86,25 @@ export function SettingsScreen() {
 
   // Clear data dialog state
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+
+  // Biometrics state
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = useState(false);
+  const [biometricMessage, setBiometricMessage] = useState<string | undefined>(undefined);
+  const [biometricError, setBiometricError] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    let mounted = true;
+    void isBiometricAvailable().then((avail) => {
+      if (mounted) {
+        setBiometricAvailable(avail);
+        setBiometricEnrolled(isBiometricEnrolled());
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   if (!isReady) {
     return (
@@ -309,6 +347,111 @@ export function SettingsScreen() {
             </Stack>
           </Card>
 
+          {/* Daily care reminder */}
+          <Card label="Daily care reminder">
+            <Stack gap="md">
+              <Heading level={2}>Daily care reminder</Heading>
+              <Text size="sm" tone="muted">
+                A local device reminder to record or follow today&apos;s routine. No drug names or
+                doses are ever stored or shown.
+              </Text>
+
+              <OptionGroup legend="Daily reminder" columns={2}>
+                <OptionButton
+                  label="Enabled"
+                  selected={Boolean(state.settings?.reminderEnabled)}
+                  onSelect={() => {
+                    if (!state.settings) return;
+                    actions.setSettings({
+                      ...state.settings,
+                      reminderEnabled: true,
+                      reminderTime: state.settings.reminderTime ?? DEFAULT_REMINDER_TIME,
+                    });
+                  }}
+                />
+                <OptionButton
+                  label="Disabled"
+                  selected={!state.settings?.reminderEnabled}
+                  onSelect={() => {
+                    if (!state.settings) return;
+                    actions.setSettings({
+                      ...state.settings,
+                      reminderEnabled: false,
+                    });
+                  }}
+                />
+              </OptionGroup>
+
+              {state.settings?.reminderEnabled ? (
+                <Stack gap="sm">
+                  <TextField
+                    label="Reminder time"
+                    type="time"
+                    value={state.settings.reminderTime ?? DEFAULT_REMINDER_TIME}
+                    onChange={(value) => {
+                      if (!state.settings) return;
+                      actions.setSettings({
+                        ...state.settings,
+                        reminderTime: value,
+                      });
+                    }}
+                    hint="Local time when you would like to be reminded each day."
+                  />
+
+                  {isNotificationSupported() ? (
+                    <Stack gap="xs">
+                      {notificationPermission === "granted" ? (
+                        <AlertBox $variant="success">
+                          Local notifications are permitted on this device.
+                        </AlertBox>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={async () => {
+                            const granted = await requestNotificationPermission();
+                            setNotificationPermission(getNotificationPermission());
+                            if (granted) {
+                              setReminderMessage("Device notifications enabled.");
+                            }
+                          }}
+                        >
+                          Enable device notifications
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const childName = state.child?.nickname ?? "your child";
+                          const sent = triggerLocalReminder(childName);
+                          if (sent) {
+                            setReminderMessage("Test notification sent.");
+                          } else {
+                            setReminderMessage("Test reminder shown via in-app banner.");
+                          }
+                        }}
+                      >
+                        Send test reminder
+                      </Button>
+                    </Stack>
+                  ) : (
+                    <Text size="sm" tone="muted">
+                      Device notifications not available in this browser. A gentle in-app banner
+                      will appear when due.
+                    </Text>
+                  )}
+
+                  {reminderMessage ? (
+                    <AlertBox $variant="success" role="status">
+                      {reminderMessage}
+                    </AlertBox>
+                  ) : null}
+                </Stack>
+              ) : null}
+            </Stack>
+          </Card>
+
           {/* 2. Change PIN */}
           <Card label="Change PIN">
             <StyledForm onSubmit={handleChangePinSubmit}>
@@ -381,6 +524,76 @@ export function SettingsScreen() {
                 Update PIN
               </Button>
             </StyledForm>
+          </Card>
+
+          {/* Biometric unlock (Face ID / Fingerprint) */}
+          <Card label="Biometric unlock">
+            <Stack gap="md">
+              <Heading level={2}>Face ID & Fingerprint</Heading>
+              <Text size="sm" tone="muted">
+                Unlock parent mode faster using your device&apos;s Face ID, Touch ID, or fingerprint
+                sensor.
+              </Text>
+
+              {biometricMessage ? (
+                <AlertBox $variant="success" role="status">
+                  {biometricMessage}
+                </AlertBox>
+              ) : null}
+
+              {biometricError ? (
+                <AlertBox $variant="urgent" role="alert">
+                  {biometricError}
+                </AlertBox>
+              ) : null}
+
+              {biometricAvailable ? (
+                biometricEnrolled ? (
+                  <Stack gap="sm">
+                    <AlertBox $variant="success" role="status">
+                      Biometric unlock is enabled on this device.
+                    </AlertBox>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        clearBiometric();
+                        setBiometricEnrolled(false);
+                        setBiometricMessage("Biometric credentials removed from this device.");
+                        setBiometricError(undefined);
+                      }}
+                    >
+                      Disable biometric unlock
+                    </Button>
+                  </Stack>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={async () => {
+                      setBiometricError(undefined);
+                      setBiometricMessage(undefined);
+                      const res = await registerBiometric(
+                        "MyCrohnie",
+                        state.child?.nickname || "Parent",
+                      );
+                      if (res.success) {
+                        setBiometricEnrolled(true);
+                        setBiometricMessage("Biometric unlock enabled on this device.");
+                      } else if (res.error && !res.error.toLowerCase().includes("cancelled")) {
+                        setBiometricError(res.error);
+                      }
+                    }}
+                  >
+                    Enable Face ID / Fingerprint
+                  </Button>
+                )
+              ) : (
+                <Text size="sm" tone="muted">
+                  Biometric sensor not available on this browser or device.
+                </Text>
+              )}
+            </Stack>
           </Card>
 
           {/* 3. Backup and restore */}

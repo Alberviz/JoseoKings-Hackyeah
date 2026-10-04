@@ -48,6 +48,87 @@ export const DRAGON_ARTWORK: Record<CompanionStage, string> = {
   3: "/dragon_stage3_heroic.png",
 };
 
+export function getDragonArtwork(
+  stage: CompanionStage = 1,
+  equippedItemIds: string[] = [],
+): string {
+  const safeStage = stage === 2 || stage === 3 ? stage : 1;
+  const hasHead = equippedItemIds.includes("hat") || equippedItemIds.includes("cap");
+  const hasBody = equippedItemIds.includes("t-shirt") || equippedItemIds.includes("sport-shirt");
+  const hasFace = equippedItemIds.includes("glasses") || equippedItemIds.includes("sunglasses");
+
+  let combo = "none";
+  if (hasFace && hasBody && hasHead) {
+    combo = "all";
+  } else if (hasBody && hasHead) {
+    combo = "shirt_hat";
+  } else if (hasFace && hasHead) {
+    combo = "glasses_hat";
+  } else if (hasFace && hasBody) {
+    combo = "glasses_shirt";
+  } else if (hasHead) {
+    combo = "all";
+  } else if (hasBody) {
+    combo = "shirt";
+  } else if (hasFace) {
+    combo = "glasses";
+  } else {
+    combo = "none";
+  }
+
+  if (combo === "none") {
+    return DRAGON_ARTWORK[safeStage];
+  }
+  if (combo === "all") {
+    return `/dragon_stage${safeStage}_all.png`;
+  }
+  if (combo === "shirt") {
+    return `/dragon_stage${safeStage}_shirt.png`;
+  }
+  if (combo === "glasses") {
+    return `/dragon_stage${safeStage}_glasses.png`;
+  }
+
+  return `/dragon_v2_stage${safeStage}_${combo}.png`;
+}
+
+export const ACCESSORY_TRANSFORMS: Record<
+  CompanionStage,
+  {
+    hat: string;
+    cap: string;
+    glasses: string;
+    sunglasses: string;
+    tshirt: string;
+    sportShirt: string;
+  }
+> = {
+  1: {
+    hat: "translate(100, 44) scale(1.0)",
+    cap: "translate(100, 42) scale(0.98)",
+    glasses: "translate(100, 72) scale(1.0)",
+    sunglasses: "translate(100, 72) scale(1.0)",
+    tshirt: "translate(100, 130) scale(1.0, 1.0)",
+    sportShirt: "translate(100, 130) scale(1.0, 1.0)",
+  },
+  2: {
+    hat: "translate(107, 40) rotate(3)",
+    cap: "translate(107, 37) rotate(2)",
+    glasses: "translate(107, 68)",
+    sunglasses: "translate(107, 68)",
+    tshirt: "translate(109, 107) rotate(-4)",
+    sportShirt: "translate(109, 107) rotate(-4)",
+  },
+  3: {
+    hat: "translate(107, 42) rotate(2)",
+    cap: "translate(107, 40) rotate(1)",
+    glasses: "translate(107, 67)",
+    sunglasses: "translate(107, 67)",
+    tshirt: "translate(110, 107) rotate(-3)",
+    sportShirt: "translate(110, 107) rotate(-3)",
+  },
+};
+
 export type CompanionProps = {
   pose: CompanionPose;
   equippedItemIds?: string[];
@@ -96,10 +177,31 @@ export function Companion({
     }
   }
 
-  const hasHat = activeItemsBySlot.get("hat") === ITEM_IDS.hatExplorer;
   const isTeal = activeItemsBySlot.get("color") === ITEM_IDS.colorTeal;
   const hasCape = activeItemsBySlot.get("cape") === ITEM_IDS.capeStar;
-  const hasGoggles = activeItemsBySlot.get("gadget") === ITEM_IDS.gadgetGoggles;
+
+  // Head slot: cap has precedence if both present, otherwise hat (explorer hat)
+  const hasCap = equippedItemIds.includes("cap");
+  const hasExplorerHat =
+    !hasCap &&
+    (activeItemsBySlot.get("hat") === ITEM_IDS.hatExplorer || equippedItemIds.includes("hat"));
+  const hasHat = hasExplorerHat;
+
+  // Face slot: sunglasses has precedence if both present, otherwise classic glasses / goggles
+  const hasSunglasses = equippedItemIds.includes("sunglasses");
+  const hasClassicGlasses =
+    !hasSunglasses &&
+    (activeItemsBySlot.get("gadget") === ITEM_IDS.gadgetGoggles ||
+      equippedItemIds.includes("glasses"));
+  const hasGlasses = hasClassicGlasses;
+  const hasGoggles = hasClassicGlasses;
+
+  // Body slot: sport-shirt has precedence if both present, otherwise star t-shirt
+  const hasSportShirt = equippedItemIds.includes("sport-shirt");
+  const hasTshirt = !hasSportShirt && equippedItemIds.includes("t-shirt");
+
+  const currentStage = stage || 1;
+  const transforms = ACCESSORY_TRANSFORMS[currentStage] || ACCESSORY_TRANSFORMS[1];
 
   // Kraków Dragon color tokens from currentTheme.colors (strictly no hardcoded hex literals)
   const colors = currentTheme.colors;
@@ -193,7 +295,7 @@ export function Companion({
 
         {/* --- OFFICIAL EXACT KRAKÓW DRAGON ARTWORK (Full fidelity transparent PNG) --- */}
         <SvgImage
-          href={DRAGON_ARTWORK[stage || 1] || "/dragon.png"}
+          href={getDragonArtwork(stage || 1, equippedItemIds)}
           x="10"
           y="10"
           width="180"
@@ -202,6 +304,22 @@ export function Companion({
           data-testid="companion-artwork"
           $isTeal={isTeal}
         />
+
+        {/* --- Equipped Wearable Markers (Artwork natively includes clothes from the high-res spritesheet) --- */}
+        {hasSportShirt && (
+          <SvgG data-testid="companion-wearable-sport-shirt" transform={transforms.sportShirt} />
+        )}
+        {hasTshirt && (
+          <SvgG data-testid="companion-wearable-tshirt" transform={transforms.tshirt} />
+        )}
+        {hasSunglasses && (
+          <SvgG data-testid="companion-wearable-sunglasses" transform={transforms.sunglasses} />
+        )}
+        {hasGlasses && (
+          <SvgG data-testid="companion-wearable-glasses" transform={transforms.glasses} />
+        )}
+        {hasCap && <SvgG data-testid="companion-wearable-cap" transform={transforms.cap} />}
+        {hasHat && <SvgG data-testid="companion-wearable-hat" transform={transforms.hat} />}
 
         {/* --- Semantic Vector Structure for Test Compatibility & Layout --- */}
         <HiddenSemanticG>

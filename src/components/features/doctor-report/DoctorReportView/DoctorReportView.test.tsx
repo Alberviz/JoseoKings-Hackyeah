@@ -119,6 +119,20 @@ describe("DoctorReportView", () => {
     expect(screen.queryByText("Demo data")).toBeNull();
   });
 
+  it("renders next appointment when provided", () => {
+    const dataWithNext: DoctorReportData = {
+      ...mockReportData,
+      period: {
+        ...mockReportData.period,
+        nextAppointmentDate: "2026-10-15",
+      },
+    };
+
+    renderWithTheme(<DoctorReportView data={dataWithNext} />);
+
+    expect(screen.getByText(/Next appointment: 2026-10-15/)).toBeTruthy();
+  });
+
   it("renders overview metrics correctly", () => {
     renderWithTheme(<DoctorReportView data={mockReportData} />);
 

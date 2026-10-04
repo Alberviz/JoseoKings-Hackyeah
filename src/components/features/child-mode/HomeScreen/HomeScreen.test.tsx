@@ -279,7 +279,7 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     const badge = await screen.findByTestId("evolution-stage-badge");
     expect(badge).toBeDefined();
     expect(badge.textContent).toContain("Baby Dragon");
-    expect(badge.textContent).toContain("40 🔥 to evolve");
+    expect(badge.textContent).toContain("50 🔥 to evolve");
 
     unmount();
 
@@ -287,8 +287,8 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
       ...customState,
       economy: {
         ...createDefaultEconomy(),
-        fire: 85,
-        highestFire: 85,
+        fire: 100,
+        highestFire: 100,
       },
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(heroState));

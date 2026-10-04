@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTheme } from "styled-components";
 import { Companion } from "@/components/features/companion";
 import { Button, Heading, LinkButton, ProgressBar, Screen, Stack, Text } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { FIRE_MAX } from "@/config/economy";
+import { getDragonEvolution } from "@/lib/economy";
 import { useAppState } from "@/hooks/useAppState";
 import {
   ActionsContainer,
@@ -74,6 +75,19 @@ export function FoodScreen() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isEating, setIsEating] = useState(false);
   const [floatingFire, setFloatingFire] = useState(false);
+  const timeoutIdsRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    const ids = timeoutIdsRef;
+    return () => {
+      ids.current.forEach((id) => clearTimeout(id));
+    };
+  }, []);
+
+  const scheduleTimeout = (fn: () => void, ms: number) => {
+    const id = window.setTimeout(fn, ms);
+    timeoutIdsRef.current.push(id);
+  };
 
   if (!isReady) {
     return (
@@ -87,6 +101,7 @@ export function FoodScreen() {
   const foodCount = state.economy.inventory.food;
   const companionName = state.companion?.name || state.child?.nickname || "Companion";
   const equippedItemIds = state.economy.equippedItemIds;
+  const evolution = getDragonEvolution(state.economy ?? { fire: 0 });
 
   const handleGiveFood = () => {
     const result = actions.giveFood();
@@ -94,8 +109,8 @@ export function FoodScreen() {
       setIsEating(true);
       setFloatingFire(true);
       setFeedback("Yum! Dragon fire increased!");
-      setTimeout(() => setIsEating(false), 1800);
-      setTimeout(() => setFloatingFire(false), 1800);
+      scheduleTimeout(() => setIsEating(false), 1800);
+      scheduleTimeout(() => setFloatingFire(false), 1800);
     } else if (result.reason === "no-food") {
       setFeedback("You have no food left! Visit the shop to buy more.");
     }
@@ -123,10 +138,11 @@ export function FoodScreen() {
             equippedItemIds={equippedItemIds}
             name={companionName}
             size="lg"
+            stage={evolution.stage}
             onTap={() => {
               if (!isEating) {
                 setIsEating(true);
-                setTimeout(() => setIsEating(false), 1800);
+                scheduleTimeout(() => setIsEating(false), 1800);
               }
             }}
           />
