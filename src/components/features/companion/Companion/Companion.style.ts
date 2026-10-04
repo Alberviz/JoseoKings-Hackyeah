@@ -5,6 +5,8 @@ const sizeMap: Record<CompanionSize, string> = {
   sm: "96px",
   md: "160px",
   lg: "240px",
+  // Takes the full width of its parent, so the parent decides the size (fluid layouts).
+  fill: "100%",
 };
 
 // =============================================================================
