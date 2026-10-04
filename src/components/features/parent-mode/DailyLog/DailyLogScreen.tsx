@@ -200,12 +200,7 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
 
         <SleepSliderCard>
           <SleepSliderHeader>
-            <Stack gap="xs">
-              <Heading level={3}>Sleep hours</Heading>
-              <Text size="sm" tone="muted">
-                One-thumb slider. Optional hours slept.
-              </Text>
-            </Stack>
+            <Heading level={3}>Sleep hours</Heading>
             <SleepValueBadge $active={draft.sleepHours !== ""}>
               {draft.sleepHours === "" ? "Not recorded" : `${draft.sleepHours} hrs`}
             </SleepValueBadge>
@@ -255,11 +250,12 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
           </SleepControlsRow>
 
           <QuickPillRow aria-label="Quick sleep hours">
-            {[7, 8, 8.5, 9, 9.5, 10, 11].map((hours) => (
+            {[7, 8, 9, 10].map((hours) => (
               <QuickPillButton
                 key={hours}
                 type="button"
                 $selected={draft.sleepHours === String(hours)}
+                aria-pressed={draft.sleepHours === String(hours)}
                 onClick={() => setDraft((prev) => ({ ...prev, sleepHours: String(hours) }))}
               >
                 {hours}h

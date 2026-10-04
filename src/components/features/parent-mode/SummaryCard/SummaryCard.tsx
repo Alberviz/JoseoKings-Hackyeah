@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Chip, LinkButton, Stack, Text } from "@/components/ui";
 import type { ChipTone } from "@/components/ui";
 import { ROUTES } from "@/config/app";
@@ -8,7 +9,7 @@ import { todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
-import { shouldShowInAppReminder } from "@/lib/reminder/reminder";
+import { getActiveNotifications, triggerSystemNotification } from "@/lib/notifications";
 import {
   formatAppointmentCountdown,
   formatConsultationDaysAgo,
@@ -110,7 +111,22 @@ export function SummaryCard({ state }: SummaryCardProps) {
   const todayMissions = state.missionLogs.filter((item) => item.date === today);
 
   const todayLog = state.parentLogs.find((item) => item.date === today);
-  const showReminder = shouldShowInAppReminder(state.settings, todayLog?.medicationTaken);
+  const activeNotifications = getActiveNotifications({
+    settings: state.settings,
+    todayLog,
+    consultations: state.consultations,
+    economy: state.economy,
+    hasChildCheckedInToday: !!todayCheckIn,
+    childNickname: childName,
+  }).filter((n) => n.audience === "parent");
+
+  useEffect(() => {
+    for (const notif of activeNotifications) {
+      if (notif.priority === "high") {
+        triggerSystemNotification(notif);
+      }
+    }
+  }, [activeNotifications]);
 
   const bellyAnswer = todayCheckIn?.answers[QUESTION_IDS.bellyComfort];
   const hasDiscomfort = typeof bellyAnswer === "number" && bellyAnswer >= DISCOMFORT_THRESHOLD;
@@ -134,18 +150,18 @@ export function SummaryCard({ state }: SummaryCardProps) {
           }
         />
 
-        {showReminder ? (
-          <SectionCard section="log" title="Daily care reminder">
+        {activeNotifications.map((notif) => (
+          <SectionCard key={notif.id} section="log" title={notif.title}>
             <Stack gap="xs">
-              <Text size="sm">
-                Time for {childName}&apos;s daily routine. Have you logged today&apos;s care?
-              </Text>
-              <LinkButton href={ROUTES.parentLog} variant="success" fullWidth>
-                Go to daily log
-              </LinkButton>
+              <Text size="sm">{notif.body}</Text>
+              {notif.actionUrl && notif.actionLabel ? (
+                <LinkButton href={notif.actionUrl} variant="success" fullWidth>
+                  {notif.actionLabel}
+                </LinkButton>
+              ) : null}
             </Stack>
           </SectionCard>
-        ) : null}
+        ))}
 
         <SectionCard section="summary" title="Today's performance">
           <Stack gap="md">

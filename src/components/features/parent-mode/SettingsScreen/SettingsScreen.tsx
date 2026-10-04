@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -29,6 +29,12 @@ import {
   requestNotificationPermission,
   triggerLocalReminder,
 } from "@/lib/reminder/reminder";
+import {
+  clearBiometric,
+  isBiometricAvailable,
+  isBiometricEnrolled,
+  registerBiometric,
+} from "@/lib/biometrics";
 import { formatMissionTitle } from "../missionLabels";
 import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { SectionCard } from "../SectionCard/SectionCard";
@@ -75,6 +81,25 @@ export function SettingsScreen() {
 
   // Clear data dialog state
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+
+  // Biometrics state
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = useState(false);
+  const [biometricMessage, setBiometricMessage] = useState<string | undefined>(undefined);
+  const [biometricError, setBiometricError] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    let mounted = true;
+    void isBiometricAvailable().then((avail) => {
+      if (mounted) {
+        setBiometricAvailable(avail);
+        setBiometricEnrolled(isBiometricEnrolled());
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   if (!isReady) {
     return (
@@ -499,6 +524,75 @@ export function SettingsScreen() {
                 Update PIN
               </Button>
             </StyledForm>
+          </SectionCard>
+
+          {/* Biometric unlock (Face ID / Fingerprint) */}
+          <SectionCard section="more" title="Face ID & Fingerprint" label="Biometric unlock">
+            <Stack gap="md">
+              <Text size="sm" tone="muted">
+                Unlock parent mode faster using your device&apos;s Face ID, Touch ID, or fingerprint
+                sensor.
+              </Text>
+
+              {biometricMessage ? (
+                <AlertBox $variant="success" role="status">
+                  {biometricMessage}
+                </AlertBox>
+              ) : null}
+
+              {biometricError ? (
+                <AlertBox $variant="urgent" role="alert">
+                  {biometricError}
+                </AlertBox>
+              ) : null}
+
+              {biometricAvailable ? (
+                biometricEnrolled ? (
+                  <Stack gap="sm">
+                    <AlertBox $variant="success" role="status">
+                      Biometric unlock is enabled on this device.
+                    </AlertBox>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        clearBiometric();
+                        setBiometricEnrolled(false);
+                        setBiometricMessage("Biometric credentials removed from this device.");
+                        setBiometricError(undefined);
+                      }}
+                    >
+                      Disable biometric unlock
+                    </Button>
+                  </Stack>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={async () => {
+                      setBiometricError(undefined);
+                      setBiometricMessage(undefined);
+                      const res = await registerBiometric(
+                        "MyCrohnie",
+                        state.child?.nickname || "Parent",
+                      );
+                      if (res.success) {
+                        setBiometricEnrolled(true);
+                        setBiometricMessage("Biometric unlock enabled on this device.");
+                      } else if (res.error && !res.error.toLowerCase().includes("cancelled")) {
+                        setBiometricError(res.error);
+                      }
+                    }}
+                  >
+                    Enable Face ID / Fingerprint
+                  </Button>
+                )
+              ) : (
+                <Text size="sm" tone="muted">
+                  Biometric sensor not available on this browser or device.
+                </Text>
+              )}
+            </Stack>
           </SectionCard>
 
           {/* 3. Backup and restore */}
