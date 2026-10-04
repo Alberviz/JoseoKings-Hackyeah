@@ -48,6 +48,7 @@ export type AppStateActions = {
   saveParentLog: (log: ParentLog) => void;
   addFoodEntry: (entry: FoodEntry) => void;
   addConsultation: (consultation: Consultation) => void;
+  removeConsultation: (id: string) => void;
   equipItem: (itemId: string) => void;
   unequipItem: (itemId: string) => void;
   /** Spends coins in the shop. The result tells the UI what to say. */
@@ -267,6 +268,16 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
     [store],
   );
 
+  const removeConsultation = useCallback(
+    (id: string) => {
+      store.updateState((prev) => ({
+        ...prev,
+        consultations: prev.consultations.filter((c) => c.id !== id),
+      }));
+    },
+    [store],
+  );
+
   const equipItem = useCallback(
     (itemId: string) => {
       store.updateState((prev) => ({
@@ -401,6 +412,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       saveParentLog,
       addFoodEntry,
       addConsultation,
+      removeConsultation,
       equipItem,
       unequipItem,
       buyShopItem,
@@ -429,6 +441,7 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
       saveParentLog,
       addFoodEntry,
       addConsultation,
+      removeConsultation,
       equipItem,
       unequipItem,
       setSettings,

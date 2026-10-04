@@ -24,6 +24,13 @@ import { buildDemoState } from "@/lib/demo-data";
 import { createPinRecord, isValidPin, verifyPin } from "@/lib/pin";
 import { exportBackup, importBackup } from "@/lib/storage";
 import type { DeviceRole } from "@/types";
+import {
+  DEFAULT_REMINDER_TIME,
+  getNotificationPermission,
+  isNotificationSupported,
+  requestNotificationPermission,
+  triggerLocalReminder,
+} from "@/lib/reminder/reminder";
 import { formatMissionTitle } from "../missionLabels";
 import { PinGate } from "../PinGate/PinGate";
 import {
@@ -41,6 +48,12 @@ export function SettingsScreen() {
   const { state, actions, isReady } = useAppState();
   const session = useParentSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Daily care reminder state
+  const [notificationPermission, setNotificationPermission] = useState(() =>
+    getNotificationPermission(),
+  );
+  const [reminderMessage, setReminderMessage] = useState<string | undefined>(undefined);
 
   // Enabled missions state
   const [missionsError, setMissionsError] = useState<string | undefined>(undefined);
@@ -170,7 +183,7 @@ export function SettingsScreen() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "crohncare-backup.json";
+      anchor.download = "mycrohnie-backup.json";
       anchor.click();
       URL.revokeObjectURL(url);
       setExportSuccess("Backup exported successfully.");
@@ -294,6 +307,111 @@ export function SettingsScreen() {
                 <AlertBox $variant="urgent" role="alert">
                   {missionsError}
                 </AlertBox>
+              ) : null}
+            </Stack>
+          </Card>
+
+          {/* Daily care reminder */}
+          <Card label="Daily care reminder">
+            <Stack gap="md">
+              <Heading level={2}>Daily care reminder</Heading>
+              <Text size="sm" tone="muted">
+                A local device reminder to record or follow today&apos;s routine. No drug names or
+                doses are ever stored or shown.
+              </Text>
+
+              <OptionGroup legend="Daily reminder" columns={2}>
+                <OptionButton
+                  label="Enabled"
+                  selected={Boolean(state.settings?.reminderEnabled)}
+                  onSelect={() => {
+                    if (!state.settings) return;
+                    actions.setSettings({
+                      ...state.settings,
+                      reminderEnabled: true,
+                      reminderTime: state.settings.reminderTime ?? DEFAULT_REMINDER_TIME,
+                    });
+                  }}
+                />
+                <OptionButton
+                  label="Disabled"
+                  selected={!state.settings?.reminderEnabled}
+                  onSelect={() => {
+                    if (!state.settings) return;
+                    actions.setSettings({
+                      ...state.settings,
+                      reminderEnabled: false,
+                    });
+                  }}
+                />
+              </OptionGroup>
+
+              {state.settings?.reminderEnabled ? (
+                <Stack gap="sm">
+                  <TextField
+                    label="Reminder time"
+                    type="time"
+                    value={state.settings.reminderTime ?? DEFAULT_REMINDER_TIME}
+                    onChange={(value) => {
+                      if (!state.settings) return;
+                      actions.setSettings({
+                        ...state.settings,
+                        reminderTime: value,
+                      });
+                    }}
+                    hint="Local time when you would like to be reminded each day."
+                  />
+
+                  {isNotificationSupported() ? (
+                    <Stack gap="xs">
+                      {notificationPermission === "granted" ? (
+                        <AlertBox $variant="success">
+                          Local notifications are permitted on this device.
+                        </AlertBox>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={async () => {
+                            const granted = await requestNotificationPermission();
+                            setNotificationPermission(getNotificationPermission());
+                            if (granted) {
+                              setReminderMessage("Device notifications enabled.");
+                            }
+                          }}
+                        >
+                          Enable device notifications
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const childName = state.child?.nickname ?? "your child";
+                          const sent = triggerLocalReminder(childName);
+                          if (sent) {
+                            setReminderMessage("Test notification sent.");
+                          } else {
+                            setReminderMessage("Test reminder shown via in-app banner.");
+                          }
+                        }}
+                      >
+                        Send test reminder
+                      </Button>
+                    </Stack>
+                  ) : (
+                    <Text size="sm" tone="muted">
+                      Device notifications not available in this browser. A gentle in-app banner
+                      will appear when due.
+                    </Text>
+                  )}
+
+                  {reminderMessage ? (
+                    <AlertBox $variant="success" role="status">
+                      {reminderMessage}
+                    </AlertBox>
+                  ) : null}
+                </Stack>
               ) : null}
             </Stack>
           </Card>

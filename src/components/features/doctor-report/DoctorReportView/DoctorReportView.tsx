@@ -80,6 +80,9 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                 {data.period.previousConsultationDate && (
                   <MetaItem>Previous consultation: {data.period.previousConsultationDate}</MetaItem>
                 )}
+                {data.period.nextAppointmentDate && (
+                  <MetaItem>Next appointment: {data.period.nextAppointmentDate}</MetaItem>
+                )}
                 {data.isDemo && <DemoBadge>Demo data</DemoBadge>}
               </HeaderMetaRow>
             </HeaderTitleGroup>

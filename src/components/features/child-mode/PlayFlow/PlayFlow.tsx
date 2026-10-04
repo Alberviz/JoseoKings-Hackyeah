@@ -157,7 +157,19 @@ function StepCountdown({
       </ExerciseTimerBox>
 
       <ExerciseActionsRow>
-        <Button variant="primary" fullWidth onClick={onNext}>
+        {!countdown.isDone && countdown.remaining <= 5 && (
+          <Text tone="muted" size="sm">
+            Almost there!
+          </Text>
+        )}
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={onNext}
+          disabled={!countdown.isDone}
+          aria-disabled={!countdown.isDone}
+          data-testid="play-step-next-button"
+        >
           {stepIndex < totalSteps - 1 ? "Next step" : "Done"}
         </Button>
         <RestNowButton type="button" onClick={onRestNow}>

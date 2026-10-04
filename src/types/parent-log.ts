@@ -5,6 +5,15 @@ export type SchoolDay = "attended" | "left-early" | "missed" | "no-school";
 /** Yes/no only. Never store drug names or doses. */
 export type MedicationTaken = "yes" | "partly" | "no" | "not-applicable";
 
+/** Stool frequency observed or known by the parent. */
+export type StoolFrequency = "typical" | "more" | "much-more" | "unknown";
+/** Nighttime bowel movement (child woke up at night). */
+export type StoolNight = "yes" | "no" | "unknown";
+/** Stool consistency (simple descriptive, no Bristol scale). */
+export type StoolConsistency = "formed" | "looser" | "watery" | "unknown";
+/** Visible blood observed. */
+export type StoolBlood = "none" | "visible" | "unknown";
+
 /** One entry per day, written in parent mode. */
 export type ParentLog = {
   date: DateKey;
@@ -12,6 +21,10 @@ export type ParentLog = {
   activity?: ActivityLevel;
   school?: SchoolDay;
   medicationTaken?: MedicationTaken;
+  stoolFrequency?: StoolFrequency;
+  stoolNight?: StoolNight;
+  stoolConsistency?: StoolConsistency;
+  stoolBlood?: StoolBlood;
   note?: string;
 };
 
