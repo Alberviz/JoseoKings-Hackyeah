@@ -155,7 +155,7 @@ function sessionDurationMin(session: SleepSessionInput): number {
  * Duration >= 180 min in both cases.
  * Heart-rate coverage, dense sampling: >= 20 samples covering >= 120 distinct minutes.
  * Sparse sampling (median gap > 5 min between readings) [adapted 2026-10-04 for 30-min sampling
- * watches]: >= 6 readings spanning >= 150 minutes.
+ * wearables]: >= 6 readings spanning >= 150 minutes.
  */
 export function assessNight(
   heartRateSamples: Array<{ timestamp: number; bpm?: number }> | undefined,

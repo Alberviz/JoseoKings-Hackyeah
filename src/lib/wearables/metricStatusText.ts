@@ -1,4 +1,4 @@
-// Plain-English lines that tell the parent what each watch metric returned in the last sync.
+// Plain-English lines that tell the parent what each wearable metric returned in the last sync.
 import type { FetchedMetricKey, MetricFetchStatus } from "./browserGoogleHealth";
 
 type Line = { key: FetchedMetricKey; text: string };
@@ -35,13 +35,13 @@ export function describeMetricStatus(key: FetchedMetricKey, status: MetricFetchS
   if (status.status !== "ok") return `${label}: could not be read (${failureReason(status)})`;
   const count = status.count;
   if (count === undefined) return `${label}: read`;
-  if (count === 0) return `${label}: No watch data yet`;
+  if (count === 0) return `${label}: No wearable data yet`;
   const [one, many] = UNITS[key];
   return `${label}: ${count} ${count === 1 ? one : many}`;
 }
 
 /**
- * One line per metric of the last sync. The watch's own resting heart rate is a side detail:
+ * One line per metric of the last sync. The wearable's own resting heart rate is a side detail:
  * it only gets a line when it could not be read.
  */
 export function describeSyncStatus(

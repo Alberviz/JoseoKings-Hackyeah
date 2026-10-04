@@ -1,7 +1,7 @@
 // A3 — Nocturnal resting heart rate.
 // Dense mode: lowest 30-minute rolling mean inside the main sleep session.
 // Requires >= 120 covered minutes and >= 4 qualifying 30-minute windows.
-// Sparse mode [adapted 2026-10-04 for 30-min sampling watches]: when the median gap between
+// Sparse mode [adapted 2026-10-04 for 30-min sampling wearables]: when the median gap between
 // readings inside the session is more than 5 minutes, the value is the lowest mean of 3 readings
 // in a row. Requires >= 6 readings that span >= 150 minutes. The mode follows the data, never the device.
 

@@ -66,7 +66,7 @@ export type MissionMoodBefore = "calm" | "strong" | "amazing";
 export type MissionMoodAfter = "exhausted" | "chill" | "great";
 
 /** What recorded movement during a mission. Only ever a neutral label, never a reward input. */
-export type MissionCorroboration = "watch" | "motion";
+export type MissionCorroboration = "wearable" | "motion";
 
 export type MissionLog = {
   id: string;
@@ -78,6 +78,6 @@ export type MissionLog = {
   createdAt: string;
   moodBefore?: MissionMoodBefore;
   moodAfter?: MissionMoodAfter;
-  /** Set when a watch or the device motion sensor recorded movement. Absent on old logs. */
+  /** Set when a wearable or the device motion sensor recorded movement. Absent on old logs. */
   corroboration?: MissionCorroboration;
 };

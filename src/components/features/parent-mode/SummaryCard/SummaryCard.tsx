@@ -17,7 +17,7 @@ import {
   getConsultationSummary,
 } from "@/lib/consultation/consultation";
 import { formatMissionTitle } from "../missionLabels";
-import { WatchSummary } from "../WatchSummary/WatchSummary";
+import { WearableSummary } from "../WearableSummary/WearableSummary";
 import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { SectionCard } from "../SectionCard/SectionCard";
 import {
@@ -235,7 +235,7 @@ export function SummaryCard({ state }: SummaryCardProps) {
           </Stack>
         </SectionCard>
 
-        <WatchSummary state={state} />
+        <WearableSummary state={state} />
 
         {hasDiscomfort ? (
           <SectionCard section="food" title="Food note" label="Food note prompt">

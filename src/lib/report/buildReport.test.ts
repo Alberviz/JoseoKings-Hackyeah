@@ -67,11 +67,11 @@ describe("buildReport", () => {
       { company: "other", label: confidenceLabel("other"), count: 0 },
     ]);
     expect(report.activity.byCorroboration).toEqual([
-      { method: "watch", label: "Watch verified", count: 0 },
+      { method: "wearable", label: "Wearable verified", count: 0 },
       { method: "motion", label: "Motion sensor verified", count: 0 },
       { method: "none", label: "Self-reported only", count: 0 },
     ]);
-    expect(report.activity.corroborationTotals).toEqual({ watch: 0, motion: 0, none: 0 });
+    expect(report.activity.corroborationTotals).toEqual({ wearable: 0, motion: 0, none: 0 });
 
     expect(report.foodsOnDiscomfortDays).toEqual([]);
     expect(report.dayStrip).toHaveLength(30);
@@ -432,17 +432,17 @@ describe("buildReport", () => {
   });
 });
 
-describe("buildReport watch and observed sections", () => {
-  it("is empty without watch data and counts parent log days", () => {
+describe("buildReport wearable and observed sections", () => {
+  it("is empty without wearable data and counts parent log days", () => {
     const state = makeEmptyState();
     state.parentLogs = [{ date: "2026-10-03", school: "missed", medicationTaken: "yes" }];
     const report = buildReport(state, "2026-10-04");
-    expect(report.watch.validDays).toBe(0);
+    expect(report.wearable.validDays).toBe(0);
     expect(report.observed.loggedDays).toBe(1);
     expect(report.observed.school.missed).toBe(1);
   });
 
-  it("feeds watch days inside the period", () => {
+  it("feeds wearable days inside the period", () => {
     const report = buildReport(makeEmptyState(), "2026-10-04", {
       days: [
         {
@@ -457,8 +457,8 @@ describe("buildReport watch and observed sections", () => {
       lastSyncAt: null,
       isDemo: true,
     });
-    expect(report.watch.steps.median).toBe(4000);
-    expect(report.watch.isDemo).toBe(true);
+    expect(report.wearable.steps.median).toBe(4000);
+    expect(report.wearable.isDemo).toBe(true);
   });
 
   it("groups completed missions by corroboration method and provides totals", () => {
@@ -473,7 +473,7 @@ describe("buildReport watch and observed sections", () => {
         company: "alone",
         confirmedBy: "child",
         createdAt: "2026-10-01T10:00:00Z",
-        corroboration: "watch",
+        corroboration: "wearable",
       },
       {
         id: "m-2",
@@ -502,19 +502,19 @@ describe("buildReport watch and observed sections", () => {
         company: "alone",
         confirmedBy: "child",
         createdAt: "2026-10-03T11:00:00Z",
-        corroboration: "watch",
+        corroboration: "wearable",
       },
     ];
 
     const report = buildReport(state, TODAY);
     expect(report.activity.totalMissionsCompleted).toBe(3);
     expect(report.activity.corroborationTotals).toEqual({
-      watch: 1,
+      wearable: 1,
       motion: 1,
       none: 1,
     });
     expect(report.activity.byCorroboration).toEqual([
-      { method: "watch", label: "Watch verified", count: 1 },
+      { method: "wearable", label: "Wearable verified", count: 1 },
       { method: "motion", label: "Motion sensor verified", count: 1 },
       { method: "none", label: "Self-reported only", count: 1 },
     ]);

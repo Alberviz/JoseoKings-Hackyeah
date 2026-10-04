@@ -21,9 +21,9 @@ import { createPinRecord, isValidPin, verifyPin } from "@/lib/pin";
 import {
   exportBackup,
   importBackup,
-  importBackupWatch,
-  loadWatchState,
-  saveWatchState,
+  importBackupWearable,
+  loadWearableState,
+  saveWearableState,
 } from "@/lib/storage";
 import {
   DEFAULT_REMINDER_TIME,
@@ -42,7 +42,7 @@ import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { SectionCard } from "../SectionCard/SectionCard";
 import { SECTION_BUTTON_VARIANT } from "../sections";
 import { PinGate } from "../PinGate/PinGate";
-import { WatchConnectCard } from "../WatchConnectCard/WatchConnectCard";
+import { WearableConnectCard } from "../WearableConnectCard/WearableConnectCard";
 import {
   AlertBox,
   HiddenFileInput,
@@ -172,7 +172,7 @@ export function SettingsScreen() {
 
   const handleExportBackup = () => {
     try {
-      const json = exportBackup(state, loadWatchState());
+      const json = exportBackup(state, loadWearableState());
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
@@ -198,8 +198,8 @@ export function SettingsScreen() {
       const content = await file.text();
       const imported = importBackup(content);
       actions.importState(imported);
-      const watch = importBackupWatch(content);
-      if (watch) saveWatchState(watch);
+      const wearable = importBackupWearable(content);
+      if (wearable) saveWearableState(wearable);
 
       setImportSuccess("Backup imported successfully.");
     } catch (err) {
@@ -252,7 +252,7 @@ export function SettingsScreen() {
             }
           />
 
-          <WatchConnectCard />
+          <WearableConnectCard />
 
           {/* Daily care reminder */}
           <SectionCard section="more" title="Daily care reminder">

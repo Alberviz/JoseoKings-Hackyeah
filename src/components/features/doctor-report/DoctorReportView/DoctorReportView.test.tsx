@@ -31,12 +31,12 @@ const mockReportData: DoctorReportData = {
       { company: "other", label: "Done with someone", count: 2 },
     ],
     byCorroboration: [
-      { method: "watch", label: "Watch verified", count: 10 },
+      { method: "wearable", label: "Wearable verified", count: 10 },
       { method: "motion", label: "Motion sensor verified", count: 4 },
       { method: "none", label: "Self-reported only", count: 1 },
     ],
     corroborationTotals: {
-      watch: 10,
+      wearable: 10,
       motion: 4,
       none: 1,
     },
@@ -45,17 +45,17 @@ const mockReportData: DoctorReportData = {
     { text: "Milk", count: 3 },
     { text: "Pizza", count: 2 },
   ],
-  watch: {
-    source: "From the watch (Google Health)",
-    deviceLabels: ["Watch · Fitbit Charge 6"],
+  wearable: {
+    source: "From the wearable (Google Health)",
+    deviceLabels: ["Wearable · Fitbit Charge 6"],
     restingHrSource: "night-samples",
     restingHrNights: { dense: 4, sparse: 14 },
     sparseGapMin: 30,
     restingHrMethodText:
-      "lowest 30-minute average on 4 nights; lowest average of 3 readings in a row (watch recorded about every 30 min) on 14 nights",
+      "lowest 30-minute average on 4 nights; lowest average of 3 readings in a row (wearable recorded about every 30 min) on 14 nights",
     methodNote: [
-      "The figures are simple fixed calculations done on this device from what the watch recorded.",
-      "Published studies of watch data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
+      "The figures are simple fixed calculations done on this device from what the wearable recorded.",
+      "Published studies of wearable data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
     ],
     isDemo: false,
     validDays: 20,
@@ -221,15 +221,15 @@ describe("DoctorReportView", () => {
     expect(screen.getByText("2 days")).toBeTruthy();
   });
 
-  it("renders watch data with median, middle half and valid days", () => {
+  it("renders wearable data with median, middle half and valid days", () => {
     renderWithTheme(<DoctorReportView data={mockReportData} />);
 
-    expect(screen.getByText("Watch data")).toBeTruthy();
+    expect(screen.getByText("Wearable data")).toBeTruthy();
     expect(screen.getByText("5200 steps")).toBeTruthy();
     expect(screen.getByText("3900 to 6800 steps")).toBeTruthy();
     expect(screen.getByText("61 bpm")).toBeTruthy();
     expect(
-      screen.getAllByText("From the watch (Google Health): Watch · Fitbit Charge 6").length,
+      screen.getAllByText("From the wearable (Google Health): Wearable · Fitbit Charge 6").length,
     ).toBe(1);
   });
 
@@ -237,8 +237,8 @@ describe("DoctorReportView", () => {
     renderWithTheme(<DoctorReportView data={mockReportData} />);
 
     expect(screen.getByText(/lowest average of 3 readings in a row/)).toBeTruthy();
-    expect(screen.getByText(/watch recorded about every 30 min/)).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "How the watch figures are made" })).toBeTruthy();
+    expect(screen.getByText(/wearable recorded about every 30 min/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "How the wearable figures are made" })).toBeTruthy();
     expect(screen.getByText(/their results are mixed/)).toBeTruthy();
   });
 
@@ -247,35 +247,35 @@ describe("DoctorReportView", () => {
       <DoctorReportView
         data={{
           ...mockReportData,
-          watch: { ...mockReportData.watch, restingHrMethodText: null },
+          wearable: { ...mockReportData.wearable, restingHrMethodText: null },
         }}
       />,
     );
     expect(screen.queryByText(/readings in a row/)).toBeNull();
   });
 
-  it("says when the resting heart rate is the one reported by the watch", () => {
+  it("says when the resting heart rate is the one reported by the wearable", () => {
     renderWithTheme(
       <DoctorReportView
         data={{
           ...mockReportData,
-          watch: { ...mockReportData.watch, restingHrSource: "watch-daily" },
+          wearable: { ...mockReportData.wearable, restingHrSource: "wearable-daily" },
         }}
       />,
     );
-    expect(screen.getAllByText("Resting HR (reported by the watch)").length).toBeGreaterThan(0);
-    expect(screen.getByText(/Resting heart rate as reported by the watch\./)).toBeTruthy();
+    expect(screen.getAllByText("Resting HR (reported by the wearable)").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Resting heart rate as reported by the wearable\./)).toBeTruthy();
   });
 
-  it("shows no-data text and a demo banner for the watch section", () => {
+  it("shows no-data text and a demo banner for the wearable section", () => {
     const empty = { n: 0, median: null, q1: null, q3: null };
     renderWithTheme(
       <DoctorReportView
         data={{
           ...mockReportData,
           isDemo: false,
-          watch: {
-            source: "From the watch (Google Health)",
+          wearable: {
+            source: "From the wearable (Google Health)",
             deviceLabels: [],
             restingHrSource: null,
             restingHrNights: { dense: 0, sparse: 0 },
@@ -294,7 +294,7 @@ describe("DoctorReportView", () => {
       />,
     );
 
-    expect(screen.getByText("No data from the watch in this period.")).toBeTruthy();
+    expect(screen.getByText("No data from the wearable in this period.")).toBeTruthy();
     expect(screen.getAllByText("Demo data").length).toBeGreaterThan(0);
   });
 
@@ -302,7 +302,7 @@ describe("DoctorReportView", () => {
     renderWithTheme(<DoctorReportView data={mockReportData} />);
 
     expect(screen.getAllByRole("img").length).toBe(3);
-    expect(screen.getByText("Child, family and watch together")).toBeTruthy();
+    expect(screen.getByText("Child, family and wearable together")).toBeTruthy();
     expect(screen.getByText("-0.7 to -0.08")).toBeTruthy();
     expect(screen.getByText("-0.42")).toBeTruthy();
   });
@@ -334,7 +334,7 @@ describe("DoctorReportView", () => {
   it("renders mission corroboration breakdown when available", () => {
     renderWithTheme(<DoctorReportView data={mockReportData} />);
 
-    expect(screen.getByText("Watch verified")).toBeTruthy();
+    expect(screen.getByText("Wearable verified")).toBeTruthy();
     expect(screen.getByText("10 missions")).toBeTruthy();
     expect(screen.getByText("Motion sensor verified")).toBeTruthy();
     expect(screen.getByText("4 missions")).toBeTruthy();

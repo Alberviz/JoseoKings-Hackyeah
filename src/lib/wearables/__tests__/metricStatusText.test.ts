@@ -11,7 +11,7 @@ describe("describeMetricStatus", () => {
 
   it("says when there is no data yet", () => {
     expect(describeMetricStatus("steps", { status: "ok", count: 0 })).toBe(
-      "Steps: No watch data yet",
+      "Steps: No wearable data yet",
     );
   });
 

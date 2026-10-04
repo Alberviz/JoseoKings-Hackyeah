@@ -1,5 +1,5 @@
 // Parent status engine.
-// Compares watch metrics (steps, sleep, resting HR) with the child's own usual range and reports
+// Compares wearable metrics (steps, sleep, resting HR) with the child's own usual range and reports
 // what the child marked in the check-in. Deterministic math only: no AI, no ML, no LLM.
 // Grounded in docs/research/CLINICAL_EVIDENCE_AND_ALGORITHMS.md.
 // Wording follows docs/PRODUCT.md section 6: no medical claims, no advice, no predictions,
@@ -34,8 +34,8 @@ export interface MetricEvaluation {
   consecutiveOutsideDays: number;
 }
 
-export interface WatchCoverageInfo {
-  /** Share of days in the window that have watch data, from 0 to 1. */
+export interface WearableCoverageInfo {
+  /** Share of days in the window that have wearable data, from 0 to 1. */
   coverage: number;
   validDays: number;
   totalDays: number;
@@ -45,7 +45,7 @@ export interface WatchCoverageInfo {
 export interface ParentStatusResult {
   status: ParentStatusBand;
   label: string;
-  watchCoverage: WatchCoverageInfo;
+  wearableCoverage: WearableCoverageInfo;
   headline: string;
   descriptions: string[];
   targetDate: string;
@@ -104,7 +104,7 @@ function toCalendarDays(sorted: DailyParentInput[]): Array<DailyParentInput | nu
   return calendar;
 }
 
-export function calculateWatchCoverage(days: DailyParentInput[]): WatchCoverageInfo {
+export function calculateWearableCoverage(days: DailyParentInput[]): WearableCoverageInfo {
   const totalDays = days.length;
   if (totalDays === 0) {
     return {
@@ -119,7 +119,7 @@ export function calculateWatchCoverage(days: DailyParentInput[]): WatchCoverageI
     coverage: validDays / totalDays,
     validDays,
     totalDays,
-    description: `Watch data was present on ${validDays} of ${totalDays} days.`,
+    description: `Wearable data was present on ${validDays} of ${totalDays} days.`,
   };
 }
 
@@ -131,7 +131,7 @@ export function evaluateParentStatus(
     return {
       status: "collectingBaseline",
       label: "Collecting baseline",
-      watchCoverage: calculateWatchCoverage([]),
+      wearableCoverage: calculateWearableCoverage([]),
       headline: "No data logged yet",
       descriptions: ["There are no entries yet for this period."],
       targetDate: options.targetDate ?? "",
@@ -161,7 +161,7 @@ export function evaluateParentStatus(
   const windowSize = options.windowDays ?? 14;
   const windowStart = Math.max(0, targetIndex - windowSize + 1);
   const evaluationWindow = sortedDays.slice(windowStart, targetIndex + 1);
-  const watchCoverage = calculateWatchCoverage(evaluationWindow);
+  const wearableCoverage = calculateWearableCoverage(evaluationWindow);
 
   const calendarDays = toCalendarDays(sortedDays);
   const calendarTargetIndex = calendarDays.findIndex((d) => d === targetDay);
@@ -246,7 +246,7 @@ export function evaluateParentStatus(
     }
   }
 
-  // Status: only the watch metrics against the child's own usual range.
+  // Status: only the wearable metrics against the child's own usual range.
   const evaluatedMetrics = [stepsEval, sleepEval, restingHrEval].filter(
     (m): m is MetricEvaluation => m !== undefined,
   );
@@ -337,7 +337,7 @@ export function evaluateParentStatus(
   return {
     status,
     label,
-    watchCoverage,
+    wearableCoverage,
     headline,
     descriptions,
     targetDate,

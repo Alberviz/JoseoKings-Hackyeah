@@ -1,13 +1,13 @@
 // Realistic Google Health API v4 payloads. int64 numbers arrive as strings, as in the real API.
 import type { HealthDataPoint } from "../googleHealthV4";
 
-export const WATCH_SOURCE: NonNullable<HealthDataPoint["dataSource"]> = {
+export const WEARABLE_SOURCE: NonNullable<HealthDataPoint["dataSource"]> = {
   recordingMethod: "PASSIVELY_MEASURED",
   device: {
     formFactor: "WATCH",
     manufacturer: "Fitbit",
     model: "Charge 6",
-    uid: "watch-uid-1",
+    uid: "wearable-uid-1",
   },
   application: { packageName: "com.fitbit.FitbitMobile", name: "Fitbit" },
   platform: "FITBIT",
@@ -20,12 +20,12 @@ export const PHONE_SOURCE: NonNullable<HealthDataPoint["dataSource"]> = {
   platform: "GOOGLE_WEB_API",
 };
 
-export const stepsWatch = (start: string, end: string, count: string): HealthDataPoint => ({
+export const stepsWearable = (start: string, end: string, count: string): HealthDataPoint => ({
   steps: {
     interval: { startTime: start, endTime: end, civilStartTime: {}, civilEndTime: {} },
     count,
   },
-  dataSource: WATCH_SOURCE,
+  dataSource: WEARABLE_SOURCE,
 });
 
 export const stepsPhone = (start: string, end: string, count: string): HealthDataPoint => ({
@@ -33,15 +33,15 @@ export const stepsPhone = (start: string, end: string, count: string): HealthDat
   dataSource: PHONE_SOURCE,
 });
 
-export const heartRateWatch = (at: string, bpm: string): HealthDataPoint => ({
+export const heartRateWearable = (at: string, bpm: string): HealthDataPoint => ({
   heartRate: {
     sampleTime: { physicalTime: at, utcOffset: "3600s", civilTime: {} },
     beatsPerMinute: bpm,
   },
-  dataSource: WATCH_SOURCE,
+  dataSource: WEARABLE_SOURCE,
 });
 
-export const sleepWatch = (
+export const sleepWearable = (
   start: string,
   end: string,
   minutesAsleep: string,
@@ -53,12 +53,12 @@ export const sleepWatch = (
     summary: { minutesAsleep, minutesAwake: "20" },
     metadata: { nap, mainSleep: !nap },
   },
-  dataSource: WATCH_SOURCE,
+  dataSource: WEARABLE_SOURCE,
 });
 
 export const restingDailyString = (date: string, bpm: string): HealthDataPoint => ({
   dailyRestingHeartRate: { date, beatsPerMinute: bpm },
-  dataSource: WATCH_SOURCE,
+  dataSource: WEARABLE_SOURCE,
 });
 
 export const restingDailyObject = (
@@ -68,10 +68,10 @@ export const restingDailyObject = (
   bpm: string,
 ): HealthDataPoint => ({
   dailyRestingHeartRate: { date: { year, month, day }, beatsPerMinute: bpm },
-  dataSource: WATCH_SOURCE,
+  dataSource: WEARABLE_SOURCE,
 });
 
-// Shapes seen in a live capture through Health Connect (synthetic values only): the watch app
+// Shapes seen in a live capture through Health Connect (synthetic values only): the wearable app
 // sends empty device objects or only a form factor, and the phone app has a hashed package name.
 export const ZEPP_EMPTY_DEVICE_SOURCE: NonNullable<HealthDataPoint["dataSource"]> = {
   recordingMethod: "PASSIVELY_MEASURED",

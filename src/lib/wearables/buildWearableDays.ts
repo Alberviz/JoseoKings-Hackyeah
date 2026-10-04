@@ -1,6 +1,6 @@
-import type { DeviceSelection, WatchDay } from "@/types/watch";
+import type { DeviceSelection, WearableDay } from "@/types/wearable";
 import { computeDailyMetrics, DEFAULT_TIMEZONE } from "./daily";
-import type { WatchSample } from "./types";
+import type { WearableSample } from "./types";
 
 /**
  * Keeps, for each metric, only the samples of the device chosen for that metric. Steps are never
@@ -8,9 +8,9 @@ import type { WatchSample } from "./types";
  * chosen device (null or missing) is left unfiltered.
  */
 export function filterSamplesByDeviceSelection(
-  samples: WatchSample[],
+  samples: WearableSample[],
   deviceIds: Partial<DeviceSelection> = {},
-): WatchSample[] {
+): WearableSample[] {
   return samples.filter((s) => {
     switch (s.metric) {
       case "steps":
@@ -28,14 +28,14 @@ export function filterSamplesByDeviceSelection(
 }
 
 /**
- * Raw watch samples -> one WatchDay per local day. Days before `fromDate` (YYYY-MM-DD) are dropped.
+ * Raw wearable samples -> one WearableDay per local day. Days before `fromDate` (YYYY-MM-DD) are dropped.
  * `deviceIds` are the resolved device ids per metric (see resolveDeviceSelection).
  * A missing value stays null; the two "complete" flags say whether the day or the night can be trusted.
  */
-export function buildWatchDays(
-  samples: WatchSample[],
+export function buildWearableDays(
+  samples: WearableSample[],
   options: { timeZone?: string; fromDate?: string; deviceIds?: Partial<DeviceSelection> } = {},
-): WatchDay[] {
+): WearableDay[] {
   const { timeZone = DEFAULT_TIMEZONE, fromDate, deviceIds } = options;
   return computeDailyMetrics(filterSamplesByDeviceSelection(samples, deviceIds), timeZone)
     .filter((m) => !fromDate || m.localDate >= fromDate)

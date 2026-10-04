@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  calculateWatchCoverage,
+  calculateWearableCoverage,
   type DailyParentInput,
   evaluateParentStatus,
 } from "../parentStatus";
@@ -83,9 +83,9 @@ describe("parentStatus engine", () => {
     );
   });
 
-  it("describes what the child marked without changing the watch status", () => {
+  it("describes what the child marked without changing the wearable status", () => {
     const history = buildBaselineDays(14);
-    // Day 15: normal watch metrics, but the child marks mild discomfort
+    // Day 15: normal wearable metrics, but the child marks mild discomfort
     history.push({
       date: "2026-05-15",
       bellyComfort: 1,
@@ -185,7 +185,7 @@ describe("parentStatus engine", () => {
     );
   });
 
-  it("reports watch coverage as a share of days, not as a score", () => {
+  it("reports wearable coverage as a share of days, not as a score", () => {
     const days: DailyParentInput[] = [
       { date: "2026-05-01", daytimeValid: true, nightValid: true },
       { date: "2026-05-02", daytimeValid: true, nightValid: false },
@@ -193,11 +193,11 @@ describe("parentStatus engine", () => {
       { date: "2026-05-04", daytimeValid: false, nightValid: false },
     ];
 
-    const info = calculateWatchCoverage(days);
+    const info = calculateWearableCoverage(days);
     expect(info.totalDays).toBe(4);
     expect(info.validDays).toBe(2);
     expect(info.coverage).toBe(0.5);
-    expect(info.description).toBe("Watch data was present on 2 of 4 days.");
+    expect(info.description).toBe("Wearable data was present on 2 of 4 days.");
     expect(info.description).not.toContain("%");
   });
 
@@ -255,7 +255,7 @@ describe("parentStatus engine", () => {
   it("handles empty arrays or collecting baseline gracefully", () => {
     const empty = evaluateParentStatus([]);
     expect(empty.status).toBe("collectingBaseline");
-    expect(empty.watchCoverage.coverage).toBe(0);
+    expect(empty.wearableCoverage.coverage).toBe(0);
 
     const singleDay: DailyParentInput[] = [
       {

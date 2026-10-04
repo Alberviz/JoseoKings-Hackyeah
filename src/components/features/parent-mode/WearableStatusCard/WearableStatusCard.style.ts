@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import type { DayTone } from "@/content/watch-summary";
+import type { DayTone } from "@/content/wearable-summary";
 import type { AppTheme } from "@/theme/theme";
 
 function toneColor(tone: DayTone) {

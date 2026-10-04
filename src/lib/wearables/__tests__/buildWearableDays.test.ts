@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { buildWatchDays } from "../buildWatchDays";
-import type { WatchSample } from "../types";
+import { buildWearableDays } from "../buildWearableDays";
+import type { WearableSample } from "../types";
 
-const sample = (metric: WatchSample["metric"], startAt: string, endAt: string, value: number) =>
-  ({ metric, startAt, endAt, value, source: "test" }) satisfies WatchSample;
+const sample = (metric: WearableSample["metric"], startAt: string, endAt: string, value: number) =>
+  ({ metric, startAt, endAt, value, source: "test" }) satisfies WearableSample;
 
-describe("buildWatchDays", () => {
+describe("buildWearableDays", () => {
   it("returns no days without samples", () => {
-    expect(buildWatchDays([], { timeZone: "UTC" })).toEqual([]);
+    expect(buildWearableDays([], { timeZone: "UTC" })).toEqual([]);
   });
 
   it("sums steps per local day and flags incomplete days", () => {
-    const days = buildWatchDays(
+    const days = buildWearableDays(
       [
         sample("steps", "2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", 100),
         sample("steps", "2026-09-01T11:00:00Z", "2026-09-01T11:01:00Z", 50),
@@ -46,7 +46,7 @@ describe("buildWatchDays", () => {
   });
 
   it("uses the local day, not the UTC day", () => {
-    const days = buildWatchDays(
+    const days = buildWearableDays(
       [sample("steps", "2026-09-01T23:30:00Z", "2026-09-01T23:31:00Z", 10)],
       { timeZone: "Europe/Warsaw" },
     );
@@ -54,7 +54,7 @@ describe("buildWatchDays", () => {
   });
 
   it("drops days before fromDate", () => {
-    const days = buildWatchDays(
+    const days = buildWearableDays(
       [
         sample("steps", "2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", 100),
         sample("steps", "2026-09-02T10:00:00Z", "2026-09-02T10:01:00Z", 30),
@@ -65,14 +65,16 @@ describe("buildWatchDays", () => {
   });
 
   it("marks a night complete with a valid sleep session and enough heart-rate coverage", () => {
-    const samples: WatchSample[] = [
+    const samples: WearableSample[] = [
       sample("sleepSession", "2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", 480),
     ];
     for (let i = 0; i < 300; i++) {
       const t = new Date(Date.parse("2026-09-01T22:00:00Z") + i * 60_000).toISOString();
       samples.push(sample("heartRate", t, t, 60));
     }
-    const day = buildWatchDays(samples, { timeZone: "UTC" }).find((d) => d.date === "2026-09-02");
+    const day = buildWearableDays(samples, { timeZone: "UTC" }).find(
+      (d) => d.date === "2026-09-02",
+    );
     expect(day?.nightComplete).toBe(true);
     expect(day?.sleepMinutes).toBe(480);
     expect(day?.restingHr).not.toBeNull();
@@ -83,71 +85,71 @@ describe("buildWatchDays", () => {
       ...sample("steps", "2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", 100),
       source: "phone",
     };
-    const watch = {
+    const wearable = {
       ...sample("steps", "2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", 90),
-      source: "watch",
+      source: "wearable",
     };
-    const watch2 = {
+    const wearable2 = {
       ...sample("steps", "2026-09-01T11:00:00Z", "2026-09-01T11:01:00Z", 50),
-      source: "watch",
+      source: "wearable",
     };
-    const all = [phone, watch, watch2];
+    const all = [phone, wearable, wearable2];
 
-    expect(buildWatchDays(all, { timeZone: "UTC", deviceIds: { steps: "watch" } })[0].steps).toBe(
-      140,
-    );
-    expect(buildWatchDays(all, { timeZone: "UTC", deviceIds: { steps: "phone" } })[0].steps).toBe(
-      100,
-    );
+    expect(
+      buildWearableDays(all, { timeZone: "UTC", deviceIds: { steps: "wearable" } })[0].steps,
+    ).toBe(140);
+    expect(
+      buildWearableDays(all, { timeZone: "UTC", deviceIds: { steps: "phone" } })[0].steps,
+    ).toBe(100);
   });
 
   it("filters heart rate, daily resting heart rate and sleep by their own device", () => {
-    const samples: WatchSample[] = [
+    const samples: WearableSample[] = [
       {
         ...sample("sleepSession", "2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", 480),
         source: "ring",
       },
       {
         ...sample("sleepSession", "2026-09-01T23:00:00Z", "2026-09-02T05:00:00Z", 360),
-        source: "watch",
+        source: "wearable",
       },
     ];
     for (let i = 0; i < 300; i++) {
       const t = new Date(Date.parse("2026-09-01T22:00:00Z") + i * 60_000).toISOString();
-      samples.push({ ...sample("heartRate", t, t, 60), source: "watch" });
+      samples.push({ ...sample("heartRate", t, t, 60), source: "wearable" });
     }
     const pick = (sleep: string) =>
-      buildWatchDays(samples, {
+      buildWearableDays(samples, {
         timeZone: "UTC",
-        deviceIds: { heartRate: "watch", sleep },
+        deviceIds: { heartRate: "wearable", sleep },
       }).find((d) => d.date === "2026-09-02");
     expect(pick("ring")?.sleepMinutes).toBe(480);
-    expect(pick("watch")?.sleepMinutes).toBe(360);
+    expect(pick("wearable")?.sleepMinutes).toBe(360);
   });
 
-  it("uses the watch's own daily resting heart rate when night samples are not enough", () => {
-    const daily = (date: string, value: number, source: string): WatchSample => ({
+  it("uses the wearable's own daily resting heart rate when night samples are not enough", () => {
+    const daily = (date: string, value: number, source: string): WearableSample => ({
       metric: "restingHrDaily",
       startAt: date,
       endAt: date,
       value,
       source,
     });
-    const days = buildWatchDays([daily("2026-09-02", 64, "watch")], {
+    const days = buildWearableDays([daily("2026-09-02", 64, "wearable")], {
       timeZone: "America/Los_Angeles",
     });
     expect(days).toHaveLength(1);
     expect(days[0]).toMatchObject({
       date: "2026-09-02",
       restingHr: 64,
-      restingHrSource: "watch-daily",
+      restingHrSource: "wearable-daily",
       steps: null,
       nightComplete: false,
     });
   });
 
   it("keeps our own night resting heart rate when both exist", () => {
-    const samples: WatchSample[] = [
+    const samples: WearableSample[] = [
       sample("sleepSession", "2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", 480),
       {
         metric: "restingHrDaily",
@@ -161,14 +163,16 @@ describe("buildWatchDays", () => {
       const t = new Date(Date.parse("2026-09-01T22:00:00Z") + i * 60_000).toISOString();
       samples.push(sample("heartRate", t, t, 60));
     }
-    const day = buildWatchDays(samples, { timeZone: "UTC" }).find((d) => d.date === "2026-09-02");
+    const day = buildWearableDays(samples, { timeZone: "UTC" }).find(
+      (d) => d.date === "2026-09-02",
+    );
     expect(day?.restingHr).toBeLessThan(70);
     expect(day?.restingHrSource).toBe("night-samples");
     expect(day?.restingHrMethod).toBe("dense-30min");
   });
 
   it("uses the sparse method and the source's main-sleep flag for a 30-minute grid night", () => {
-    const samples: WatchSample[] = [];
+    const samples: WearableSample[] = [];
     // Main sleep from 05:00 to 13:20 (starts after 04:00, so only the source flag keeps it).
     const sleepStart = Date.parse("2026-09-02T05:00:00Z");
     const sleepEnd = Date.parse("2026-09-02T13:20:00Z");
@@ -185,7 +189,9 @@ describe("buildWatchDays", () => {
       const t = new Date(sleepStart + 60_000 + i * 30 * 60_000).toISOString();
       samples.push(sample("heartRate", t, t, 58 + (i % 3)));
     }
-    const day = buildWatchDays(samples, { timeZone: "UTC" }).find((d) => d.date === "2026-09-02");
+    const day = buildWearableDays(samples, { timeZone: "UTC" }).find(
+      (d) => d.date === "2026-09-02",
+    );
     expect(day?.nightComplete).toBe(true);
     expect(day?.restingHrSource).toBe("night-samples");
     expect(day?.restingHrMethod).toBe("sparse-3-readings");
@@ -201,6 +207,6 @@ describe("buildWatchDays", () => {
       ...sample("steps", "2026-09-01T11:00:00Z", "2026-09-01T11:01:00Z", 50),
       source: "b",
     };
-    expect(buildWatchDays([a, b], { timeZone: "UTC", deviceIds: {} })[0].steps).toBe(150);
+    expect(buildWearableDays([a, b], { timeZone: "UTC", deviceIds: {} })[0].steps).toBe(150);
   });
 });

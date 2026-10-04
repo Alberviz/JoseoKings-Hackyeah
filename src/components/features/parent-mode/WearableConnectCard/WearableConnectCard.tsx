@@ -1,16 +1,21 @@
 "use client";
 
 import { Button, Card, Chip, Heading, Stack, Text } from "@/components/ui";
-import { useWatchSync } from "@/hooks/useWatchSync";
+import { useWearableSync } from "@/hooks/useWearableSync";
 import {
   DEVICE_METRICS,
   resolveDeviceSelection,
   sanitizeDeviceSelection,
 } from "@/lib/wearables/devices";
 import { describeSyncStatus } from "@/lib/wearables/metricStatusText";
-import type { DeviceMetric } from "@/types/watch";
-import { WatchDeviceChoice } from "../WatchDeviceChoice/WatchDeviceChoice";
-import { ButtonRow, StatusMessage } from "./WatchConnectCard.style";
+import type { DeviceMetric } from "@/types/wearable";
+import { WearableDeviceChoice } from "../WearableDeviceChoice/WearableDeviceChoice";
+import { ButtonRow, StatusMessage } from "./WearableConnectCard.style";
+
+const CARD_TITLE = "Child's wearable";
+
+const INTRO_TEXT =
+  "Read steps, heart rate and sleep from the child's wearable with Google Health. The numbers are kept only on this phone.";
 
 const METRIC_LABELS: Record<DeviceMetric, string> = {
   steps: "Steps",
@@ -24,40 +29,48 @@ function formatLastSync(iso: string | null): string {
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
 }
 
-export function WatchConnectCard() {
-  const { watch, status, message, metricStatus, isConfigured, sync, useDemo, clear, selectDevice } =
-    useWatchSync();
+export function WearableConnectCard() {
+  const {
+    wearable,
+    status,
+    message,
+    metricStatus,
+    isConfigured,
+    sync,
+    useDemo,
+    clear,
+    selectDevice,
+  } = useWearableSync();
   const isWorking = status === "working";
-  const hasDays = watch.days.length > 0;
-  const hasRealData = hasDays && !watch.isDemo;
+  const hasDays = wearable.days.length > 0;
+  const hasRealData = hasDays && !wearable.isDemo;
 
-  let statusText = "No watch data yet.";
+  let statusText = "No wearable data yet.";
   if (isWorking) {
-    statusText = "Reading the last 28 days from the watch...";
+    statusText = "Reading the last 28 days from the wearable...";
   } else if (hasDays) {
-    const when = formatLastSync(watch.lastSyncAt);
-    statusText = `${watch.days.length} days on this phone${when ? `, updated ${when}` : ""}.`;
+    const when = formatLastSync(wearable.lastSyncAt);
+    statusText = `${wearable.days.length} days on this phone${when ? `, updated ${when}` : ""}.`;
   }
 
-  const devices = watch.devices ?? [];
-  const selection = sanitizeDeviceSelection(devices, watch.deviceSelection);
+  const devices = wearable.devices ?? [];
+  const selection = sanitizeDeviceSelection(devices, wearable.deviceSelection);
   const resolved = resolveDeviceSelection(devices, selection);
   const syncLines = metricStatus ? describeSyncStatus(metricStatus) : [];
   const labelOf = (id: string | null) => devices.find((d) => d.id === id)?.label ?? null;
 
   return (
-    <Card label="Watch">
+    <Card label={CARD_TITLE}>
       <Stack gap="md">
         <Stack gap="sm" direction="row" align="center">
-          <Heading level={2}>Watch</Heading>
-          {watch.isDemo && hasDays ? <Chip label="Demo data" tone="primary" /> : null}
+          <Heading level={2}>{CARD_TITLE}</Heading>
+          {wearable.isDemo && hasDays ? <Chip label="Demo data" tone="primary" /> : null}
         </Stack>
         <Text size="sm" tone="muted">
-          Read steps, heart rate and sleep from the watch with Google Health. The numbers are kept
-          only on this phone.
+          {INTRO_TEXT}
         </Text>
         <Text size="sm">{statusText}</Text>
-        {devices.length > 0 && !watch.isDemo ? (
+        {devices.length > 0 && !wearable.isDemo ? (
           <Stack gap="sm">
             <Text size="sm" tone="muted">
               Data from
@@ -73,7 +86,7 @@ export function WatchConnectCard() {
                 );
               }
               return (
-                <WatchDeviceChoice
+                <WearableDeviceChoice
                   key={metric}
                   metricLabel={METRIC_LABELS[metric]}
                   devices={forMetric}
@@ -104,17 +117,17 @@ export function WatchConnectCard() {
         ) : null}
         {isConfigured ? null : (
           <StatusMessage $isError={false}>
-            Watch connection is not set up in this build. Demo data still works.
+            Wearable connection is not set up in this build. Demo data still works.
           </StatusMessage>
         )}
         <ButtonRow>
           {hasRealData ? (
             <Button variant="primary" onClick={sync} disabled={isWorking || !isConfigured}>
-              Sync now
+              Sync wearable
             </Button>
           ) : (
             <Button variant="primary" onClick={sync} disabled={isWorking || !isConfigured}>
-              Connect watch
+              Connect wearable
             </Button>
           )}
           <Button variant="secondary" onClick={useDemo} disabled={isWorking}>
@@ -122,7 +135,7 @@ export function WatchConnectCard() {
           </Button>
           {hasDays ? (
             <Button variant="secondary" onClick={clear} disabled={isWorking}>
-              Remove watch data
+              Remove wearable data
             </Button>
           ) : null}
         </ButtonRow>

@@ -1,23 +1,23 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithTheme } from "@/test/renderWithTheme";
-import type { WatchState } from "@/types/watch";
-import { WatchConnectCard } from "./WatchConnectCard";
+import type { WearableState } from "@/types/wearable";
+import { WearableConnectCard } from "./WearableConnectCard";
 
 const selectDevice = vi.fn();
 let hookState: ReturnType<typeof makeHook>;
 
-function makeHook(overrides: Partial<{ watch: WatchState; metricStatus: unknown }> = {}) {
+function makeHook(overrides: Partial<{ wearable: WearableState; metricStatus: unknown }> = {}) {
   return {
-    watch: {
+    wearable: {
       days: [],
       lastSyncAt: null,
       isDemo: false,
       devices: [
         {
           id: "w",
-          kind: "watch",
-          label: "Watch · Fitbit Charge 6",
+          kind: "wearable",
+          label: "Wearable · Fitbit Charge 6",
           metrics: ["steps", "heartRate", "sleep"],
           sampleCounts: { steps: 5, heartRate: 5, sleep: 5 },
         },
@@ -30,7 +30,7 @@ function makeHook(overrides: Partial<{ watch: WatchState; metricStatus: unknown 
         },
       ],
       deviceSelection: { steps: null, heartRate: null, sleep: null },
-    } as WatchState,
+    } as WearableState,
     status: "idle" as const,
     message: null,
     metricStatus: null as unknown,
@@ -43,31 +43,31 @@ function makeHook(overrides: Partial<{ watch: WatchState; metricStatus: unknown 
   };
 }
 
-vi.mock("@/hooks/useWatchSync", () => ({ useWatchSync: () => hookState }));
+vi.mock("@/hooks/useWearableSync", () => ({ useWearableSync: () => hookState }));
 
-describe("WatchConnectCard device choice", () => {
+describe("WearableConnectCard device choice", () => {
   beforeEach(() => {
     selectDevice.mockClear();
     hookState = makeHook();
   });
 
   it("offers a choice only for the metric that has more than one device", () => {
-    renderWithTheme(<WatchConnectCard />);
+    renderWithTheme(<WearableConnectCard />);
     expect(screen.getByRole("group", { name: "Steps from" })).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Automatic (Watch · Fitbit Charge 6)" }),
+      screen.getByRole("button", { name: "Automatic (Wearable · Fitbit Charge 6)" }),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Phone · Pixel 8" })).toBeTruthy();
     expect(screen.queryByRole("group", { name: "Heart rate from" })).toBeNull();
-    expect(screen.getByText("Heart rate: Watch · Fitbit Charge 6")).toBeTruthy();
-    expect(screen.getByText("Sleep: Watch · Fitbit Charge 6")).toBeTruthy();
+    expect(screen.getByText("Heart rate: Wearable · Fitbit Charge 6")).toBeTruthy();
+    expect(screen.getByText("Sleep: Wearable · Fitbit Charge 6")).toBeTruthy();
   });
 
   it("selects a device for one metric only", () => {
-    renderWithTheme(<WatchConnectCard />);
+    renderWithTheme(<WearableConnectCard />);
     fireEvent.click(screen.getByRole("button", { name: "Phone · Pixel 8" }));
     expect(selectDevice).toHaveBeenCalledWith("steps", "p");
-    fireEvent.click(screen.getByRole("button", { name: "Automatic (Watch · Fitbit Charge 6)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Automatic (Wearable · Fitbit Charge 6)" }));
     expect(selectDevice).toHaveBeenCalledWith("steps", null);
   });
 
@@ -79,8 +79,8 @@ describe("WatchConnectCard device choice", () => {
         sleep: { status: "ok", count: 3 },
       },
     });
-    renderWithTheme(<WatchConnectCard />);
-    expect(screen.getByText("Steps: No watch data yet")).toBeTruthy();
+    renderWithTheme(<WearableConnectCard />);
+    expect(screen.getByText("Steps: No wearable data yet")).toBeTruthy();
     expect(
       screen.getByText("Heart rate: could not be read (Google said: INVALID_FILTER_FIELD)"),
     ).toBeTruthy();

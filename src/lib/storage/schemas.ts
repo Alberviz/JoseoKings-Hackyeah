@@ -101,7 +101,7 @@ export const missionMoodAfterSchema: z.ZodType<MissionMoodAfter> = z.enum([
 ]);
 
 export const missionCorroborationSchema: z.ZodType<MissionCorroboration> = z.enum([
-  "watch",
+  "wearable",
   "motion",
 ]);
 

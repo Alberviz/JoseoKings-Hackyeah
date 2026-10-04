@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { buildDemoWatchDays } from "../demoWatchDays";
-import { getDayStatuses } from "@/lib/patterns/watchStatus";
+import { buildDemoWearableDays } from "../demoWearableDays";
+import { getDayStatuses } from "@/lib/patterns/wearableStatus";
 import { buildReport } from "@/lib/report/buildReport";
 import { buildDemoState } from "@/lib/demo-data/buildDemoState";
 import { todayKey, addDays } from "@/lib/dates";
 
 describe("pipeline verification", () => {
-  it("verifies watch demo data, parent day statuses and doctor report generation", () => {
-    // 1. Generate watch days
-    const days = buildDemoWatchDays();
+  it("verifies wearable demo data, parent day statuses and doctor report generation", () => {
+    // 1. Generate wearable days
+    const days = buildDemoWearableDays();
     expect(days).toHaveLength(28);
     expect(days[0].steps).toBeGreaterThan(5000);
     expect(days[0].restingHr).toBeGreaterThan(50);
@@ -24,18 +24,18 @@ describe("pipeline verification", () => {
       expect(s.sentence).toBeDefined();
     }
 
-    // 3. Doctor Report with watch data
+    // 3. Doctor Report with wearable data
     const appState = buildDemoState();
-    const watchState = { days, lastSyncAt: new Date().toISOString(), isDemo: true };
-    const report = buildReport(appState, today, watchState);
+    const wearableState = { days, lastSyncAt: new Date().toISOString(), isDemo: true };
+    const report = buildReport(appState, today, wearableState);
 
-    expect(report.watch).toBeDefined();
-    if (report.watch) {
-      expect(report.watch.series.length).toBeGreaterThan(0);
-      expect(report.watch.validDays).toBeGreaterThan(14);
-      expect(report.watch.steps.median).toBeGreaterThan(5000);
-      expect(report.watch.restingHr.median).toBeGreaterThan(50);
-      expect(report.watch.sleepHours.median).toBeGreaterThan(6);
+    expect(report.wearable).toBeDefined();
+    if (report.wearable) {
+      expect(report.wearable.series.length).toBeGreaterThan(0);
+      expect(report.wearable.validDays).toBeGreaterThan(14);
+      expect(report.wearable.steps.median).toBeGreaterThan(5000);
+      expect(report.wearable.restingHr.median).toBeGreaterThan(50);
+      expect(report.wearable.sleepHours.median).toBeGreaterThan(6);
       expect(report.crossComparison).toBeDefined();
     }
   });

@@ -1,14 +1,18 @@
 import { z } from "zod";
-import type { DeviceSelection, WatchDevice, WatchState } from "@/types/watch";
-import type { WatchSample } from "@/lib/wearables/types";
+import type { DeviceSelection, WearableDevice, WearableState } from "@/types/wearable";
+import type { WearableSample } from "@/lib/wearables/types";
 
-export const WATCH_STORAGE_KEY = "crohncare_watch_daily";
+export const WEARABLE_STORAGE_KEY = "crohncare_wearable_daily";
 
-const watchDaySchema = z.object({
+const wearableDaySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   steps: z.number().nullable(),
   restingHr: z.number().nullable(),
-  restingHrSource: z.enum(["night-samples", "watch-daily"]).nullable().optional().catch(undefined),
+  restingHrSource: z
+    .enum(["night-samples", "wearable-daily"])
+    .nullable()
+    .optional()
+    .catch(undefined),
   restingHrMethod: z
     .enum(["dense-30min", "sparse-3-readings"])
     .nullable()
@@ -22,9 +26,9 @@ const watchDaySchema = z.object({
 
 const deviceMetricSchema = z.enum(["steps", "heartRate", "sleep"]);
 
-const watchDeviceSchema = z.object({
+const wearableDeviceSchema = z.object({
   id: z.string(),
-  kind: z.enum(["watch", "phone", "other"]),
+  kind: z.enum(["wearable", "phone", "other"]),
   label: z.string(),
   metrics: z.array(deviceMetricSchema),
   sampleCounts: z.partialRecord(deviceMetricSchema, z.number()).optional().catch(undefined),
@@ -38,7 +42,7 @@ const deviceSelectionSchema = z.object({
   sleep: selectedIdSchema.default(null),
 });
 
-const watchSampleSchema = z.object({
+const wearableSampleSchema = z.object({
   metric: z.enum([
     "steps",
     "heartRate",
@@ -65,25 +69,25 @@ const watchSampleSchema = z.object({
  * the old `devices: string[]` and `selectedDevice` are ignored, and raw samples that cannot be
  * matched to a device list (old format) are dropped so the parent syncs again.
  */
-export const watchStateSchema = z
+export const wearableStateSchema = z
   .object({
-    days: z.array(watchDaySchema),
+    days: z.array(wearableDaySchema),
     lastSyncAt: z.string().nullable(),
     isDemo: z.boolean(),
-    devices: z.array(watchDeviceSchema).optional().catch(undefined),
+    devices: z.array(wearableDeviceSchema).optional().catch(undefined),
     deviceSelection: deviceSelectionSchema.optional().catch(undefined),
-    rawSamples: z.array(watchSampleSchema).optional().catch(undefined),
+    rawSamples: z.array(wearableSampleSchema).optional().catch(undefined),
   })
-  .transform((state): WatchState => {
+  .transform((state): WearableState => {
     const { devices, deviceSelection, rawSamples, ...rest } = state;
-    const result: WatchState = { ...rest };
+    const result: WearableState = { ...rest };
     if (devices !== undefined) result.devices = devices;
     if (deviceSelection !== undefined) result.deviceSelection = deviceSelection;
     if (rawSamples !== undefined && devices !== undefined) result.rawSamples = rawSamples;
     return result;
   });
 
-export function createEmptyWatchState(): WatchState {
+export function createEmptyWearableState(): WearableState {
   return {
     days: [],
     lastSyncAt: null,
@@ -93,47 +97,47 @@ export function createEmptyWatchState(): WatchState {
   };
 }
 
-export function loadWatchState(): WatchState {
+export function loadWearableState(): WearableState {
   try {
-    const raw = window.localStorage.getItem(WATCH_STORAGE_KEY);
-    if (!raw) return createEmptyWatchState();
-    const parsed = watchStateSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : createEmptyWatchState();
+    const raw = window.localStorage.getItem(WEARABLE_STORAGE_KEY);
+    if (!raw) return createEmptyWearableState();
+    const parsed = wearableStateSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : createEmptyWearableState();
   } catch {
-    return createEmptyWatchState();
+    return createEmptyWearableState();
   }
 }
 
-export function saveWatchState(state: WatchState): void {
+export function saveWearableState(state: WearableState): void {
   try {
-    window.localStorage.setItem(WATCH_STORAGE_KEY, JSON.stringify(state));
+    window.localStorage.setItem(WEARABLE_STORAGE_KEY, JSON.stringify(state));
   } catch {
     // If storage is full due to rawSamples, strip them and persist the core state
     try {
       const withoutRaw = { ...state };
       delete withoutRaw.rawSamples;
-      window.localStorage.setItem(WATCH_STORAGE_KEY, JSON.stringify(withoutRaw));
+      window.localStorage.setItem(WEARABLE_STORAGE_KEY, JSON.stringify(withoutRaw));
     } catch {
-      // storage full or blocked: the watch card simply shows no data
+      // storage full or blocked: the wearable card simply shows no data
     }
   }
 }
 
 /** Merge by date; incoming days win. Keeps the last 90 days. */
-export function mergeWatchDays(
-  existing: WatchState,
-  incoming: WatchState["days"],
+export function mergeWearableDays(
+  existing: WearableState,
+  incoming: WearableState["days"],
   options: {
     isDemo: boolean;
-    devices?: WatchDevice[];
+    devices?: WearableDevice[];
     deviceSelection?: DeviceSelection;
-    rawSamples?: WatchSample[];
+    rawSamples?: WearableSample[];
   },
-): WatchState {
+): WearableState {
   const byDate = new Map(existing.days.map((d) => [d.date, d]));
   for (const day of incoming) byDate.set(day.date, day);
   const days = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)).slice(-90);
-  const result: WatchState = {
+  const result: WearableState = {
     days,
     lastSyncAt: new Date().toISOString(),
     isDemo: options.isDemo,
@@ -147,9 +151,9 @@ export function mergeWatchDays(
   return result;
 }
 
-export function clearWatchState(): void {
+export function clearWearableState(): void {
   try {
-    window.localStorage.removeItem(WATCH_STORAGE_KEY);
+    window.localStorage.removeItem(WEARABLE_STORAGE_KEY);
   } catch {
     // ignore
   }

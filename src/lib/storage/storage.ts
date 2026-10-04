@@ -1,9 +1,9 @@
 import { createDefaultEconomy } from "@/lib/economy";
 import { syncCompanion } from "@/lib/rewards";
 import type { AppState } from "@/types";
-import type { WatchState } from "@/types/watch";
+import type { WearableState } from "@/types/wearable";
 import { appStateSchema } from "./schemas";
-import { clearWatchState, watchStateSchema } from "./watchStore";
+import { clearWearableState, wearableStateSchema } from "./wearableStore";
 
 export const STORAGE_KEY = "crohncare_app_state";
 export const BACKUP_STORAGE_KEY = "crohncare_app_state_backup";
@@ -112,11 +112,11 @@ export function saveState(state: AppState): boolean {
 }
 
 /**
- * Removes the main state key, the backup key and the watch state from localStorage.
+ * Removes the main state key, the backup key and the wearable state from localStorage.
  * Never throws.
  */
 export function clearStorage(): void {
-  clearWatchState();
+  clearWearableState();
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
@@ -131,23 +131,25 @@ export function clearStorage(): void {
 
 /**
  * Exports the state as an indented JSON string for backup download.
- * Pass the watch state to include it under the optional "watch" key.
+ * Pass the wearable state to include it under the optional "wearable" key.
  */
-export function exportBackup(state: AppState, watch?: WatchState): string {
+export function exportBackup(state: AppState, wearable?: WearableState): string {
   const validated = appStateSchema.parse(state);
-  const payload = watch ? { ...validated, watch: watchStateSchema.parse(watch) } : validated;
+  const payload = wearable
+    ? { ...validated, wearable: wearableStateSchema.parse(wearable) }
+    : validated;
   return JSON.stringify(payload, null, 2);
 }
 
 /**
- * Reads the optional watch state from a backup JSON string.
+ * Reads the optional wearable state from a backup JSON string.
  * Returns null when the backup has none (older backups) or it is invalid.
  */
-export function importBackupWatch(jsonString: string): WatchState | null {
+export function importBackupWearable(jsonString: string): WearableState | null {
   try {
     const parsed: unknown = JSON.parse(jsonString);
-    if (typeof parsed !== "object" || parsed === null || !("watch" in parsed)) return null;
-    const result = watchStateSchema.safeParse((parsed as { watch: unknown }).watch);
+    if (typeof parsed !== "object" || parsed === null || !("wearable" in parsed)) return null;
+    const result = wearableStateSchema.safeParse((parsed as { wearable: unknown }).wearable);
     return result.success ? result.data : null;
   } catch {
     return null;

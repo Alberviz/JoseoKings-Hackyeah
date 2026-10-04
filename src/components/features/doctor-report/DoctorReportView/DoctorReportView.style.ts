@@ -521,7 +521,7 @@ export const DisclaimerText = styled.p`
   }
 `;
 
-/** Where a section's numbers come from: Child, Family, Watch. */
+/** Where a section's numbers come from: Child, Family, Wearable. */
 export const SourceTag = styled.span`
   align-self: flex-start;
   padding: 1px 8px;

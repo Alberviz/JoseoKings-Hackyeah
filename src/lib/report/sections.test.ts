@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { ParentLog } from "@/types";
-import type { WatchDay, WatchState } from "@/types/watch";
-import { buildObservedSection, buildWatchSection } from "./sections";
+import type { WearableDay, WearableState } from "@/types/wearable";
+import { buildObservedSection, buildWearableSection } from "./sections";
 
-function day(date: string, over: Partial<WatchDay> = {}): WatchDay {
+function day(date: string, over: Partial<WearableDay> = {}): WearableDay {
   return {
     date,
     steps: 5000,
@@ -15,16 +15,16 @@ function day(date: string, over: Partial<WatchDay> = {}): WatchDay {
   };
 }
 
-function state(days: WatchDay[], isDemo = false): WatchState {
+function state(days: WearableDay[], isDemo = false): WearableState {
   return { days, lastSyncAt: null, isDemo };
 }
 
-describe("buildWatchSection", () => {
+describe("buildWearableSection", () => {
   it("returns empty summaries when there is no data", () => {
-    const s = buildWatchSection(state([]), "2026-09-01", "2026-09-30");
+    const s = buildWearableSection(state([]), "2026-09-01", "2026-09-30");
     expect(s.validDays).toBe(0);
     expect(s.steps).toEqual({ n: 0, median: null, q1: null, q3: null });
-    expect(s.source).toBe("From the watch (Google Health)");
+    expect(s.source).toBe("From the wearable (Google Health)");
     expect(s.deviceLabels).toEqual([]);
     expect(s.restingHrSource).toBeNull();
   });
@@ -37,7 +37,7 @@ describe("buildWatchSection", () => {
       day("2026-09-03", { steps: 6000, restingHr: 62, sleepMinutes: 540 }),
       day("2026-09-04", { steps: 8000, restingHr: 64, sleepMinutes: 600 }),
     ];
-    const s = buildWatchSection(state(days), "2026-09-01", "2026-09-30");
+    const s = buildWearableSection(state(days), "2026-09-01", "2026-09-30");
     expect(s.validDays).toBe(4);
     expect(s.steps).toEqual({ n: 4, median: 5000, q1: 3000, q3: 7000 });
     expect(s.restingHr.median).toBe(61);
@@ -50,7 +50,7 @@ describe("buildWatchSection", () => {
       day("2026-09-02", { dayComplete: false, steps: 100 }),
       day("2026-09-03", { steps: null, restingHr: null, sleepMinutes: null }),
     ];
-    const s = buildWatchSection(state(days), "2026-09-01", "2026-09-30");
+    const s = buildWearableSection(state(days), "2026-09-01", "2026-09-30");
     expect(s.steps.n).toBe(1);
     expect(s.restingHr.n).toBe(1);
     expect(s.sleepHours.n).toBe(1);
@@ -58,30 +58,37 @@ describe("buildWatchSection", () => {
   });
 
   it("names the devices used and says where the resting heart rate came from", () => {
-    const devices: WatchState["devices"] = [
-      { id: "w", kind: "watch", label: "Watch · Fitbit Charge 6", metrics: ["steps", "heartRate"] },
+    const devices: WearableState["devices"] = [
+      {
+        id: "w",
+        kind: "wearable",
+        label: "Wearable · Fitbit Charge 6",
+        metrics: ["steps", "heartRate"],
+      },
       { id: "p", kind: "phone", label: "Phone · Pixel 8", metrics: ["steps"] },
     ];
-    const watchOnly = (days: WatchDay[]): WatchState => ({
+    const wearableOnly = (days: WearableDay[]): WearableState => ({
       days,
       lastSyncAt: null,
       isDemo: false,
       devices,
       deviceSelection: { steps: "p", heartRate: null, sleep: null },
     });
-    const s = buildWatchSection(
-      watchOnly([day("2026-09-01", { restingHrSource: "watch-daily", nightComplete: false })]),
+    const s = buildWearableSection(
+      wearableOnly([
+        day("2026-09-01", { restingHrSource: "wearable-daily", nightComplete: false }),
+      ]),
       "2026-09-01",
       "2026-09-30",
     );
-    expect(s.deviceLabels).toEqual(["Watch · Fitbit Charge 6", "Phone · Pixel 8"]);
-    expect(s.restingHrSource).toBe("watch-daily");
-    // the watch's own value counts even when our night checks did not pass
+    expect(s.deviceLabels).toEqual(["Wearable · Fitbit Charge 6", "Phone · Pixel 8"]);
+    expect(s.restingHrSource).toBe("wearable-daily");
+    // the wearable's own value counts even when our night checks did not pass
     expect(s.restingHr.n).toBe(1);
 
-    const mixed = buildWatchSection(
-      watchOnly([
-        day("2026-09-01", { restingHrSource: "watch-daily" }),
+    const mixed = buildWearableSection(
+      wearableOnly([
+        day("2026-09-01", { restingHrSource: "wearable-daily" }),
         day("2026-09-02", { restingHrSource: "night-samples" }),
       ]),
       "2026-09-01",
@@ -97,13 +104,13 @@ describe("buildWatchSection", () => {
         restingHrMethod: "sparse-3-readings",
         restingHrGapMin: gap,
       });
-    const s = buildWatchSection(
+    const s = buildWearableSection(
       state([
         sparse("2026-09-01", 30),
         sparse("2026-09-02", 30),
         sparse("2026-09-03", 31),
         day("2026-09-04", { restingHrSource: "night-samples", restingHrMethod: "dense-30min" }),
-        day("2026-09-05", { restingHrSource: "watch-daily" }),
+        day("2026-09-05", { restingHrSource: "wearable-daily" }),
       ]),
       "2026-09-01",
       "2026-09-30",
@@ -111,19 +118,19 @@ describe("buildWatchSection", () => {
     expect(s.restingHrNights).toEqual({ dense: 1, sparse: 3 });
     expect(s.sparseGapMin).toBe(30);
     expect(s.restingHrMethodText).toBe(
-      "lowest 30-minute average on 1 night; lowest average of 3 readings in a row (watch recorded about every 30 min) on 3 nights",
+      "lowest 30-minute average on 1 night; lowest average of 3 readings in a row (wearable recorded about every 30 min) on 3 nights",
     );
     expect(s.methodNote).toEqual([
-      "The figures are simple fixed calculations done on this device from what the watch recorded. They describe this child's own recordings. They are not a clinical measurement and they have not been validated for this use.",
-      "They follow methods used in research on wearables, which mostly used watches that record heart rate about every minute.",
-      "On 3 of the 4 nights the watch recorded heart rate during sleep about every 30 minutes. For those nights the night-time heart rate uses an adapted method, the lowest average of 3 readings in a row, which is less precise. 1 night used the lowest 30-minute average.",
-      "On some days the resting heart rate is the figure the watch itself reported, not one calculated here.",
-      "Published studies of watch data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
+      "The figures are simple fixed calculations done on this device from what the wearable recorded. They describe this child's own recordings. They are not a clinical measurement and they have not been validated for this use.",
+      "They follow methods used in research on wearables, which mostly used wearables that record heart rate about every minute.",
+      "On 3 of the 4 nights the wearable recorded heart rate during sleep about every 30 minutes. For those nights the night-time heart rate uses an adapted method, the lowest average of 3 readings in a row, which is less precise. 1 night used the lowest 30-minute average.",
+      "On some days the resting heart rate is the figure the wearable itself reported, not one calculated here.",
+      "Published studies of wearable data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
     ]);
   });
 
   it("treats saved days without a method as dense nights and names only that method", () => {
-    const s = buildWatchSection(
+    const s = buildWearableSection(
       state([day("2026-09-01", { restingHrSource: "night-samples" })]),
       "2026-09-01",
       "2026-09-30",
@@ -135,8 +142,8 @@ describe("buildWatchSection", () => {
   });
 
   it("has no method text when there is no night-time figure, and never claims detection", () => {
-    const s = buildWatchSection(
-      state([day("2026-09-01", { restingHrSource: "watch-daily" })]),
+    const s = buildWearableSection(
+      state([day("2026-09-01", { restingHrSource: "wearable-daily" })]),
       "2026-09-01",
       "2026-09-30",
     );
@@ -148,7 +155,7 @@ describe("buildWatchSection", () => {
   });
 
   it("carries the demo flag", () => {
-    expect(buildWatchSection(state([], true), "2026-09-01", "2026-09-30").isDemo).toBe(true);
+    expect(buildWearableSection(state([], true), "2026-09-01", "2026-09-30").isDemo).toBe(true);
   });
 });
 

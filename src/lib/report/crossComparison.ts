@@ -1,25 +1,25 @@
 import { mulberry32, percentileInterval, resample, spearman } from "@/lib/wearables/stats";
-import type { CrossComparisonRow, DayStripEntry, WatchDailyPoint } from "./types";
+import type { CrossComparisonRow, DayStripEntry, WearableDailyPoint } from "./types";
 
 /** Fewer paired days than this and no correlation is shown. */
 export const MIN_PAIRED_DAYS = 14;
 const BOOTSTRAP_REPLICATES = 1000;
 const SEED = 20261004;
 
-type WatchMetricKey = "steps" | "restingHr" | "sleepHours";
+type WearableMetricKey = "steps" | "restingHr" | "sleepHours";
 
-const METRICS: { key: WatchMetricKey; label: string }[] = [
+const METRICS: { key: WearableMetricKey; label: string }[] = [
   { key: "steps", label: "Steps" },
   { key: "restingHr", label: "Resting heart rate at night" },
-  { key: "sleepHours", label: "Sleep (watch)" },
+  { key: "sleepHours", label: "Sleep (wearable)" },
 ];
 
 type Signal = {
   source: "Child" | "Family";
   label: string;
   value: (day: DayStripEntry) => number | null;
-  /** Restrict to some watch metrics; default is all of them. */
-  only?: WatchMetricKey[];
+  /** Restrict to some wearable metrics; default is all of them. */
+  only?: WearableMetricKey[];
 };
 
 const SIGNALS: Signal[] = [
@@ -59,14 +59,14 @@ function bootstrapInterval(xs: number[], ys: number[]): { low: number; high: num
 }
 
 /**
- * Child and family signals against watch values, day by day (Spearman rho with a bootstrap
+ * Child and family signals against wearable values, day by day (Spearman rho with a bootstrap
  * 95% interval). Only pairs with at least MIN_PAIRED_DAYS days are returned. Association only.
  */
-export function compareChildWithWatch(
+export function compareChildWithWearable(
   days: DayStripEntry[],
-  watchSeries: WatchDailyPoint[],
+  wearableSeries: WearableDailyPoint[],
 ): CrossComparisonRow[] {
-  const watchByDate = new Map(watchSeries.map((w) => [w.date, w]));
+  const wearableByDate = new Map(wearableSeries.map((w) => [w.date, w]));
   const rows: CrossComparisonRow[] = [];
 
   for (const signal of SIGNALS) {
@@ -76,7 +76,7 @@ export function compareChildWithWatch(
       const ys: number[] = [];
       for (const day of days) {
         const x = signal.value(day);
-        const y = watchByDate.get(day.date)?.[metric.key] ?? null;
+        const y = wearableByDate.get(day.date)?.[metric.key] ?? null;
         if (x !== null && y !== null) {
           xs.push(x);
           ys.push(y);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { addDays } from "@/lib/dates";
-import type { WatchDay } from "@/types/watch";
-import { getDayStatus, getDayStatuses } from "./watchStatus";
+import type { WearableDay } from "@/types/wearable";
+import { getDayStatus, getDayStatuses } from "./wearableStatus";
 
 const START = "2026-09-01";
 
@@ -11,7 +11,7 @@ function day(
   restingHr: number,
   steps = 6000,
   complete = true,
-): WatchDay {
+): WearableDay {
   return {
     date: addDays(START, i),
     steps,
@@ -23,13 +23,13 @@ function day(
 }
 
 /** 21 usual days with a little natural variation. */
-function usualDays(): WatchDay[] {
+function usualDays(): WearableDay[] {
   return Array.from({ length: 21 }, (_, i) =>
     day(i, 480 + (i % 3) * 10, 60 + (i % 2), 6000 + (i % 4) * 100),
   );
 }
 
-function withDifferentTail(count: number): WatchDay[] {
+function withDifferentTail(count: number): WearableDay[] {
   const days = usualDays();
   for (let i = 0; i < count; i += 1) {
     days.push(day(21 + i, 300, 80, 6000));

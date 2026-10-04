@@ -1,13 +1,13 @@
-// Aggregation of raw watch samples into daily metrics partitioned by local civil day.
+// Aggregation of raw wearable samples into daily metrics partitioned by local civil day.
 import { nocturnalRestingHr } from "./restingHr";
-import type { DailyMetric, WatchSample } from "./types";
+import type { DailyMetric, WearableSample } from "./types";
 import { assessNight, localDateTime } from "./validity";
 
 export const DEFAULT_TIMEZONE = "Europe/Madrid";
 export const ALGORITHM_VERSION = "1.0.0";
 
 export function computeDailyMetrics(
-  samples: WatchSample[],
+  samples: WearableSample[],
   timeZone: string = DEFAULT_TIMEZONE,
 ): DailyMetric[] {
   // Group samples by local day
@@ -22,15 +22,15 @@ export function computeDailyMetrics(
     source: string;
     isMainSleep?: boolean;
   }> = [];
-  // The resting heart rate the watch reports for a local date (startAt holds YYYY-MM-DD).
-  const watchRestingHrByDay = new Map<string, number>();
+  // The resting heart rate the wearable reports for a local date (startAt holds YYYY-MM-DD).
+  const wearableRestingHrByDay = new Map<string, number>();
 
   for (const sample of samples) {
     if (sample.metric === "restingHrDaily") {
       const date = sample.startAt.slice(0, 10);
       if (/^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(sample.value)) {
         days.add(date);
-        if (!watchRestingHrByDay.has(date)) watchRestingHrByDay.set(date, sample.value);
+        if (!wearableRestingHrByDay.has(date)) wearableRestingHrByDay.set(date, sample.value);
       }
       continue;
     }
@@ -112,12 +112,12 @@ export function computeDailyMetrics(
         restingHrGapMin = rhrResult.medianGapMin;
       }
     }
-    // Our own night figure comes first; the watch's own daily figure only fills a gap.
+    // Our own night figure comes first; the wearable's own daily figure only fills a gap.
     if (restingHr === null) {
-      const fromWatch = watchRestingHrByDay.get(day);
-      if (fromWatch !== undefined) {
-        restingHr = fromWatch;
-        restingHrSource = "watch-daily";
+      const fromWearable = wearableRestingHrByDay.get(day);
+      if (fromWearable !== undefined) {
+        restingHr = fromWearable;
+        restingHrSource = "wearable-daily";
       }
     }
 

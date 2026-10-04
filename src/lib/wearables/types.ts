@@ -1,7 +1,7 @@
 export type WearableMetric =
   | "steps"
   | "heartRate"
-  /** The resting heart rate the watch itself reports for a day (startAt and endAt are the local date). */
+  /** The resting heart rate the wearable itself reports for a day (startAt and endAt are the local date). */
   | "restingHrDaily"
   | "activeMinutes"
   | "calories"
@@ -12,8 +12,8 @@ export type WearableMetric =
 
 export type SleepStage = "awake" | "sleep" | "outOfBed" | "light" | "deep" | "rem" | string;
 
-/** One raw reading from the watch, kept in memory on the device. */
-export type WatchSample = {
+/** One raw reading from the wearable, kept in memory on the device. */
+export type WearableSample = {
   metric: WearableMetric;
   startAt: string;
   endAt: string;
@@ -26,15 +26,15 @@ export type WatchSample = {
   source: string;
 };
 
-/** Per-day figures computed on the device from the raw watch samples. */
+/** Per-day figures computed on the device from the raw wearable samples. */
 export type DailyMetric = {
   localDate: string;
   steps: number | null;
   hrWakingHoursCovered: number | null;
   restingHr: number | null;
-  /** "night-samples": our night computation. "watch-daily": the value the watch reported. */
-  restingHrSource: "night-samples" | "watch-daily" | null;
-  /** How the night figure was computed; null when there is no value or it is the watch's own daily figure. */
+  /** "night-samples": our night computation. "wearable-daily": the value the wearable reported. */
+  restingHrSource: "night-samples" | "wearable-daily" | null;
+  /** How the night figure was computed; null when there is no value or it is the wearable's own daily figure. */
   restingHrMethod: "dense-30min" | "sparse-3-readings" | null;
   /** Median minutes between the night's heart-rate readings when restingHrMethod is set; else null. */
   restingHrGapMin: number | null;

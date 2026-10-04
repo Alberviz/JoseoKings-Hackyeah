@@ -1,10 +1,10 @@
 import { CORE_QUESTION_SCALE } from "@/config/content-ids";
 import type { AppState } from "@/types";
-import type { WatchDay, WatchState } from "@/types/watch";
+import type { WearableDay, WearableState } from "@/types/wearable";
 import { getDaySummaries } from "./daySummaries";
 import type { CheckInStatus, DateRange } from "./types";
 
-export type WatchJoinRow = {
+export type WearableJoinRow = {
   date: string;
   checkInStatus: CheckInStatus;
   bellyComfort: number | null;
@@ -14,17 +14,17 @@ export type WatchJoinRow = {
   missionsCompleted: number | null;
   /** Sleep hours entered by the family, or null. */
   familySleepHours: number | null;
-  /** The watch record for the day, or null when the watch has none. Never imputed. */
-  watch: WatchDay | null;
+  /** The wearable record for the day, or null when the wearable has none. Never imputed. */
+  wearable: WearableDay | null;
 };
 
-/** Joins, per local day, the child's answers, missions, parent log and watch data. Gaps stay null. */
-export function joinDaysWithWatch(
+/** Joins, per local day, the child's answers, missions, parent log and wearable data. Gaps stay null. */
+export function joinDaysWithWearable(
   state: AppState,
-  watch: WatchState,
+  wearable: WearableState,
   range: DateRange,
-): WatchJoinRow[] {
-  const watchByDate = new Map(watch.days.map((day) => [day.date, day]));
+): WearableJoinRow[] {
+  const wearableByDate = new Map(wearable.days.map((day) => [day.date, day]));
   const missionDates = new Set(state.missionLogs.map((log) => log.date));
   return getDaySummaries(state, range).map((day) => ({
     date: day.date,
@@ -34,13 +34,13 @@ export function joinDaysWithWatch(
     playPace: day.playPace,
     missionsCompleted: missionDates.has(day.date) ? day.missions.completed : null,
     familySleepHours: day.sleepHours,
-    watch: watchByDate.get(day.date) ?? null,
+    wearable: wearableByDate.get(day.date) ?? null,
   }));
 }
 
 export const MIN_COMPARE_PAIRS = 7;
 
-export type ChildWatchComparison =
+export type ChildWearableComparison =
   | { enough: false; pairs: number }
   | { enough: true; pairs: number; shorterNights: number; totalTired: number };
 
@@ -52,15 +52,15 @@ function median(values: number[]): number {
 
 /**
  * Counts, over the period, how many days the child marked low energy had a night
- * (the night ending that morning) shorter than the median of every complete watch night in the period.
- * Needs at least MIN_COMPARE_PAIRS days with both an energy answer and a complete watch night.
+ * (the night ending that morning) shorter than the median of every complete wearable night in the period.
+ * Needs at least MIN_COMPARE_PAIRS days with both an energy answer and a complete wearable night.
  * Descriptive only: no causal claim.
  */
-export function compareChildWithWatch(rows: WatchJoinRow[]): ChildWatchComparison {
+export function compareChildWithWearable(rows: WearableJoinRow[]): ChildWearableComparison {
   const withNight: Array<{ energy: number | null; sleep: number }> = [];
   for (const row of rows) {
-    if (row.watch?.nightComplete && row.watch.sleepMinutes !== null) {
-      withNight.push({ energy: row.energy, sleep: row.watch.sleepMinutes });
+    if (row.wearable?.nightComplete && row.wearable.sleepMinutes !== null) {
+      withNight.push({ energy: row.energy, sleep: row.wearable.sleepMinutes });
     }
   }
   const pairs = withNight.filter((item) => item.energy !== null);

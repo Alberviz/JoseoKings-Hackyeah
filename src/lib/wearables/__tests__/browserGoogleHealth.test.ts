@@ -1,11 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
-  heartRateWatch,
+  heartRateWearable,
   restingDailyObject,
   restingDailyString,
-  sleepWatch,
+  sleepWearable,
   stepsPhone,
-  stepsWatch,
+  stepsWearable,
 } from "./fixtures";
 import {
   fetchBrowserGoogleHealth,
@@ -107,20 +107,20 @@ describe("browserGoogleHealth", () => {
     ]);
   });
 
-  it("normalizes string numbers, keeps watch and phone apart and skips naps", async () => {
+  it("normalizes string numbers, keeps wearable and phone apart and skips naps", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockImplementation((url: string) => {
         let dataPoints: unknown[] = [];
         if (url.includes("/dataTypes/steps/")) {
           dataPoints = [
-            stepsWatch("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "120"),
+            stepsWearable("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "120"),
             stepsPhone("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "95"),
           ];
         } else if (url.includes("/dataTypes/heart-rate/")) {
           dataPoints = [
-            heartRateWatch("2026-09-01T10:00:05Z", "70"),
-            heartRateWatch("2026-09-01T10:00:45Z", "72"),
+            heartRateWearable("2026-09-01T10:00:05Z", "70"),
+            heartRateWearable("2026-09-01T10:00:45Z", "72"),
           ];
         } else if (url.includes("/daily-resting-heart-rate/")) {
           dataPoints = [
@@ -129,8 +129,8 @@ describe("browserGoogleHealth", () => {
           ];
         } else if (url.includes("/dataTypes/sleep/")) {
           dataPoints = [
-            sleepWatch("2026-08-31T22:00:00Z", "2026-09-01T06:00:00Z", "450", false),
-            sleepWatch("2026-09-01T13:00:00Z", "2026-09-01T14:00:00Z", "50", true),
+            sleepWearable("2026-08-31T22:00:00Z", "2026-09-01T06:00:00Z", "450", false),
+            sleepWearable("2026-09-01T13:00:00Z", "2026-09-01T14:00:00Z", "50", true),
           ];
         }
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints }) });
@@ -146,7 +146,7 @@ describe("browserGoogleHealth", () => {
 
     const steps = result.samples.filter((s) => s.metric === "steps");
     expect(steps.map((s) => [s.source, s.value])).toEqual([
-      ["com.fitbit.FitbitMobile|watch-uid-1", 120],
+      ["com.fitbit.FitbitMobile|wearable-uid-1", 120],
       ["com.google.android.apps.fitness", 95],
     ]);
     expect(result.samples.filter((s) => s.metric === "heartRate")).toHaveLength(1);
@@ -155,10 +155,10 @@ describe("browserGoogleHealth", () => {
     ).toEqual(["2026-09-01", "2026-09-02"]);
     expect(result.samples.filter((s) => s.metric === "sleepSession")).toHaveLength(1);
     expect(result.devices.map((d) => [d.label, d.metrics])).toEqual([
-      ["Watch · Fitbit Charge 6", ["steps", "heartRate", "sleep"]],
+      ["Wearable · Fitbit Charge 6", ["steps", "heartRate", "sleep"]],
       ["Phone · Google Pixel 8", ["steps"]],
     ]);
-    // the automatic daily figures use the watch only, so steps are not summed across devices
+    // the automatic daily figures use the wearable only, so steps are not summed across devices
     expect(result.dailyMetrics.find((d) => d.localDate === "2026-09-01")?.steps).toBe(120);
     expect(result.metricStatus).toEqual({
       steps: { status: "ok", count: 2 },

@@ -1,7 +1,7 @@
-import { DAY_TONE_LABELS, WATCH_STATUS_COPY, type DayTone } from "@/content/watch-summary";
+import { DAY_TONE_LABELS, WEARABLE_STATUS_COPY, type DayTone } from "@/content/wearable-summary";
 import { addDays } from "@/lib/dates";
 import { evaluateParentStatus, type MetricEvaluation } from "@/lib/wearables/parentStatus";
-import type { WatchDay } from "@/types/watch";
+import type { WearableDay } from "@/types/wearable";
 import type { DateRange } from "./types";
 
 export type DayStatus = {
@@ -10,7 +10,7 @@ export type DayStatus = {
   label: string;
   /** One plain sentence on why. */
   sentence: string;
-  /** How many watch metrics were outside the child's usual range that day. */
+  /** How many wearable metrics were outside the child's usual range that day. */
   outsideCount: number;
   /** The longest run of consecutive outside days ending that day, over any one metric. */
   longestStreak: number;
@@ -26,7 +26,7 @@ function phrase(metric: MetricEvaluation): string | null {
       : (metric.deviation ?? 0) < 0
         ? "below"
         : "above";
-  const copy = WATCH_STATUS_COPY;
+  const copy = WEARABLE_STATUS_COPY;
   if (metric.metric === "sleep") return direction === "below" ? copy.sleepBelow : copy.sleepAbove;
   if (metric.metric === "steps") return direction === "below" ? copy.stepsBelow : copy.stepsAbove;
   return direction === "above" ? copy.hrAbove : copy.hrBelow;
@@ -42,18 +42,18 @@ function unknownStatus(date: string): DayStatus {
     date,
     tone: "unknown",
     label: DAY_TONE_LABELS.unknown,
-    sentence: WATCH_STATUS_COPY.unknownSentence,
+    sentence: WEARABLE_STATUS_COPY.unknownSentence,
     outsideCount: 0,
     longestStreak: 0,
   };
 }
 
 /**
- * Status of one local day: the watch metrics against the child's own usual range
- * (reuses evaluateParentStatus). Days without usable watch data are "unknown", never imputed.
+ * Status of one local day: the wearable metrics against the child's own usual range
+ * (reuses evaluateParentStatus). Days without usable wearable data are "unknown", never imputed.
  */
-export function getDayStatus(watchDays: WatchDay[], date: string): DayStatus {
-  const upToDate = watchDays.filter((day) => day.date <= date);
+export function getDayStatus(wearableDays: WearableDay[], date: string): DayStatus {
+  const upToDate = wearableDays.filter((day) => day.date <= date);
   const today = upToDate.find((day) => day.date === date);
   if (!today || (!today.dayComplete && !today.nightComplete)) return unknownStatus(date);
 
@@ -81,17 +81,17 @@ export function getDayStatus(watchDays: WatchDay[], date: string): DayStatus {
     date,
     tone,
     label: DAY_TONE_LABELS[tone],
-    sentence: phrases.length > 0 ? joinPhrases(phrases) : WATCH_STATUS_COPY.usualSentence,
+    sentence: phrases.length > 0 ? joinPhrases(phrases) : WEARABLE_STATUS_COPY.usualSentence,
     outsideCount: outside.length,
     longestStreak,
   };
 }
 
 /** One status per calendar day in the range, in order. */
-export function getDayStatuses(watchDays: WatchDay[], range: DateRange): DayStatus[] {
+export function getDayStatuses(wearableDays: WearableDay[], range: DateRange): DayStatus[] {
   const statuses: DayStatus[] = [];
   for (let date = range.from; date <= range.to; date = addDays(date, 1)) {
-    statuses.push(getDayStatus(watchDays, date));
+    statuses.push(getDayStatus(wearableDays, date));
   }
   return statuses;
 }

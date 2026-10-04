@@ -8,9 +8,9 @@
  * - Zero transmission to any server or third-party analytics.
  */
 
-import type { DeviceMetric, WatchDevice } from "@/types/watch";
+import type { DeviceMetric, WearableDevice } from "@/types/wearable";
 import { addDays } from "./stats";
-import { filterSamplesByDeviceSelection } from "./buildWatchDays";
+import { filterSamplesByDeviceSelection } from "./buildWearableDays";
 import { buildDeviceList, resolveDeviceSelection, type DevicePoints } from "./devices";
 import {
   dailyRestingHrPointsToRows,
@@ -23,7 +23,7 @@ import {
   type HealthListResponse,
 } from "./googleHealthV4";
 import { ALGORITHM_VERSION, computeDailyMetrics, DEFAULT_TIMEZONE } from "./daily";
-import type { DailyMetric, WatchSample } from "./types";
+import type { DailyMetric, WearableSample } from "./types";
 import { localDateTime } from "./validity";
 
 export interface GoogleHealthReadOptions {
@@ -44,10 +44,10 @@ export type MetricFetchStatus =
 export type FetchedMetricKey = "steps" | "heartRate" | "sleep" | "restingHrDaily";
 
 export interface GoogleHealthResult {
-  samples: WatchSample[];
+  samples: WearableSample[];
   dailyMetrics: DailyMetric[];
   /** Devices that sent data, with the metrics each one has. */
-  devices: WatchDevice[];
+  devices: WearableDevice[];
   /** One entry per requested metric. A metric that failed has no samples and a non-"ok" status. */
   metricStatus: Partial<Record<FetchedMetricKey, MetricFetchStatus>>;
   range: {
@@ -159,7 +159,7 @@ function timeFilter(field: string, startMillis: number, endMillis: number): stri
 }
 
 /**
- * Reads steps, heart rate, the watch's daily resting heart rate and sleep sessions directly from
+ * Reads steps, heart rate, the wearable's daily resting heart rate and sleep sessions directly from
  * the browser using the parent's OAuth access token.
  */
 export async function fetchBrowserGoogleHealth(
@@ -173,14 +173,14 @@ export async function fetchBrowserGoogleHealth(
   }
 
   const headers = { Authorization: `Bearer ${accessToken}` };
-  const rows: WatchSample[] = [];
+  const rows: WearableSample[] = [];
   const devicePoints: DevicePoints = {};
   const metricStatus: Partial<Record<FetchedMetricKey, MetricFetchStatus>> = {};
 
   async function run(
     key: FetchedMetricKey,
     deviceMetric: DeviceMetric,
-    load: () => Promise<{ points: HealthDataPoint[]; rows: WatchSample[] }>,
+    load: () => Promise<{ points: HealthDataPoint[]; rows: WearableSample[] }>,
   ): Promise<void> {
     try {
       const loaded = await load();
@@ -222,7 +222,7 @@ export async function fetchBrowserGoogleHealth(
     return { points, rows: heartRatePointsToRows(points) };
   });
 
-  // The watch's own resting heart rate per day. Daily types are filtered by civil date, never mixed with instants.
+  // The wearable's own resting heart rate per day. Daily types are filtered by civil date, never mixed with instants.
   await run("restingHrDaily", "heartRate", async () => {
     const fromDate = localDateTime(startTimeMillis, timeZone).date;
     const toDate = addDays(localDateTime(endTimeMillis, timeZone).date, 1);

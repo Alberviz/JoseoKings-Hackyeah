@@ -1,5 +1,5 @@
 import type { GoogleFitBucket, SleepSessionResult } from "./googleFit";
-import type { SleepStage, WatchSample, WearableMetric } from "./types";
+import type { SleepStage, WearableSample, WearableMetric } from "./types";
 
 export const SLEEP_STAGES: Record<number, SleepStage> = {
   1: "awake",
@@ -24,14 +24,14 @@ function numeric(v?: { intVal?: number; fpVal?: number } | null): number | null 
 
 /**
  * Minute buckets -> one row per non-empty bucket. Empty buckets are skipped, never filled:
- * "no row" means "the watch sent nothing for that minute".
+ * "no row" means "the wearable sent nothing for that minute".
  * Summary types (heart rate, SpO2) carry [average, max, min].
  */
 export function minuteBucketsToRows(
   metric: WearableMetric,
   buckets: GoogleFitBucket[],
-): WatchSample[] {
-  const rows: WatchSample[] = [];
+): WearableSample[] {
+  const rows: WearableSample[] = [];
   for (const bucket of buckets) {
     for (const dataset of bucket.dataset ?? []) {
       for (const point of dataset.point ?? []) {
@@ -56,8 +56,8 @@ export function minuteBucketsToRows(
 }
 
 /** Sleep sessions -> one `sleepSession` row per session plus one `sleepSegment` row per segment. */
-export function sleepToRows(sessions: SleepSessionResult[]): WatchSample[] {
-  const rows: WatchSample[] = [];
+export function sleepToRows(sessions: SleepSessionResult[]): WearableSample[] {
+  const rows: WearableSample[] = [];
   for (const { session, points } of sessions) {
     const source = session.application?.packageName || session.application?.name || "unknown";
     rows.push({

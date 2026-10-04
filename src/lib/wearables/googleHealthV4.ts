@@ -1,8 +1,8 @@
 // Google Health API v4 (https://health.googleapis.com/v4): endpoint constants, response shapes and
-// converters into WatchSample rows. Read-only scopes. No credentials and no client code live here.
+// converters into WearableSample rows. Read-only scopes. No credentials and no client code live here.
 // Numbers (int64) come back from the API as strings, so every number goes through toNumber().
 import { describeDevice } from "./devices";
-import type { WatchSample } from "./types";
+import type { WearableSample } from "./types";
 
 export const GOOGLE_HEALTH_BASE = "https://health.googleapis.com/v4/users/me";
 
@@ -93,8 +93,8 @@ export function googleDateToKey(date: GoogleDate | undefined): string | null {
   return `${String(year).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-export function stepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
-  const rows: WatchSample[] = [];
+export function stepPointsToRows(points: HealthDataPoint[]): WearableSample[] {
+  const rows: WearableSample[] = [];
   for (const point of points) {
     const start = toMs(point.steps?.interval?.startTime);
     const end = toMs(point.steps?.interval?.endTime);
@@ -112,8 +112,8 @@ export function stepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
 }
 
 /** Heart-rate readings, thinned to the first reading of each minute (the rules count minutes). */
-export function heartRatePointsToRows(points: HealthDataPoint[]): WatchSample[] {
-  const byMinute = new Map<string, WatchSample>();
+export function heartRatePointsToRows(points: HealthDataPoint[]): WearableSample[] {
+  const byMinute = new Map<string, WearableSample>();
   for (const point of points) {
     const at = toMs(point.heartRate?.sampleTime?.physicalTime);
     const bpm = toNumber(point.heartRate?.beatsPerMinute);
@@ -135,8 +135,8 @@ export function heartRatePointsToRows(points: HealthDataPoint[]): WatchSample[] 
 }
 
 /** Sleep sessions. Naps are skipped. The value is the minutes asleep when given, else the session length. */
-export function sleepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
-  const rows: WatchSample[] = [];
+export function sleepPointsToRows(points: HealthDataPoint[]): WearableSample[] {
+  const rows: WearableSample[] = [];
   for (const point of points) {
     // Some apps flag a long main sleep as a nap too; only skip naps that are not the main sleep.
     const meta = point.sleep?.metadata;
@@ -157,9 +157,9 @@ export function sleepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
   return rows;
 }
 
-/** The resting heart rate the watch reports for a day. startAt and endAt hold the local date. */
-export function dailyRestingHrPointsToRows(points: HealthDataPoint[]): WatchSample[] {
-  const rows: WatchSample[] = [];
+/** The resting heart rate the wearable reports for a day. startAt and endAt hold the local date. */
+export function dailyRestingHrPointsToRows(points: HealthDataPoint[]): WearableSample[] {
+  const rows: WearableSample[] = [];
   for (const point of points) {
     const date = googleDateToKey(point.dailyRestingHeartRate?.date);
     const bpm = toNumber(point.dailyRestingHeartRate?.beatsPerMinute);

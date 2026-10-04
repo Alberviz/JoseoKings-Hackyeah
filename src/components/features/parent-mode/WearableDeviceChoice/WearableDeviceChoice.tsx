@@ -1,14 +1,14 @@
 "use client";
 
 import { Chip } from "@/components/ui";
-import type { WatchDevice } from "@/types/watch";
-import { ChipRow, ChoiceGroup, ChoiceLegend } from "./WatchDeviceChoice.style";
+import type { WearableDevice } from "@/types/wearable";
+import { ChipRow, ChoiceGroup, ChoiceLegend } from "./WearableDeviceChoice.style";
 
-type WatchDeviceChoiceProps = {
+type WearableDeviceChoiceProps = {
   /** For example "Steps". */
   metricLabel: string;
   /** Only the devices that have this metric. */
-  devices: WatchDevice[];
+  devices: WearableDevice[];
   /** The parent's choice; null means automatic. */
   selectedId: string | null;
   /** The device the automatic rule picks right now. */
@@ -17,13 +17,13 @@ type WatchDeviceChoiceProps = {
 };
 
 // Lets the parent pick which device feeds one metric. Devices are never combined.
-export function WatchDeviceChoice({
+export function WearableDeviceChoice({
   metricLabel,
   devices,
   selectedId,
   autoLabel,
   onSelect,
-}: WatchDeviceChoiceProps) {
+}: WearableDeviceChoiceProps) {
   return (
     <ChoiceGroup>
       <ChoiceLegend>{`${metricLabel} from`}</ChoiceLegend>

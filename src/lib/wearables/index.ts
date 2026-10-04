@@ -26,6 +26,6 @@ export {
 } from "./validity";
 export * from "./parentStatus";
 export * from "./googleHealthV4";
-export * from "./buildWatchDays";
-export * from "./demoWatchDays";
+export * from "./buildWearableDays";
+export * from "./demoWearableDays";
 export * from "./devices";

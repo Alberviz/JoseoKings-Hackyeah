@@ -2,15 +2,15 @@
 
 import { useCallback, useRef, useState } from "react";
 import {
-  clearWatchState,
-  createEmptyWatchState,
-  loadWatchState,
-  mergeWatchDays,
-  saveWatchState,
-} from "@/lib/storage/watchStore";
+  clearWearableState,
+  createEmptyWearableState,
+  loadWearableState,
+  mergeWearableDays,
+  saveWearableState,
+} from "@/lib/storage/wearableStore";
 import { addDays } from "@/lib/wearables/stats";
-import { buildDemoWatchDays } from "@/lib/wearables/demoWatchDays";
-import { buildWatchDays } from "@/lib/wearables/buildWatchDays";
+import { buildDemoWearableDays } from "@/lib/wearables/demoWearableDays";
+import { buildWearableDays } from "@/lib/wearables/buildWearableDays";
 import {
   AUTOMATIC_SELECTION,
   resolveDeviceSelection,
@@ -24,14 +24,14 @@ import {
 } from "@/lib/wearables/browserGoogleHealth";
 import { requestGoogleAccessToken, type AccessToken } from "@/lib/wearables/googleIdentity";
 import { localDateTime } from "@/lib/wearables/validity";
-import type { WatchSample } from "@/lib/wearables/types";
-import type { DeviceMetric, WatchState } from "@/types/watch";
+import type { WearableSample } from "@/lib/wearables/types";
+import type { DeviceMetric, WearableState } from "@/types/wearable";
 
-export const WATCH_SYNC_DAYS = 28;
+export const WEARABLE_SYNC_DAYS = 28;
 
-export type WatchSyncStatus = "idle" | "working" | "error";
+export type WearableSyncStatus = "idle" | "working" | "error";
 
-export type WatchMetricStatus = Partial<Record<FetchedMetricKey, MetricFetchStatus>>;
+export type WearableMetricStatus = Partial<Record<FetchedMetricKey, MetricFetchStatus>>;
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
 
@@ -47,26 +47,26 @@ function errorMessage(err: unknown): string {
 }
 
 // Reads storage on first render: mount this only on the client, after the parent screen is ready.
-export function useWatchSync() {
-  const [watch, setWatch] = useState<WatchState>(loadWatchState);
-  const [status, setStatus] = useState<WatchSyncStatus>("idle");
+export function useWearableSync() {
+  const [wearable, setWearable] = useState<WearableState>(loadWearableState);
+  const [status, setStatus] = useState<WearableSyncStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const [metricStatus, setMetricStatus] = useState<WatchMetricStatus | null>(null);
+  const [metricStatus, setMetricStatus] = useState<WearableMetricStatus | null>(null);
   const tokenRef = useRef<AccessToken | null>(null);
-  const watchRef = useRef<WatchState>(watch);
-  const rawSamplesRef = useRef<WatchSample[]>(watch.rawSamples ?? []);
+  const wearableRef = useRef<WearableState>(wearable);
+  const rawSamplesRef = useRef<WearableSample[]>(wearable.rawSamples ?? []);
 
   // The one place that saves and shows a new state; never called from inside a state updater.
-  const commit = useCallback((next: WatchState) => {
-    watchRef.current = next;
-    saveWatchState(next);
-    setWatch(next);
+  const commit = useCallback((next: WearableState) => {
+    wearableRef.current = next;
+    saveWearableState(next);
+    setWearable(next);
   }, []);
 
   const sync = useCallback(async () => {
     if (!CLIENT_ID) {
       setStatus("error");
-      setMessage("Watch connection is not set up in this build.");
+      setMessage("Wearable connection is not set up in this build.");
       return;
     }
     setStatus("working");
@@ -80,26 +80,26 @@ export function useWatchSync() {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const now = Date.now();
       const today = localDateTime(now, timeZone).date;
-      const fromDate = addDays(today, -(WATCH_SYNC_DAYS - 1));
+      const fromDate = addDays(today, -(WEARABLE_SYNC_DAYS - 1));
       // One extra day before the window so the first night has its heart-rate samples.
       const result = await fetchBrowserGoogleHealth({
         accessToken: access.token,
-        startTimeMillis: now - (WATCH_SYNC_DAYS + 1) * 86_400_000,
+        startTimeMillis: now - (WEARABLE_SYNC_DAYS + 1) * 86_400_000,
         endTimeMillis: now,
         timeZone,
       });
       const failed = Object.values(result.metricStatus).some((m) => m?.status !== "ok");
       rawSamplesRef.current = result.samples;
-      const current = loadWatchState();
-      const base = current.isDemo ? createEmptyWatchState() : current;
+      const current = loadWearableState();
+      const base = current.isDemo ? createEmptyWearableState() : current;
       const deviceSelection = sanitizeDeviceSelection(result.devices, base.deviceSelection);
-      const days = buildWatchDays(result.samples, {
+      const days = buildWearableDays(result.samples, {
         timeZone,
         fromDate,
         deviceIds: resolveDeviceSelection(result.devices, deviceSelection),
       });
       commit(
-        mergeWatchDays(base, days, {
+        mergeWearableDays(base, days, {
           isDemo: false,
           devices: result.devices,
           deviceSelection,
@@ -110,9 +110,9 @@ export function useWatchSync() {
       setStatus("idle");
       setMessage(
         failed
-          ? "Some watch data could not be read. What was read is saved."
+          ? "Some wearable data could not be read. What was read is saved."
           : days.length === 0
-            ? "Connected, but the watch has not shared any days yet."
+            ? "Connected, but the wearable has not shared any days yet."
             : null,
       );
     } catch (err) {
@@ -125,7 +125,7 @@ export function useWatchSync() {
   // Picks the device for one metric (null = automatic) and rebuilds the days from the saved readings.
   const selectDevice = useCallback(
     (metric: DeviceMetric, deviceId: string | null) => {
-      const prev = watchRef.current;
+      const prev = wearableRef.current;
       const deviceSelection = {
         ...(prev.deviceSelection ?? AUTOMATIC_SELECTION),
         [metric]: deviceId,
@@ -139,18 +139,18 @@ export function useWatchSync() {
       }
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const today = localDateTime(Date.now(), timeZone).date;
-      const fromDate = addDays(today, -(WATCH_SYNC_DAYS - 1));
-      const days = buildWatchDays(samples, {
+      const fromDate = addDays(today, -(WEARABLE_SYNC_DAYS - 1));
+      const days = buildWearableDays(samples, {
         timeZone,
         fromDate,
         deviceIds: resolveDeviceSelection(prev.devices ?? [], deviceSelection),
       });
       // Days inside the window are replaced by the rebuilt ones; older days are kept.
-      const withoutWindow: WatchState = {
+      const withoutWindow: WearableState = {
         ...prev,
         days: prev.days.filter((d) => d.date < fromDate),
       };
-      const merged = mergeWatchDays(withoutWindow, days, {
+      const merged = mergeWearableDays(withoutWindow, days, {
         isDemo: prev.isDemo,
         deviceSelection,
         rawSamples: samples,
@@ -164,7 +164,7 @@ export function useWatchSync() {
   const useDemo = useCallback(() => {
     rawSamplesRef.current = [];
     commit(
-      mergeWatchDays(createEmptyWatchState(), buildDemoWatchDays(), {
+      mergeWearableDays(createEmptyWearableState(), buildDemoWearableDays(), {
         isDemo: true,
         devices: [],
         deviceSelection: { ...AUTOMATIC_SELECTION },
@@ -177,19 +177,19 @@ export function useWatchSync() {
   }, [commit]);
 
   const clear = useCallback(() => {
-    clearWatchState();
+    clearWearableState();
     tokenRef.current = null;
     rawSamplesRef.current = [];
-    const empty = createEmptyWatchState();
-    watchRef.current = empty;
-    setWatch(empty);
+    const empty = createEmptyWearableState();
+    wearableRef.current = empty;
+    setWearable(empty);
     setMetricStatus(null);
     setStatus("idle");
     setMessage(null);
   }, []);
 
   return {
-    watch,
+    wearable,
     status,
     message,
     metricStatus,

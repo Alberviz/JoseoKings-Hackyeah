@@ -3,17 +3,17 @@ import { QUESTION_IDS } from "@/config/content-ids";
 import { addDays } from "@/lib/dates";
 import { createEmptyState } from "@/lib/storage";
 import type { AppState, CheckIn } from "@/types";
-import type { WatchDay, WatchState } from "@/types/watch";
+import type { WearableDay, WearableState } from "@/types/wearable";
 import {
-  compareChildWithWatch,
-  joinDaysWithWatch,
+  compareChildWithWearable,
+  joinDaysWithWearable,
   MIN_COMPARE_PAIRS,
-  type WatchJoinRow,
-} from "./watchJoin";
+  type WearableJoinRow,
+} from "./wearableJoin";
 
 const FROM = "2026-10-01";
 
-function watchDay(date: string, sleepMinutes: number | null, nightComplete = true): WatchDay {
+function wearableDay(date: string, sleepMinutes: number | null, nightComplete = true): WearableDay {
   return { date, steps: 4000, restingHr: 60, sleepMinutes, nightComplete, dayComplete: true };
 }
 
@@ -25,7 +25,7 @@ function checkIn(date: string, energy: number): CheckIn {
   } as unknown as CheckIn;
 }
 
-function makeRows(sleeps: Array<[number | null, number | null]>): WatchJoinRow[] {
+function makeRows(sleeps: Array<[number | null, number | null]>): WearableJoinRow[] {
   return sleeps.map(([energy, sleep], i) => ({
     date: addDays(FROM, i),
     checkInStatus: energy === null ? "none" : "answered",
@@ -34,41 +34,41 @@ function makeRows(sleeps: Array<[number | null, number | null]>): WatchJoinRow[]
     playPace: null,
     missionsCompleted: null,
     familySleepHours: null,
-    watch: sleep === null ? null : watchDay(addDays(FROM, i), sleep),
+    wearable: sleep === null ? null : wearableDay(addDays(FROM, i), sleep),
   }));
 }
 
-describe("joinDaysWithWatch", () => {
+describe("joinDaysWithWearable", () => {
   it("joins per day and leaves gaps as null", () => {
     const state: AppState = { ...createEmptyState(), checkIns: [checkIn(FROM, 2)] };
-    const watch: WatchState = {
-      days: [watchDay(addDays(FROM, 1), 400, false)],
+    const wearable: WearableState = {
+      days: [wearableDay(addDays(FROM, 1), 400, false)],
       lastSyncAt: null,
       isDemo: false,
     };
-    const rows = joinDaysWithWatch(state, watch, { from: FROM, to: addDays(FROM, 2) });
+    const rows = joinDaysWithWearable(state, wearable, { from: FROM, to: addDays(FROM, 2) });
     expect(rows).toHaveLength(3);
     expect(rows[0].energy).toBe(2);
-    expect(rows[0].watch).toBeNull();
+    expect(rows[0].wearable).toBeNull();
     expect(rows[0].missionsCompleted).toBeNull();
-    expect(rows[1].watch?.nightComplete).toBe(false);
+    expect(rows[1].wearable?.nightComplete).toBe(false);
     expect(rows[1].energy).toBeNull();
-    expect(rows[2].watch).toBeNull();
+    expect(rows[2].wearable).toBeNull();
   });
 });
 
-describe("compareChildWithWatch", () => {
+describe("compareChildWithWearable", () => {
   it("is not enough below the minimum pairs", () => {
     const rows = makeRows(Array.from({ length: MIN_COMPARE_PAIRS - 1 }, () => [2, 400]));
-    expect(compareChildWithWatch(rows)).toEqual({ enough: false, pairs: MIN_COMPARE_PAIRS - 1 });
+    expect(compareChildWithWearable(rows)).toEqual({ enough: false, pairs: MIN_COMPARE_PAIRS - 1 });
   });
 
-  it("ignores days without an answer, without a watch night or with a partial night", () => {
+  it("ignores days without an answer, without a wearable night or with a partial night", () => {
     const rows = makeRows(
       Array.from({ length: 10 }, (_, i) => [i % 2 ? null : 2, i % 3 ? 400 : null]),
     );
-    rows[0] = { ...rows[0], watch: watchDay(rows[0].date, 300, false) };
-    const result = compareChildWithWatch(rows);
+    rows[0] = { ...rows[0], wearable: wearableDay(rows[0].date, 300, false) };
+    const result = compareChildWithWearable(rows);
     expect(result.enough).toBe(false);
   });
 
@@ -84,7 +84,7 @@ describe("compareChildWithWatch", () => {
       [1, 470],
       [0, 490],
     ]);
-    const result = compareChildWithWatch(rows);
+    const result = compareChildWithWearable(rows);
     expect(result).toEqual({ enough: true, pairs: 8, shorterNights: 2, totalTired: 3 });
   });
 });

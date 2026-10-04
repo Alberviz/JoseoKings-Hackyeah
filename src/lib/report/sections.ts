@@ -2,16 +2,16 @@ import { addDays, daysBetween } from "@/lib/dates";
 import { resolveDeviceSelection } from "@/lib/wearables/devices";
 import { median, quartiles } from "@/lib/wearables/stats";
 import type { BathroomEntry, DateKey, ParentLog } from "@/types";
-import type { WatchState } from "@/types/watch";
+import type { WearableState } from "@/types/wearable";
 import type {
   BathroomObservedSummary,
   ObservedSection,
-  WatchDailyPoint,
-  WatchMetricSummary,
-  WatchReportSection,
+  WearableDailyPoint,
+  WearableMetricSummary,
+  WearableReportSection,
 } from "./types";
 
-function summarise(values: number[], decimals: number): WatchMetricSummary {
+function summarise(values: number[], decimals: number): WearableMetricSummary {
   if (values.length === 0) return { n: 0, median: null, q1: null, q3: null };
   const factor = 10 ** decimals;
   const round = (v: number | null) => (v === null ? null : Math.round(v * factor) / factor);
@@ -19,15 +19,15 @@ function summarise(values: number[], decimals: number): WatchMetricSummary {
   return { n: values.length, median: round(median(values)), q1: round(q1), q3: round(q3) };
 }
 
-/** Title of the note that explains how the watch figures are made. */
-export const WATCH_METHOD_NOTE_TITLE = "How the watch figures are made";
+/** Title of the note that explains how the wearable figures are made. */
+export const WEARABLE_METHOD_NOTE_TITLE = "How the wearable figures are made";
 
 const DENSE_METHOD_TEXT = "lowest 30-minute average";
 
 function sparseMethodText(gapMin: number | null): string {
   return gapMin === null
     ? "lowest average of 3 readings in a row"
-    : `lowest average of 3 readings in a row (watch recorded about every ${gapMin} min)`;
+    : `lowest average of 3 readings in a row (wearable recorded about every ${gapMin} min)`;
 }
 
 function nightsText(count: number): string {
@@ -43,70 +43,71 @@ function buildRestingHrMethodText(dense: number, sparse: number, gapMin: number 
 }
 
 /**
- * Plain note on how the watch figures are made. It states the limits: simple fixed calculations,
- * not clinical, not validated here, adapted when the watch records heart rate less often during
+ * Plain note on how the wearable figures are made. It states the limits: simple fixed calculations,
+ * not clinical, not validated here, adapted when the wearable records heart rate less often during
  * sleep, and mixed evidence in published work. No claim of correlation or detection.
  */
 function buildMethodNote(
   dense: number,
   sparse: number,
   gapMin: number | null,
-  restingHrSource: WatchReportSection["restingHrSource"],
+  restingHrSource: WearableReportSection["restingHrSource"],
 ): string[] {
   const note = [
-    "The figures are simple fixed calculations done on this device from what the watch recorded. They describe this child's own recordings. They are not a clinical measurement and they have not been validated for this use.",
-    "They follow methods used in research on wearables, which mostly used watches that record heart rate about every minute.",
+    "The figures are simple fixed calculations done on this device from what the wearable recorded. They describe this child's own recordings. They are not a clinical measurement and they have not been validated for this use.",
+    "They follow methods used in research on wearables, which mostly used wearables that record heart rate about every minute.",
   ];
   const total = dense + sparse;
   if (sparse > 0) {
     const every =
       gapMin === null ? "less often than every 5 minutes" : `about every ${gapMin} minutes`;
     note.push(
-      `On ${sparse} of the ${nightsText(total)} the watch recorded heart rate during sleep ${every}. For those nights the night-time heart rate uses an adapted method, the lowest average of 3 readings in a row, which is less precise. ${nightsText(dense)} used the lowest 30-minute average.`,
+      `On ${sparse} of the ${nightsText(total)} the wearable recorded heart rate during sleep ${every}. For those nights the night-time heart rate uses an adapted method, the lowest average of 3 readings in a row, which is less precise. ${nightsText(dense)} used the lowest 30-minute average.`,
     );
   } else if (dense > 0) {
     note.push(
-      `On all ${nightsText(dense)} with a night-time heart-rate figure, the watch recorded heart rate often enough for the lowest 30-minute average.`,
+      `On all ${nightsText(dense)} with a night-time heart-rate figure, the wearable recorded heart rate often enough for the lowest 30-minute average.`,
     );
   }
-  if (restingHrSource === "watch-daily" || restingHrSource === "mixed") {
+  if (restingHrSource === "wearable-daily" || restingHrSource === "mixed") {
     note.push(
-      "On some days the resting heart rate is the figure the watch itself reported, not one calculated here.",
+      "On some days the resting heart rate is the figure the wearable itself reported, not one calculated here.",
     );
   }
   note.push(
-    "Published studies of watch data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
+    "Published studies of wearable data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
   );
   return note;
 }
 
-/** Median and IQR of the watch values that are valid inside the report period. */
-export function buildWatchSection(
-  watch: WatchState,
+/** Median and IQR of the wearable values that are valid inside the report period. */
+export function buildWearableSection(
+  wearable: WearableState,
   startDate: DateKey,
   endDate: DateKey,
-): WatchReportSection {
-  const days = watch.days.filter((d) => d.date >= startDate && d.date <= endDate);
+): WearableReportSection {
+  const days = wearable.days.filter((d) => d.date >= startDate && d.date <= endDate);
   const steps: number[] = [];
   const restingHr: number[] = [];
   const sleepHours: number[] = [];
-  const hrSources = new Set<"night-samples" | "watch-daily">();
+  const hrSources = new Set<"night-samples" | "wearable-daily">();
   let denseNights = 0;
   let sparseNights = 0;
   const sparseGaps: number[] = [];
   let validDays = 0;
-  const byDate = new Map<DateKey, WatchDailyPoint>();
+  const byDate = new Map<DateKey, WearableDailyPoint>();
 
   for (const d of days) {
     const hasSteps = d.dayComplete && d.steps !== null;
-    // The watch's own daily resting heart rate does not depend on our night checks.
-    const hasHr = d.restingHr !== null && (d.nightComplete || d.restingHrSource === "watch-daily");
+    // The wearable's own daily resting heart rate does not depend on our night checks.
+    const hasHr =
+      d.restingHr !== null && (d.nightComplete || d.restingHrSource === "wearable-daily");
     const hasSleep = d.nightComplete && d.sleepMinutes !== null;
     if (hasSteps) steps.push(d.steps as number);
     if (hasHr) {
       restingHr.push(d.restingHr as number);
-      hrSources.add(d.restingHrSource === "watch-daily" ? "watch-daily" : "night-samples");
-      if (d.restingHrSource !== "watch-daily") {
+      hrSources.add(d.restingHrSource === "wearable-daily" ? "wearable-daily" : "night-samples");
+      if (d.restingHrSource !== "wearable-daily") {
         // Saved days without a method come from before the sparse method existed: dense nights.
         if (d.restingHrMethod === "sparse-3-readings") {
           sparseNights += 1;
@@ -126,15 +127,15 @@ export function buildWatchSection(
     });
   }
 
-  const series: WatchDailyPoint[] = [];
+  const series: WearableDailyPoint[] = [];
   const total = daysBetween(startDate, endDate) + 1;
   for (let i = 0; i < total; i += 1) {
     const date = addDays(startDate, i);
     series.push(byDate.get(date) ?? { date, steps: null, restingHr: null, sleepHours: null });
   }
 
-  const devices = watch.devices ?? [];
-  const resolved = resolveDeviceSelection(devices, watch.deviceSelection);
+  const devices = wearable.devices ?? [];
+  const resolved = resolveDeviceSelection(devices, wearable.deviceSelection);
   const usedIds = new Set([resolved.steps, resolved.heartRate, resolved.sleep]);
   const deviceLabels = devices.filter((dev) => usedIds.has(dev.id)).map((dev) => dev.label);
   const restingHrSource =
@@ -144,14 +145,14 @@ export function buildWatchSection(
   const sparseGapMin = gapMedian === null ? null : Math.round(gapMedian);
 
   return {
-    source: "From the watch (Google Health)",
-    deviceLabels: watch.isDemo ? [] : deviceLabels,
+    source: "From the wearable (Google Health)",
+    deviceLabels: wearable.isDemo ? [] : deviceLabels,
     restingHrSource,
     restingHrNights: { dense: denseNights, sparse: sparseNights },
     sparseGapMin,
     restingHrMethodText: buildRestingHrMethodText(denseNights, sparseNights, sparseGapMin),
     methodNote: buildMethodNote(denseNights, sparseNights, sparseGapMin, restingHrSource),
-    isDemo: watch.isDemo,
+    isDemo: wearable.isDemo,
     validDays,
     steps: summarise(steps, 0),
     restingHr: summarise(restingHr, 0),

@@ -9,40 +9,40 @@ const START = 1_000_000;
 const END = START + 120_000;
 
 describe("corroborateMission", () => {
-  it("returns watch when steps in the window are enough", () => {
+  it("returns wearable when steps in the window are enough", () => {
     const result = corroborateMission({
       startMs: START,
       endMs: END,
-      watchSamples: [
+      wearableSamples: [
         { at: START + 10_000, steps: 15 },
         { at: START + 60_000, steps: 15 },
         { at: END + 5_000, steps: 500 },
       ],
     });
-    expect(result).toBe("watch");
+    expect(result).toBe("wearable");
   });
 
-  it("ignores watch samples outside the window", () => {
+  it("ignores wearable samples outside the window", () => {
     expect(
       corroborateMission({
         startMs: START,
         endMs: END,
-        watchSamples: [{ at: START - 1_000, steps: 400, heartRate: 150 }],
+        wearableSamples: [{ at: START - 1_000, steps: 400, heartRate: 150 }],
       }),
     ).toBeUndefined();
   });
 
-  it("returns watch when the heart rate rises enough", () => {
+  it("returns wearable when the heart rate rises enough", () => {
     expect(
       corroborateMission({
         startMs: START,
         endMs: END,
-        watchSamples: [
+        wearableSamples: [
           { at: START + 5_000, heartRate: 80 },
           { at: START + 90_000, heartRate: 96 },
         ],
       }),
-    ).toBe("watch");
+    ).toBe("wearable");
   });
 
   it("does not trust a single heart rate reading", () => {
@@ -50,7 +50,7 @@ describe("corroborateMission", () => {
       corroborateMission({
         startMs: START,
         endMs: END,
-        watchSamples: [{ at: START + 5_000, heartRate: 140 }],
+        wearableSamples: [{ at: START + 5_000, heartRate: 140 }],
       }),
     ).toBeUndefined();
   });
@@ -62,15 +62,15 @@ describe("corroborateMission", () => {
     ).toBeUndefined();
   });
 
-  it("prefers the watch over the device", () => {
+  it("prefers the wearable over the device", () => {
     expect(
       corroborateMission({
         startMs: START,
         endMs: END,
         motionVariance: 5,
-        watchSamples: [{ at: START + 1_000, steps: 100 }],
+        wearableSamples: [{ at: START + 1_000, steps: 100 }],
       }),
-    ).toBe("watch");
+    ).toBe("wearable");
   });
 
   it("returns nothing without data or with a reversed window", () => {
@@ -79,7 +79,7 @@ describe("corroborateMission", () => {
   });
 
   it("has neutral labels", () => {
-    expect(corroborationLabel("watch")).toBe("Watch recorded movement");
+    expect(corroborationLabel("wearable")).toBe("Wearable recorded movement");
     expect(corroborationLabel("motion")).toBe("Device recorded movement");
   });
 });
@@ -107,7 +107,7 @@ describe("corroboration never changes rewards", () => {
   it("gives the same reward result with and without corroboration", () => {
     const plain = [base("a"), base("b", { status: "rest", company: "alone" })];
     const withLabels = [
-      base("a", { corroboration: "watch" }),
+      base("a", { corroboration: "wearable" }),
       base("b", { status: "rest", company: "alone", corroboration: "motion" }),
     ];
     expect(totalPoints([], withLabels)).toBe(totalPoints([], plain));

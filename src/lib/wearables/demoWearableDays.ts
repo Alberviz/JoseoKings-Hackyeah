@@ -1,6 +1,6 @@
-import type { WatchDay } from "@/types/watch";
+import type { WearableDay } from "@/types/wearable";
 
-export const DEMO_WATCH_DAY_COUNT = 28;
+export const DEMO_WEARABLE_DAY_COUNT = 28;
 
 function localDateString(d: Date): string {
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -12,9 +12,9 @@ function localDateString(d: Date): string {
  * 28 fictional days ending today (local time), oldest first. Deterministic for a given day.
  * Always saved with isDemo true and shown as "Demo data".
  */
-export function buildDemoWatchDays(today: Date = new Date()): WatchDay[] {
-  const days: WatchDay[] = [];
-  for (let back = DEMO_WATCH_DAY_COUNT - 1; back >= 0; back--) {
+export function buildDemoWearableDays(today: Date = new Date()): WearableDay[] {
+  const days: WearableDay[] = [];
+  for (let back = DEMO_WEARABLE_DAY_COUNT - 1; back >= 0; back--) {
     const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - back);
     const wave = Math.sin(back * 0.6);
     const isToday = back === 0;

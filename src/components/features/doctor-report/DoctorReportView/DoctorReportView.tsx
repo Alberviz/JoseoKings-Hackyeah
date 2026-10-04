@@ -4,8 +4,8 @@ import { SECTION_BUTTON_VARIANT } from "@/components/features/parent-mode";
 import { Button } from "@/components/ui";
 import { DailyChart } from "../DailyChart/DailyChart";
 import { APP_NAME } from "@/config/app";
-import { WATCH_METHOD_NOTE_TITLE } from "@/lib/report/sections";
-import type { DoctorReportData, WatchMetricSummary } from "@/lib/report/types";
+import { WEARABLE_METHOD_NOTE_TITLE } from "@/lib/report/sections";
+import type { DoctorReportData, WearableMetricSummary } from "@/lib/report/types";
 import {
   ActivityConfidenceCard,
   ActivityConfidenceCount,
@@ -51,11 +51,11 @@ import {
   TotalMissionsHighlight,
 } from "./DoctorReportView.style";
 
-function formatMedian(metric: WatchMetricSummary, unit: string): string {
+function formatMedian(metric: WearableMetricSummary, unit: string): string {
   return metric.median === null ? "—" : `${metric.median} ${unit}`;
 }
 
-function formatRange(metric: WatchMetricSummary, unit: string): string {
+function formatRange(metric: WearableMetricSummary, unit: string): string {
   return metric.q1 === null || metric.q3 === null ? "—" : `${metric.q1} to ${metric.q3} ${unit}`;
 }
 
@@ -71,9 +71,9 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
   };
 
   const restingHrLabel =
-    data.watch.restingHrSource === "watch-daily"
-      ? "Resting HR (reported by the watch)"
-      : data.watch.restingHrSource === "mixed"
+    data.wearable.restingHrSource === "wearable-daily"
+      ? "Resting HR (reported by the wearable)"
+      : data.wearable.restingHrSource === "mixed"
         ? "Resting HR"
         : "Nocturnal resting HR";
 
@@ -207,32 +207,32 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
           </ActivityOverview>
         </ReportSection>
 
-        {/* Section 3: Watch data */}
-        <ReportSection aria-labelledby="section-watch">
-          <SectionTitle id="section-watch">Watch data</SectionTitle>
+        {/* Section 3: Wearable data */}
+        <ReportSection aria-labelledby="section-wearable">
+          <SectionTitle id="section-wearable">Wearable data</SectionTitle>
           <SourceTag>
-            {data.watch.deviceLabels.length > 0
-              ? `${data.watch.source}: ${data.watch.deviceLabels.join(", ")}`
-              : data.watch.source}
+            {data.wearable.deviceLabels.length > 0
+              ? `${data.wearable.source}: ${data.wearable.deviceLabels.join(", ")}`
+              : data.wearable.source}
           </SourceTag>
-          {data.watch.isDemo && <DemoBadge>Demo data</DemoBadge>}
-          {data.watch.validDays === 0 ? (
-            <SectionNote>No data from the watch in this period.</SectionNote>
+          {data.wearable.isDemo && <DemoBadge>Demo data</DemoBadge>}
+          {data.wearable.validDays === 0 ? (
+            <SectionNote>No data from the wearable in this period.</SectionNote>
           ) : (
             <>
               <SectionNote>
                 Median and middle half (interquartile range) of the days with enough data. Valid
-                days: {data.watch.validDays} of {data.period.totalDays}. Measured by the watch, not
-                checked clinically.
-                {data.watch.restingHrSource === "watch-daily"
-                  ? " Resting heart rate as reported by the watch."
+                days: {data.wearable.validDays} of {data.period.totalDays}. Measured by the
+                wearable, not checked clinically.
+                {data.wearable.restingHrSource === "wearable-daily"
+                  ? " Resting heart rate as reported by the wearable."
                   : null}
-                {data.watch.restingHrSource === "mixed"
-                  ? " Resting heart rate is from night readings on some days and as reported by the watch on others."
+                {data.wearable.restingHrSource === "mixed"
+                  ? " Resting heart rate is from night readings on some days and as reported by the wearable on others."
                   : null}
               </SectionNote>
               <TableContainer>
-                <Table aria-label="Watch data summary">
+                <Table aria-label="Wearable data summary">
                   <TableHead>
                     <TableRow>
                       <TableHeaderCell scope="col">Measure</TableHeaderCell>
@@ -244,16 +244,16 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                   <TableBody>
                     {(
                       [
-                        ["Steps per day", data.watch.steps, "steps"],
-                        [restingHrLabel, data.watch.restingHr, "bpm"],
-                        ["Sleep duration", data.watch.sleepHours, "h"],
+                        ["Steps per day", data.wearable.steps, "steps"],
+                        [restingHrLabel, data.wearable.restingHr, "bpm"],
+                        ["Sleep duration", data.wearable.sleepHours, "h"],
                       ] as const
                     ).map(([label, metric, unit]) => (
                       <TableRow key={label}>
                         <TableCell>
                           {label}
-                          {label === restingHrLabel && data.watch.restingHrMethodText ? (
-                            <MethodText>{data.watch.restingHrMethodText}</MethodText>
+                          {label === restingHrLabel && data.wearable.restingHrMethodText ? (
+                            <MethodText>{data.wearable.restingHrMethodText}</MethodText>
                           ) : null}
                         </TableCell>
                         <TableCell>{formatMedian(metric, unit)}</TableCell>
@@ -268,19 +268,19 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                 <DailyChart
                   title="Steps per day"
                   unit="steps"
-                  values={data.watch.series.map((p) => p.steps)}
+                  values={data.wearable.series.map((p) => p.steps)}
                   markers={data.dayStrip.map((d) => d.hadDiscomfort)}
                 />
                 <DailyChart
                   title={restingHrLabel}
                   unit="bpm"
-                  values={data.watch.series.map((p) => p.restingHr)}
+                  values={data.wearable.series.map((p) => p.restingHr)}
                   markers={data.dayStrip.map((d) => d.hadDiscomfort)}
                 />
                 <DailyChart
                   title="Sleep duration"
                   unit="h"
-                  values={data.watch.series.map((p) => p.sleepHours)}
+                  values={data.wearable.series.map((p) => p.sleepHours)}
                   markers={data.dayStrip.map((d) => d.hadDiscomfort)}
                 />
               </ChartsGrid>
@@ -288,9 +288,11 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                 Orange marks show days the child marked discomfort. Each chart covers the whole
                 period.
               </SectionNote>
-              <MethodNote aria-labelledby="watch-method-title">
-                <MethodNoteTitle id="watch-method-title">{WATCH_METHOD_NOTE_TITLE}</MethodNoteTitle>
-                {data.watch.methodNote.map((paragraph) => (
+              <MethodNote aria-labelledby="wearable-method-title">
+                <MethodNoteTitle id="wearable-method-title">
+                  {WEARABLE_METHOD_NOTE_TITLE}
+                </MethodNoteTitle>
+                {data.wearable.methodNote.map((paragraph) => (
                   <SectionNote key={paragraph}>{paragraph}</SectionNote>
                 ))}
               </MethodNote>
@@ -300,12 +302,12 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
 
         {/* Cross comparison for the clinician */}
         <ReportSection aria-labelledby="section-cross">
-          <SectionTitle id="section-cross">Child, family and watch together</SectionTitle>
-          <SourceTag>Source: Child, Family and Watch</SourceTag>
-          {data.watch.isDemo && <DemoBadge>Demo data</DemoBadge>}
+          <SectionTitle id="section-cross">Child, family and wearable together</SectionTitle>
+          <SourceTag>Source: Child, Family and Wearable</SourceTag>
+          {data.wearable.isDemo && <DemoBadge>Demo data</DemoBadge>}
           {data.crossComparison.length === 0 ? (
             <SectionNote>
-              Not enough days with both a child or family entry and a watch value (at least 14
+              Not enough days with both a child or family entry and a wearable value (at least 14
               needed).
             </SectionNote>
           ) : (
@@ -316,12 +318,12 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                 move together. It does not show cause.
               </SectionNote>
               <TableContainer>
-                <Table aria-label="Child, family and watch comparison">
+                <Table aria-label="Child, family and wearable comparison">
                   <TableHead>
                     <TableRow>
                       <TableHeaderCell scope="col">Entered by</TableHeaderCell>
                       <TableHeaderCell scope="col">Signal</TableHeaderCell>
-                      <TableHeaderCell scope="col">Watch value</TableHeaderCell>
+                      <TableHeaderCell scope="col">Wearable value</TableHeaderCell>
                       <TableHeaderCell scope="col">N</TableHeaderCell>
                       <TableHeaderCell scope="col">rho</TableHeaderCell>
                       <TableHeaderCell scope="col">95% interval</TableHeaderCell>
@@ -416,8 +418,8 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                       <TableRow key={label}>
                         <TableCell>
                           {label}
-                          {label === restingHrLabel && data.watch.restingHrMethodText ? (
-                            <MethodText>{data.watch.restingHrMethodText}</MethodText>
+                          {label === restingHrLabel && data.wearable.restingHrMethodText ? (
+                            <MethodText>{data.wearable.restingHrMethodText}</MethodText>
                           ) : null}
                         </TableCell>
                         <TableCell>{count}</TableCell>

@@ -19,8 +19,8 @@ export type DayStripEntry = {
   bloodVisible?: boolean;
 };
 
-/** One day of valid watch values; null when the watch has no trusted value. */
-export type WatchDailyPoint = {
+/** One day of valid wearable values; null when the wearable has no trusted value. */
+export type WearableDailyPoint = {
   date: DateKey;
   steps: number | null;
   restingHr: number | null;
@@ -52,7 +52,7 @@ export type ActivityConfidenceCount = {
   count: number;
 };
 
-export type CorroborationMethod = "watch" | "motion" | "none";
+export type CorroborationMethod = "wearable" | "motion" | "none";
 
 export type MissionCorroborationCount = {
   method: CorroborationMethod;
@@ -60,7 +60,7 @@ export type MissionCorroborationCount = {
   count: number;
 };
 
-export type WatchMetricSummary = {
+export type WearableMetricSummary = {
   /** Valid days that fed this metric. */
   n: number;
   median: number | null;
@@ -68,30 +68,30 @@ export type WatchMetricSummary = {
   q3: number | null;
 };
 
-export type WatchReportSection = {
-  /** Always says the numbers were measured by the watch, for example "From the watch (Google Health)". */
+export type WearableReportSection = {
+  /** Always says the numbers were measured by the wearable, for example "From the wearable (Google Health)". */
   source: string;
-  /** Labels of the devices the numbers came from, for example "Watch · Fitbit Charge 6". */
+  /** Labels of the devices the numbers came from, for example "Wearable · Fitbit Charge 6". */
   deviceLabels: string[];
-  /** Where the resting heart rate came from: our night readings, the watch's own daily value, or both. */
-  restingHrSource: "night-samples" | "watch-daily" | "mixed" | null;
-  /** Nights with a night-time heart-rate figure, by the method that made it (watch-reported days are not counted). */
+  /** Where the resting heart rate came from: our night readings, the wearable's own daily value, or both. */
+  restingHrSource: "night-samples" | "wearable-daily" | "mixed" | null;
+  /** Nights with a night-time heart-rate figure, by the method that made it (wearable-reported days are not counted). */
   restingHrNights: { dense: number; sparse: number };
-  /** Median minutes between the watch's heart-rate readings during sleep on the sparse-method nights; null when there are none. */
+  /** Median minutes between the wearable's heart-rate readings during sleep on the sparse-method nights; null when there are none. */
   sparseGapMin: number | null;
-  /** Short text for the figure itself, for example "lowest average of 3 readings in a row (watch recorded about every 30 min)"; null without a night-time figure. */
+  /** Short text for the figure itself, for example "lowest average of 3 readings in a row (wearable recorded about every 30 min)"; null without a night-time figure. */
   restingHrMethodText: string | null;
-  /** The "How the watch figures are made" note, one paragraph per entry. */
+  /** The "How the wearable figures are made" note, one paragraph per entry. */
   methodNote: string[];
   isDemo: boolean;
-  /** Days in the period with at least one valid watch value. */
+  /** Days in the period with at least one valid wearable value. */
   validDays: number;
-  steps: WatchMetricSummary;
+  steps: WearableMetricSummary;
   /** Resting heart rate, beats per minute (see restingHrSource). */
-  restingHr: WatchMetricSummary;
-  sleepHours: WatchMetricSummary;
+  restingHr: WearableMetricSummary;
+  sleepHours: WearableMetricSummary;
   /** One point per day of the period, for the charts. */
-  series: WatchDailyPoint[];
+  series: WearableDailyPoint[];
 };
 
 export type BathroomObservedSummary = {
@@ -139,7 +139,7 @@ export type DoctorReportData = {
     byConfidence: ActivityConfidenceCount[];
     byCorroboration: MissionCorroborationCount[];
     corroborationTotals: {
-      watch: number;
+      wearable: number;
       motion: number;
       none: number;
     };
@@ -147,7 +147,7 @@ export type DoctorReportData = {
   foodsOnDiscomfortDays: FoodCooccurrence[];
   /** Spearman rows for the clinician: only pairs with enough days. */
   crossComparison: CrossComparisonRow[];
-  watch: WatchReportSection;
+  wearable: WearableReportSection;
   observed: ObservedSection;
   dayStrip: DayStripEntry[];
   disclaimer: string;

@@ -7,7 +7,7 @@ import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { hasPin } from "@/lib/pin";
 import { buildReport } from "@/lib/report";
-import { loadWatchState } from "@/lib/storage/watchStore";
+import { loadWearableState } from "@/lib/storage/wearableStore";
 import { BannerWrapper } from "./ReportScreen.style";
 import { DoctorReportView } from "../DoctorReportView/DoctorReportView";
 
@@ -17,7 +17,7 @@ export function ReportScreen() {
   const session = useParentSession();
 
   const report = useMemo(
-    () => (isReady ? buildReport(state, undefined, loadWatchState()) : null),
+    () => (isReady ? buildReport(state, undefined, loadWearableState()) : null),
     [state, isReady],
   );
 

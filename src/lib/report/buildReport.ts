@@ -2,11 +2,11 @@ import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays, daysBetween, todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
-import { createEmptyWatchState } from "@/lib/storage/watchStore";
+import { createEmptyWearableState } from "@/lib/storage/wearableStore";
 import type { AppState, BathroomEntry, DateKey, MissionCompany } from "@/types";
-import type { WatchState } from "@/types/watch";
-import { compareChildWithWatch } from "./crossComparison";
-import { buildObservedSection, buildWatchSection } from "./sections";
+import type { WearableState } from "@/types/wearable";
+import { compareChildWithWearable } from "./crossComparison";
+import { buildObservedSection, buildWearableSection } from "./sections";
 import type {
   ActivityConfidenceCount,
   DayStripEntry,
@@ -28,7 +28,7 @@ function isSchoolImpacted(school?: string): boolean {
 export function buildReport(
   state: AppState,
   today: DateKey = todayKey(),
-  watch: WatchState = createEmptyWatchState(),
+  wearable: WearableState = createEmptyWearableState(),
 ): DoctorReportData {
   const priorConsultations = [...(state.consultations ?? [])]
     .filter((c) => c.date <= today)
@@ -230,8 +230,8 @@ export function buildReport(
     count: completedMissions.filter((m) => m.company === company).length,
   }));
 
-  const watchCorroboratedCount = completedMissions.filter(
-    (m) => m.corroboration === "watch",
+  const wearableCorroboratedCount = completedMissions.filter(
+    (m) => m.corroboration === "wearable",
   ).length;
   const motionCorroboratedCount = completedMissions.filter(
     (m) => m.corroboration === "motion",
@@ -239,7 +239,7 @@ export function buildReport(
   const noneCorroboratedCount = completedMissions.filter((m) => !m.corroboration).length;
 
   const byCorroboration: MissionCorroborationCount[] = [
-    { method: "watch", label: "Watch verified", count: watchCorroboratedCount },
+    { method: "wearable", label: "Wearable verified", count: wearableCorroboratedCount },
     { method: "motion", label: "Motion sensor verified", count: motionCorroboratedCount },
     { method: "none", label: "Self-reported only", count: noneCorroboratedCount },
   ];
@@ -262,7 +262,7 @@ export function buildReport(
     .map(([text, count]) => ({ text, count }))
     .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
 
-  const watchSection = buildWatchSection(watch, startDate, endDate);
+  const wearableSection = buildWearableSection(wearable, startDate, endDate);
 
   return {
     childNickname: state.child?.nickname ?? "Lucas",
@@ -289,14 +289,14 @@ export function buildReport(
       byConfidence,
       byCorroboration,
       corroborationTotals: {
-        watch: watchCorroboratedCount,
+        wearable: wearableCorroboratedCount,
         motion: motionCorroboratedCount,
         none: noneCorroboratedCount,
       },
     },
     foodsOnDiscomfortDays,
-    crossComparison: compareChildWithWatch(dayStrip, watchSection.series),
-    watch: watchSection,
+    crossComparison: compareChildWithWearable(dayStrip, wearableSection.series),
+    wearable: wearableSection,
     observed: buildObservedSection(periodParentLogs, periodDailyLogs, periodParentObservations),
     dayStrip,
     disclaimer: REPORT_DISCLAIMER,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { WatchDevice } from "@/types/watch";
+import type { WearableDevice } from "@/types/wearable";
 import {
   autoDeviceFor,
   buildDeviceList,
@@ -11,25 +11,25 @@ import {
 import {
   HC_PHONE_SOURCE,
   heartRateFrom,
-  heartRateWatch,
+  heartRateWearable,
   PHONE_SOURCE,
   restingDailyString,
   sleepFrom,
-  sleepWatch,
+  sleepWearable,
   stepsFrom,
   stepsPhone,
-  stepsWatch,
-  WATCH_SOURCE,
+  stepsWearable,
+  WEARABLE_SOURCE,
   ZEPP_BAND_SOURCE,
   ZEPP_EMPTY_DEVICE_SOURCE,
 } from "./fixtures";
 
 describe("describeDevice", () => {
-  it("uses the uid as id and builds a labelled name for a watch", () => {
-    expect(describeDevice(WATCH_SOURCE)).toEqual({
-      id: "com.fitbit.FitbitMobile|watch-uid-1",
-      kind: "watch",
-      label: "Watch · Fitbit Charge 6",
+  it("uses the uid as id and builds a labelled name for a wearable", () => {
+    expect(describeDevice(WEARABLE_SOURCE)).toEqual({
+      id: "com.fitbit.FitbitMobile|wearable-uid-1",
+      kind: "wearable",
+      label: "Wearable · Fitbit Charge 6",
     });
   });
 
@@ -65,7 +65,7 @@ describe("describeDevice", () => {
     const info = describeDevice({
       device: { formFactor: "WATCH", manufacturer: "Google", model: "Google Pixel Watch 3" },
     });
-    expect(info.label).toBe("Watch · Google Pixel Watch 3");
+    expect(info.label).toBe("Wearable · Google Pixel Watch 3");
   });
 
   it("falls back to the application, then to unknown", () => {
@@ -88,19 +88,19 @@ describe("describeDevice", () => {
   });
 
   it("names devices that have a form factor but no name", () => {
-    expect(describeDevice({ device: { formFactor: "WRISTBAND" } }).label).toBe("Unnamed watch");
+    expect(describeDevice({ device: { formFactor: "WRISTBAND" } }).label).toBe("Unnamed wearable");
     expect(describeDevice({ device: { formFactor: "PHONE" } }).label).toBe("This phone");
   });
 
   it("knows the common source apps and never shows a raw package name for them", () => {
     expect(describeDevice(ZEPP_EMPTY_DEVICE_SOURCE)).toEqual({
       id: "com.huami.watch.hmwatchmanager",
-      kind: "watch",
-      label: "Watch · Zepp (Amazfit)",
+      kind: "wearable",
+      label: "Wearable · Zepp (Amazfit)",
     });
     expect(
       describeDevice({ application: { packageName: "com.garmin.android.apps.connectmobile" } }),
-    ).toMatchObject({ kind: "watch", label: "Watch · Garmin Connect" });
+    ).toMatchObject({ kind: "wearable", label: "Wearable · Garmin Connect" });
     expect(
       describeDevice({ application: { packageName: "com.google.android.apps.fitness" } }),
     ).toMatchObject({ kind: "other", label: "Google Fit" });
@@ -111,7 +111,7 @@ describe("describeDevice", () => {
 
   it("maps open form factor strings to a kind", () => {
     for (const f of ["WATCH", "WRISTBAND", "WEARABLE_WRIST", "SMART_RING", "RING", "smartwatch"]) {
-      expect(deviceKindFromFormFactor(f)).toBe("watch");
+      expect(deviceKindFromFormFactor(f)).toBe("wearable");
     }
     for (const f of ["PHONE", "TABLET"]) expect(deviceKindFromFormFactor(f)).toBe("phone");
     for (const f of ["CHEST_STRAP", "SCALE", "", undefined]) {
@@ -125,22 +125,25 @@ describe("buildDeviceList", () => {
     steps: [
       stepsPhone("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "5"),
       stepsPhone("2026-09-01T11:00:00Z", "2026-09-01T11:01:00Z", "5"),
-      stepsWatch("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "5"),
+      stepsWearable("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "5"),
     ],
     heartRate: [
-      heartRateWatch("2026-09-01T10:00:00Z", "70"),
+      heartRateWearable("2026-09-01T10:00:00Z", "70"),
       restingDailyString("2026-09-01", "60"),
     ],
     sleep: [
-      sleepWatch("2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", "450", false),
-      sleepWatch("2026-09-02T13:00:00Z", "2026-09-02T14:00:00Z", "50", true),
+      sleepWearable("2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", "450", false),
+      sleepWearable("2026-09-02T13:00:00Z", "2026-09-02T14:00:00Z", "50", true),
     ],
   });
 
-  it("lists each device once, watch first, with the metrics and counts it has", () => {
-    expect(list.map((d) => d.label)).toEqual(["Watch · Fitbit Charge 6", "Phone · Google Pixel 8"]);
+  it("lists each device once, wearable first, with the metrics and counts it has", () => {
+    expect(list.map((d) => d.label)).toEqual([
+      "Wearable · Fitbit Charge 6",
+      "Phone · Google Pixel 8",
+    ]);
     expect(list.map((d) => d.id)).toEqual([
-      "com.fitbit.FitbitMobile|watch-uid-1",
+      "com.fitbit.FitbitMobile|wearable-uid-1",
       "com.google.android.apps.fitness",
     ]);
     expect(list[0].metrics).toEqual(["steps", "heartRate", "sleep"]);
@@ -170,14 +173,14 @@ describe("buildDeviceList", () => {
 describe("automatic device choice", () => {
   const device = (
     id: string,
-    kind: WatchDevice["kind"],
+    kind: WearableDevice["kind"],
     steps: number,
-    metrics: WatchDevice["metrics"] = ["steps"],
-  ): WatchDevice => ({ id, kind, label: id, metrics, sampleCounts: { steps } });
+    metrics: WearableDevice["metrics"] = ["steps"],
+  ): WearableDevice => ({ id, kind, label: id, metrics, sampleCounts: { steps } });
 
-  it("prefers a watch over a phone even when the phone has more records", () => {
-    const devices = [device("phone", "phone", 900), device("watch", "watch", 10)];
-    expect(autoDeviceFor(devices, "steps")).toBe("watch");
+  it("prefers a wearable over a phone even when the phone has more records", () => {
+    const devices = [device("phone", "phone", 900), device("wearable", "wearable", 10)];
+    expect(autoDeviceFor(devices, "steps")).toBe("wearable");
   });
 
   it("prefers a phone over other devices", () => {
@@ -187,22 +190,27 @@ describe("automatic device choice", () => {
   });
 
   it("breaks a tie by the most records", () => {
-    expect(autoDeviceFor([device("w1", "watch", 3), device("w2", "watch", 8)], "steps")).toBe("w2");
+    expect(autoDeviceFor([device("w1", "wearable", 3), device("w2", "wearable", 8)], "steps")).toBe(
+      "w2",
+    );
   });
 
   it("only considers devices that have the metric", () => {
-    const devices = [device("watch", "watch", 10, ["heartRate"]), device("phone", "phone", 1)];
+    const devices = [
+      device("wearable", "wearable", 10, ["heartRate"]),
+      device("phone", "phone", 1),
+    ];
     expect(autoDeviceFor(devices, "steps")).toBe("phone");
     expect(autoDeviceFor(devices, "sleep")).toBeNull();
   });
 
   it("uses a saved choice when valid and falls back to automatic when it is gone", () => {
-    const devices = [device("phone", "phone", 900), device("watch", "watch", 10)];
+    const devices = [device("phone", "phone", 900), device("wearable", "wearable", 10)];
     expect(
       resolveDeviceSelection(devices, { steps: "phone", heartRate: null, sleep: null }).steps,
     ).toBe("phone");
     const stale = { steps: "old-device", heartRate: "phone", sleep: null };
-    expect(resolveDeviceSelection(devices, stale).steps).toBe("watch");
+    expect(resolveDeviceSelection(devices, stale).steps).toBe("wearable");
     // "phone" has no heart rate in this list, so the saved choice is not valid for it
     expect(resolveDeviceSelection(devices, stale).heartRate).toBeNull();
     expect(sanitizeDeviceSelection(devices, stale)).toEqual({
@@ -213,8 +221,8 @@ describe("automatic device choice", () => {
   });
 });
 
-describe("one Zepp watch seen through Health Connect", () => {
-  // Shapes of a live capture, with synthetic numbers: the watch app sends points with an empty
+describe("one Zepp wearable seen through Health Connect", () => {
+  // Shapes of a live capture, with synthetic numbers: the wearable app sends points with an empty
   // device object, others with only FITNESS_BAND, and the phone app has a hashed package name.
   const T = "2026-09-01T";
   const points = {
@@ -234,23 +242,23 @@ describe("one Zepp watch seen through Health Connect", () => {
   };
   const list = buildDeviceList(points);
 
-  it("lists exactly two devices: the watch app and the phone", () => {
+  it("lists exactly two devices: the wearable app and the phone", () => {
     expect(list).toHaveLength(2);
-    expect(list.map((d) => d.label)).toEqual(["Watch · Zepp (Amazfit)", "Phone · Xiaomi"]);
+    expect(list.map((d) => d.label)).toEqual(["Wearable · Zepp (Amazfit)", "Phone · Xiaomi"]);
     expect(list.every((d) => !/(^\|)|(\|\|)|(\|$)/.test(d.id))).toBe(true);
   });
 
-  it("merges the empty-device and the FITNESS_BAND points into one watch", () => {
+  it("merges the empty-device and the FITNESS_BAND points into one wearable", () => {
     const zepp = list[0];
     expect(zepp.id).toBe("com.huami.watch.hmwatchmanager");
-    expect(zepp.kind).toBe("watch");
+    expect(zepp.kind).toBe("wearable");
     expect(zepp.metrics).toEqual(["steps", "heartRate", "sleep"]);
     expect(zepp.sampleCounts).toEqual({ steps: 3, heartRate: 4, sleep: 1 });
     expect(list[1].kind).toBe("phone");
     expect(list[1].metrics).toEqual(["steps"]);
   });
 
-  it("picks the Zepp watch automatically for steps, heart rate and sleep", () => {
+  it("picks the Zepp wearable automatically for steps, heart rate and sleep", () => {
     expect(resolveDeviceSelection(list)).toEqual({
       steps: "com.huami.watch.hmwatchmanager",
       heartRate: "com.huami.watch.hmwatchmanager",
