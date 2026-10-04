@@ -338,6 +338,49 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(await screen.findByText("No PIN has been created yet.")).toBeDefined();
       expect(screen.getByRole("link", { name: "Set up parent PIN" })).toBeDefined();
     });
+
+    it("renders biometric unlock button and unlocks when biometric verification succeeds", async () => {
+      const pinRecord = await createPinRecord("1234");
+      const state: AppState = {
+        ...buildDemoState(),
+        child: { nickname: "Lucas" },
+        settings: {
+          ...pinRecord,
+          allowedMissionIds: Object.values(MISSION_IDS),
+        },
+      };
+      saveState(state);
+      sessionStore.resetForTesting();
+
+      localStorage.setItem("mycrohnie:biometric_cred", "test-cred-id");
+      vi.stubGlobal("PublicKeyCredential", {
+        isUserVerifyingPlatformAuthenticatorAvailable: vi.fn().mockResolvedValue(true),
+      });
+      vi.stubGlobal("navigator", {
+        credentials: {
+          get: vi.fn().mockResolvedValue({ id: "mock-assertion" }),
+        },
+      });
+
+      renderWithTheme(
+        <ProviderWrapper>
+          <PinGate />
+        </ProviderWrapper>,
+      );
+
+      const bioButton = await screen.findByRole("button", {
+        name: /Unlock with Face ID \/ Fingerprint/,
+      });
+      expect(bioButton).toBeDefined();
+
+      await act(async () => {
+        fireEvent.click(bioButton);
+      });
+
+      await waitFor(() => {
+        expect(sessionStore.getSnapshot().isUnlocked).toBe(true);
+      });
+    });
   });
 
   describe("Auto-lock with fake timers", () => {
