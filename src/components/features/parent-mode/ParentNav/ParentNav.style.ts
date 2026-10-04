@@ -23,7 +23,7 @@ export const NavBar = styled.nav`
   z-index: 20;
   display: flex;
   justify-content: center;
-  padding: 0 ${({ theme }) => theme.spacing.sm} calc(${FLOAT_GAP} + env(safe-area-inset-bottom));
+  padding: 0 ${({ theme }) => theme.spacing.md} calc(${FLOAT_GAP} + env(safe-area-inset-bottom));
   pointer-events: none;
 
   @media print {
@@ -37,7 +37,7 @@ export const NavList = styled.ul`
   display: flex;
   gap: 4px;
   width: 100%;
-  max-width: ${({ theme }) => theme.maxContentWidth};
+  max-width: calc(${({ theme }) => theme.maxContentWidth} - 2 * ${({ theme }) => theme.spacing.md});
   margin: 0;
   padding: 5px;
   list-style: none;
@@ -91,7 +91,7 @@ export const ExitPanel = styled.div`
   z-index: 19;
   display: flex;
   justify-content: center;
-  padding: 0 ${({ theme }) => theme.spacing.sm};
+  padding: 0 ${({ theme }) => theme.spacing.md};
   pointer-events: none;
 
   @media print {
@@ -105,7 +105,7 @@ export const ExitInner = styled.div`
   grid-auto-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.sm};
   width: 100%;
-  max-width: ${({ theme }) => theme.maxContentWidth};
+  max-width: calc(${({ theme }) => theme.maxContentWidth} - 2 * ${({ theme }) => theme.spacing.md});
   padding: ${({ theme }) => theme.spacing.sm};
   background: ${({ theme }) => theme.colors.surface};
   border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
