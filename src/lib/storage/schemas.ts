@@ -168,6 +168,7 @@ export const rewardClaimSchema: z.ZodType<RewardClaim> = z.object({
 export const economyStateSchema: z.ZodType<EconomyState> = z
   .object({
     fire: z.number().int().min(0).max(FIRE_MAX),
+    highestFire: z.number().int().min(0).max(FIRE_MAX).optional(),
     coinsSpent: z.number().int().nonnegative(),
     inventory: z.object({ food: z.number().int().nonnegative() }),
     ownedItemIds: z.array(shopItemIdSchema),
