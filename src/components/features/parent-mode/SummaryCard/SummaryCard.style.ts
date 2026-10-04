@@ -30,6 +30,41 @@ export const FactItem = styled.li`
   }
 `;
 
+export const AnswerValue = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  color: ${({ theme }) => theme.colors.ink};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+`;
+
+export const AnswerLabel = styled.span`
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  color: ${({ theme }) => theme.colors.ink};
+`;
+
+export const DegreeFaceSvg = styled.svg`
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+`;
+
+export const DegreeFaceCircle = styled.circle`
+  fill: ${({ theme }) => theme.colors.textMuted};
+`;
+
+export const DegreeFaceEye = styled.circle`
+  fill: ${({ theme }) => theme.colors.surface};
+`;
+
+export const DegreeFaceMouth = styled.path`
+  stroke: ${({ theme }) => theme.colors.surface};
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  fill: none;
+`;
+
 export const MissionItem = styled.li`
   display: flex;
   flex-direction: column;
