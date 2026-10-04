@@ -7,6 +7,27 @@ export const GlobalStyle = createGlobalStyle`
     box-sizing: border-box;
   }
 
+  /* Set on every element: some browsers do not inherit it into buttons, links and form controls. */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  a,
+  label,
+  summary,
+  [role="button"] {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  button:focus:not(:focus-visible),
+  a:focus:not(:focus-visible) {
+    outline: none;
+  }
+
   html,
   body {
     margin: 0;

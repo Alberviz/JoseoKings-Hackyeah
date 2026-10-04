@@ -49,7 +49,7 @@ export const theme = {
   // Colour by section in the parent area. fill: banner, card headers, active tab. strong: main button.
   sections: {
     summary: { fill: "#D5F1F0", strong: "#127782", onStrong: "#FFFFFF" },
-    log: { fill: "#E0F7EC", strong: "#1E7A46", onStrong: "#FFFFFF" },
+    log: { fill: "#BFE8CC", strong: "#1E7A46", onStrong: "#FFFFFF" },
     food: { fill: "#FFD9CC", strong: "#FF7A59", onStrong: "#1F2F6B" },
     patterns: { fill: "#E6DDF5", strong: "#C6B5E8", onStrong: "#1F2F6B" },
     more: { fill: "#FFF0B8", strong: "#FFC93C", onStrong: "#1F2F6B" },

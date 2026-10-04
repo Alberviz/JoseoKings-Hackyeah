@@ -141,6 +141,7 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
         <OptionGroup legend="Physical activity" columns={2}>
           {ACTIVITY_OPTIONS.map((option) => (
             <OptionButton
+              section="log"
               key={option.value}
               label={option.label}
               selected={draft.activity === option.value}
@@ -152,6 +153,7 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
         <OptionGroup legend="School" columns={2}>
           {SCHOOL_OPTIONS.map((option) => (
             <OptionButton
+              section="log"
               key={option.value}
               label={option.label}
               selected={draft.school === option.value}
@@ -163,6 +165,7 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
         <OptionGroup legend="Medication taken" columns={2}>
           {MEDICATION_OPTIONS.map((option) => (
             <OptionButton
+              section="log"
               key={option.value}
               label={option.label}
               selected={draft.medicationTaken === option.value}

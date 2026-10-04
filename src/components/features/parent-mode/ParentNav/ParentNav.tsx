@@ -2,13 +2,14 @@
 
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Button, LinkButton } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import {
   MoreInner,
   MorePanel,
+  MoreTileButton,
+  MoreTileLink,
   NavBar,
   NavItem,
   NavList,
@@ -57,19 +58,23 @@ export function ParentNav() {
       {isMoreOpen ? (
         <MorePanel>
           <MoreInner>
-            <LinkButton href={ROUTES.parentReport} variant="secondary" fullWidth>
+            <MoreTileLink href={ROUTES.parentReport} $fill="more">
+              <ParentNavIcon iconKey="report" size={36} />
               Doctor report
-            </LinkButton>
-            <LinkButton href={ROUTES.parentLink} variant="secondary" fullWidth>
+            </MoreTileLink>
+            <MoreTileLink href={ROUTES.parentLink} $fill="patterns">
+              <ParentNavIcon iconKey="link" size={36} />
               Family link
-            </LinkButton>
-            <Button variant="secondary" fullWidth onClick={session.lock}>
+            </MoreTileLink>
+            <MoreTileButton type="button" $fill="surface" onClick={session.lock}>
+              <ParentNavIcon iconKey="lock" size={36} />
               Lock
-            </Button>
+            </MoreTileButton>
             {isParentOnly ? null : (
-              <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
+              <MoreTileLink href={ROUTES.home} $fill="summary">
+                <ParentNavIcon iconKey="child" size={36} />
                 Back to child mode
-              </LinkButton>
+              </MoreTileLink>
             )}
           </MoreInner>
         </MorePanel>

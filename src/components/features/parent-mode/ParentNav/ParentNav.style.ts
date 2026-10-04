@@ -1,5 +1,5 @@
 import Link from "next/link";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import type { ParentSection } from "../sections";
 import { pressable } from "@/components/ui/Button/Button.style";
 
@@ -42,7 +42,7 @@ export const NavList = styled.ul`
   padding: 5px;
   list-style: none;
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 22px;
+  border-radius: ${({ theme }) => theme.radius.leaf};
   pointer-events: auto;
 `;
 
@@ -104,17 +104,49 @@ export const MorePanel = styled.div`
 `;
 
 export const MoreInner = styled.div`
-  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
-  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: ${({ theme }) => theme.spacing.sm};
   width: 100%;
   max-width: ${({ theme }) => theme.maxContentWidth};
-  padding: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.sm};
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.lg};
+  border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.leaf};
+  box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
   pointer-events: auto;
+`;
+
+type TileFill = "more" | "patterns" | "summary" | "surface";
+
+const tileStyles = css<{ $fill: TileFill }>`
+  ${pressable}
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  min-height: 84px;
+  padding: ${({ theme }) => theme.spacing.sm};
+  background: ${({ theme, $fill }) =>
+    $fill === "surface" ? theme.colors.surface : theme.sections[$fill].fill};
+  color: ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.leaf};
+  font: inherit;
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+`;
+
+// Sticker tiles in the More sheet: a drawn icon over a short label.
+export const MoreTileLink = styled(Link)<{ $fill: TileFill }>`
+  ${tileStyles}
+`;
+
+export const MoreTileButton = styled.button<{ $fill: TileFill }>`
+  ${tileStyles}
 `;
 
 // Round sticker at the top right of every parent screen, scrolling with the page.

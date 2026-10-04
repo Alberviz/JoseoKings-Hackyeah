@@ -7,7 +7,7 @@ export const SectionCardContainer = styled.section`
   overflow: hidden;
   background: ${({ theme }) => theme.colors.surface};
   border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
-  border-radius: ${({ theme }) => theme.radius.lg};
+  border-radius: ${({ theme }) => theme.radius.leaf};
   box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
 `;
 
