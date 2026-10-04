@@ -1,16 +1,15 @@
-// Aggregation of raw watch_samples into daily_metrics partitioned by local civil day.
+// Aggregation of raw watch samples into daily metrics partitioned by local civil day.
 import { nocturnalRestingHr } from "./restingHr";
-import type { DailyMetricRow, WatchSampleRow } from "./types";
+import type { DailyMetric, WatchSample } from "./types";
 import { assessNight, localDateTime } from "./validity";
 
 export const DEFAULT_TIMEZONE = "Europe/Madrid";
 export const ALGORITHM_VERSION = "1.0.0";
 
 export function computeDailyMetrics(
-  samples: WatchSampleRow[],
-  subjectId: string,
+  samples: WatchSample[],
   timeZone: string = DEFAULT_TIMEZONE,
-): DailyMetricRow[] {
+): DailyMetric[] {
   // Group samples by local day
   const days = new Set<string>();
 
@@ -20,15 +19,15 @@ export function computeDailyMetrics(
   const sleepSessions: Array<{ start: number; end: number; source: string }> = [];
 
   for (const sample of samples) {
-    const startMs = new Date(sample.start_at).getTime();
-    const endMs = new Date(sample.end_at).getTime();
+    const startMs = new Date(sample.startAt).getTime();
+    const endMs = new Date(sample.endAt).getTime();
     const local = localDateTime(startMs, timeZone);
     const day = local.date;
 
     if (sample.metric === "steps") {
       days.add(day);
       stepsByDay.set(day, (stepsByDay.get(day) ?? 0) + sample.value);
-    } else if (sample.metric === "heart_rate") {
+    } else if (sample.metric === "heartRate") {
       days.add(day);
       let list = hrSamplesByDay.get(day);
       if (!list) {
@@ -36,7 +35,7 @@ export function computeDailyMetrics(
         hrSamplesByDay.set(day, list);
       }
       list.push({ bpm: sample.value, timestamp: startMs });
-    } else if (sample.metric === "sleep_session") {
+    } else if (sample.metric === "sleepSession") {
       // Sleep sessions belong to the day they end
       const endLocal = localDateTime(endMs, timeZone);
       days.add(endLocal.date);
@@ -51,7 +50,7 @@ export function computeDailyMetrics(
   }
 
   const sortedDays = [...days].sort();
-  const dailyMetrics: DailyMetricRow[] = [];
+  const dailyMetrics: DailyMetric[] = [];
 
   for (const day of sortedDays) {
     const steps = stepsByDay.get(day) ?? null;
@@ -93,18 +92,17 @@ export function computeDailyMetrics(
     }
 
     dailyMetrics.push({
-      subject_id: subjectId,
-      local_date: day,
+      localDate: day,
       steps: steps !== null ? Math.round(steps) : null,
-      hr_waking_hours_covered: hrWakingHours > 0 ? hrWakingHours : null,
-      resting_hr: restingHr,
-      sleep_minutes: sleepMinutes,
-      sleep_onset_at: sleepOnsetAt,
-      sleep_offset_at: sleepOffsetAt,
-      valid_activity: validActivity,
-      valid_sleep: validSleep,
-      computed_at: new Date().toISOString(),
-      algorithm_version: ALGORITHM_VERSION,
+      hrWakingHoursCovered: hrWakingHours > 0 ? hrWakingHours : null,
+      restingHr,
+      sleepMinutes,
+      sleepOnsetAt,
+      sleepOffsetAt,
+      validActivity,
+      validSleep,
+      computedAt: new Date().toISOString(),
+      algorithmVersion: ALGORITHM_VERSION,
     });
   }
 

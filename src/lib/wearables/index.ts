@@ -1,6 +1,5 @@
 export * from "./types";
 export * from "./browserGoogleHealth";
-export * from "./googleFit";
 export * from "./normalize";
 export * from "./stats";
 export * from "./clean";

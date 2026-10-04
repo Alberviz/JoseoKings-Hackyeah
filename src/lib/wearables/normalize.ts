@@ -1,10 +1,10 @@
 import type { GoogleFitBucket, SleepSessionResult } from "./googleFit";
-import type { SleepStage, WatchSampleRow, WearableMetric } from "./types";
+import type { SleepStage, WatchSample, WearableMetric } from "./types";
 
 export const SLEEP_STAGES: Record<number, SleepStage> = {
   1: "awake",
   2: "sleep",
-  3: "out_of_bed",
+  3: "outOfBed",
   4: "light",
   5: "deep",
   6: "rem",
@@ -30,9 +30,8 @@ function numeric(v?: { intVal?: number; fpVal?: number } | null): number | null 
 export function minuteBucketsToRows(
   metric: WearableMetric,
   buckets: GoogleFitBucket[],
-  subjectId = "",
-): WatchSampleRow[] {
-  const rows: WatchSampleRow[] = [];
+): WatchSample[] {
+  const rows: WatchSample[] = [];
   for (const bucket of buckets) {
     for (const dataset of bucket.dataset ?? []) {
       for (const point of dataset.point ?? []) {
@@ -41,13 +40,12 @@ export function minuteBucketsToRows(
         if (value === null) continue;
         const isSummary = point.dataTypeName?.endsWith(".summary");
         rows.push({
-          subject_id: subjectId,
           metric,
-          start_at: nanosToIso(point.startTimeNanos),
-          end_at: nanosToIso(point.endTimeNanos),
+          startAt: nanosToIso(point.startTimeNanos),
+          endAt: nanosToIso(point.endTimeNanos),
           value,
-          value_max: isSummary ? numeric(second) : null,
-          value_min: isSummary ? numeric(third) : null,
+          valueMax: isSummary ? numeric(second) : null,
+          valueMin: isSummary ? numeric(third) : null,
           stage: null,
           source: point.originDataSourceId || dataset.dataSourceId || "unknown",
         });
@@ -57,32 +55,30 @@ export function minuteBucketsToRows(
   return rows;
 }
 
-/** Sleep sessions -> one `sleep_session` row per session plus one `sleep_segment` row per segment. */
-export function sleepToRows(sessions: SleepSessionResult[], subjectId = ""): WatchSampleRow[] {
-  const rows: WatchSampleRow[] = [];
+/** Sleep sessions -> one `sleepSession` row per session plus one `sleepSegment` row per segment. */
+export function sleepToRows(sessions: SleepSessionResult[]): WatchSample[] {
+  const rows: WatchSample[] = [];
   for (const { session, points } of sessions) {
     const source = session.application?.packageName || session.application?.name || "unknown";
     rows.push({
-      subject_id: subjectId,
-      metric: "sleep_session",
-      start_at: msToIso(session.startTimeMillis),
-      end_at: msToIso(session.endTimeMillis),
+      metric: "sleepSession",
+      startAt: msToIso(session.startTimeMillis),
+      endAt: msToIso(session.endTimeMillis),
       value: (Number(session.endTimeMillis) - Number(session.startTimeMillis)) / 60_000,
-      value_max: null,
-      value_min: null,
+      valueMax: null,
+      valueMin: null,
       stage: null,
       source,
     });
     for (const point of points) {
       const code = numeric(point.value?.[0]);
       rows.push({
-        subject_id: subjectId,
-        metric: "sleep_segment",
-        start_at: nanosToIso(point.startTimeNanos),
-        end_at: nanosToIso(point.endTimeNanos),
+        metric: "sleepSegment",
+        startAt: nanosToIso(point.startTimeNanos),
+        endAt: nanosToIso(point.endTimeNanos),
         value: Number(BigInt(point.endTimeNanos) - BigInt(point.startTimeNanos)) / 1e9 / 60,
-        value_max: null,
-        value_min: null,
+        valueMax: null,
+        valueMin: null,
         stage:
           (code !== null ? SLEEP_STAGES[code] : null) ?? (code !== null ? `unknown_${code}` : null),
         source: point.originDataSourceId || source,
@@ -92,13 +88,13 @@ export function sleepToRows(sessions: SleepSessionResult[], subjectId = ""): Wat
   return rows;
 }
 
-/** Drops exact duplicates (same metric, source and start) keeping the last one, as the DB upsert would. */
-export function dedupe<T extends { metric: string; source: string; start_at: string }>(
+/** Drops exact duplicates (same metric, source and start) keeping the last one. */
+export function dedupe<T extends { metric: string; source: string; startAt: string }>(
   rows: T[],
 ): T[] {
   const byKey = new Map<string, T>();
   for (const row of rows) {
-    byKey.set(`${row.metric}|${row.source}|${row.start_at}`, row);
+    byKey.set(`${row.metric}|${row.source}|${row.startAt}`, row);
   }
   return [...byKey.values()];
 }

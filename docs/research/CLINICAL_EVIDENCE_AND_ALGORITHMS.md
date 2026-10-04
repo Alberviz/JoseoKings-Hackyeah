@@ -1,15 +1,14 @@
 # Clinical evidence and algorithms
 
-Mycrohnie — smartwatch (Google Fit → Supabase → Vercel compute) crossed with the child check-in and the parent daily log.
+Mycrohnie — smartwatch data (read in the parent's browser from Google Fit, kept on the device) crossed with the child check-in and the parent daily log.
 Scope: what the peer-reviewed literature supports, what it does not, and the exact deterministic algorithms we implement.
 
-|                                       |                                                                                                                                                                                                                                                                                   |
-| :------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status                                | Working document for the product owner and the engineering team. Not a decision until it is written into `docs/DECISIONS.md`.                                                                                                                                                     |
-| Population                            | Children aged 8–12 with Crohn's disease or ulcerative colitis, one child per device, one family.                                                                                                                                                                                  |
-| Device assumption                     | Generic consumer smartwatch. Signals assumed available: steps (per-minute and aggregated), all-day heart-rate samples (every 1–10 min, denser in activity), sleep sessions with device-labelled segments, SpO2 spot values, active minutes, calories. HRV is treated as optional. |
-| Approved tonight by the product owner | Smartwatch integration and a backend database (Supabase) for the watch stream.                                                                                                                                                                                                    |
-| **Not** approved and not changed      | No medical claims, no treatment advice, no prediction of the child's future state, no punishment mechanics, no reward that depends on an answer.                                                                                                                                  |
+|                                  |                                                                                                                                                                                                                                                                                   |
+| :------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                           | Working document for the product owner and the engineering team. Not a decision until it is written into `docs/DECISIONS.md`.                                                                                                                                                     |
+| Population                       | Children aged 8–12 with Crohn's disease or ulcerative colitis, one child per device, one family.                                                                                                                                                                                  |
+| Device assumption                | Generic consumer smartwatch. Signals assumed available: steps (per-minute and aggregated), all-day heart-rate samples (every 1–10 min, denser in activity), sleep sessions with device-labelled segments, SpO2 spot values, active minutes, calories. HRV is treated as optional. |
+| **Not** approved and not changed | No medical claims, no treatment advice, no prediction of the child's future state, no punishment mechanics, no reward that depends on an answer.                                                                                                                                  |
 
 ### Literature search method and its limit
 
@@ -79,7 +78,6 @@ Confidence scale, applied to the question _"does this signal, measured by a cons
 | "Lead Warning Indicator", "predict weeks before".                                                                                                                  | [1] is a 309-adult group-level finding against laboratory markers. It does not transfer to one child's daily taps. Out of scope regardless of evidence.                                                                                                                  |
 | Mechanism paragraphs (cholinergic anti-inflammatory pathway, tight junctions, myokines) used to justify the missions.                                              | Not needed to describe co-occurrence, and in a consumer app they read as a claim that movement acts on the disease. Keep the mechanism out of the product; the honest rationale for missions is the intervention trials [23][24] plus the fact that families ask for it. |
 | Forward-fill with the 14-day median and linear interpolation of steps for gaps ≤1 day.                                                                             | Creates values that were never measured and then feeds them into correlations. No imputation anywhere (§4).                                                                                                                                                              |
-| Two Vercel crons "because the Hobby tier allows 2".                                                                                                                | Superseded: a Supabase database is now approved, so a scheduled collector is coherent. The cron count and the "maximum 2" figure in the old document are stale; the design below does not depend on a specific tier limit.                                               |
 
 ---
 
@@ -94,7 +92,7 @@ Conventions used throughout.
 - "Output wording" is the only wording allowed in the UI or the report for that algorithm. Wording changes need the product owner.
 - Effort is TypeScript implementation **including Vitest tests**, by one engineer who already knows the codebase.
 
-Where an algorithm is computed server-side (Vercel job over Supabase) rather than on the device, it is marked **[server]**. Everything else is pure and can run in either place.
+Algorithms marked **[server]** are heavier statistics that are not in the first version. Everything is computed on the device; nothing is sent to a server.
 
 ### 3.0 — Build order and effort
 
@@ -628,7 +626,7 @@ These are binding on every algorithm above.
 11. **No output crosses a period boundary.** Rolling windows do not span a consultation boundary in A14; a window that would is reported as unavailable.
 12. **Every screen carrying any of this carries the `PRODUCT.md` §6.3 disclaimer**, from `src/content/disclaimers.ts`, not retyped.
 13. **Regulatory posture `[no literature citation retrieved — design constraint, to be checked by a person before any public release]`.** Everything above is descriptive summarisation of data the family entered or their own device recorded. Nothing classifies, predicts, screens or recommends. That line is what keeps the product out of medical-device software territory under EU rules; the moment an output says what is likely to happen or what to do, the classification changes. Any new algorithm must be checked against this line before it ships, and a qualified person must review it before a public release — the regulatory search did not run and nothing here is a legal opinion.
-14. **Health data location.** The watch stream now lives in Supabase and is processed by a Vercel job — a change the product owner approved tonight. It concerns special-category data about a minor; access control, retention, deletion on request and the family's consent record are a prerequisite for the integration, not a follow-up. The child's check-in answers and the parent log stay on the device unless the family explicitly opts in.
+14. **Health data location.** The watch data is read in the parent's browser and stays on the device, like the check-in answers and the parent log. Nothing is sent to a server. It concerns special-category data about a minor, so no export or sharing is added without the family's explicit choice.
 
 ---
 
@@ -674,7 +672,7 @@ Two audiences, one engine, different surfaces. Nothing is computed twice.
 > **Co-occurrence** sleep duration at lag 1 with `belly-comfort`: Spearman ρ = −0.58 (95 % CI −0.76 to −0.31), n = 34 paired days, family-wise p = 0.012 across 36 comparisons. No other cell reached the threshold; full table below with \(n\) for each.
 > **Self-report vs parent impression** same tummy picture on 19 of 31 shared days (weighted agreement 0.44, 95 % CI 0.21–0.64); where they differed, the child chose the harder picture more often (mean difference +0.31).
 > **School** attended 41, left early 4, missed 3, no school 13. **Medication taken** yes 55, partly 3, no 3.
-> **Provenance** watch data from the connected device via Google Fit; self-report and parent log entered by the family. Hampel filter replaced 3 single-day readings. Report seed 20260301-20260430-c1. Reproducible from the stored series.
+> **Provenance** watch data from the connected device via Google Fit; self-report and parent log entered by the family. Hampel filter replaced 3 single-day readings. Report seed 20260301-20260430-c1. Reproducible from the series on the device.
 > _[disclaimer from `PRODUCT.md` §6.3]_
 
 ---

@@ -72,6 +72,63 @@ describe("browserGoogleHealth", () => {
     expect(stepSample).toBeDefined();
     expect(stepSample?.value).toBe(120);
     expect(result.dailyMetrics.length).toBe(1);
+    expect(result.metricStatus.steps).toEqual({ status: "ok" });
+    expect(result.metricStatus.sleep).toEqual({ status: "ok" });
+  });
+
+  it("reports a typed per-metric status instead of an empty result when a metric fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string, init?: { body?: string }) => {
+        if (url.includes("/dataset:aggregate")) {
+          const body = JSON.parse(init?.body ?? "{}") as {
+            aggregateBy: Array<{ dataTypeName: string }>;
+          };
+          const type = body.aggregateBy[0].dataTypeName;
+          if (type === "com.google.heart_rate.bpm") {
+            return Promise.resolve({ ok: false, status: 500 });
+          }
+          if (type === "com.google.calories.expended") {
+            return Promise.reject(new Error("offline"));
+          }
+          if (type === "com.google.distance.delta") {
+            return Promise.resolve({ ok: true, json: () => Promise.resolve(null) });
+          }
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ bucket: [] }) });
+        }
+        return Promise.resolve({ ok: false, status: 503 });
+      }),
+    );
+
+    const result = await fetchBrowserGoogleHealth({
+      accessToken: "mock-token",
+      startTimeMillis: 1700000000000,
+      endTimeMillis: 1700000060000,
+    });
+
+    expect(result.metricStatus.steps).toEqual({ status: "ok" });
+    expect(result.metricStatus.heartRate).toEqual({ status: "http-error", httpStatus: 500 });
+    expect(result.metricStatus.calories).toEqual({ status: "network-error", message: "offline" });
+    expect(result.metricStatus.distance).toEqual({ status: "invalid-response" });
+    expect(result.metricStatus.sleep).toEqual({ status: "http-error", httpStatus: 503 });
+  });
+
+  it("still throws on 403 from the sessions endpoint", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        if (url.includes("/sessions")) return Promise.resolve({ ok: false, status: 403 });
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ bucket: [] }) });
+      }),
+    );
+
+    await expect(
+      fetchBrowserGoogleHealth({
+        accessToken: "limited-token",
+        startTimeMillis: 1000,
+        endTimeMillis: 2000,
+      }),
+    ).rejects.toThrow(/Google Health API error \(403\)/);
   });
 
   it("handles HTTP 401 error gracefully", async () => {
@@ -94,11 +151,11 @@ describe("browserGoogleHealth", () => {
   });
 
   it("provides 30 days of realistic demo data for offline demo", () => {
-    const demo = getDemoWearableData("demo-child-1");
+    const demo = getDemoWearableData();
     expect(demo).toHaveLength(30);
     expect(demo[0].steps).toBeGreaterThan(5000);
-    expect(demo[0].valid_activity).toBe(true);
-    expect(demo[0].valid_sleep).toBe(true);
-    expect(demo[0].resting_hr).toBeGreaterThan(60);
+    expect(demo[0].validActivity).toBe(true);
+    expect(demo[0].validSleep).toBe(true);
+    expect(demo[0].restingHr).toBeGreaterThan(60);
   });
 });

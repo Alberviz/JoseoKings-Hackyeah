@@ -11,6 +11,8 @@ export const S_MIN = {
 };
 
 const BASELINE_DAYS = 14;
+/** The look-back window never reaches further than this many calendar days before day t. */
+export const BASELINE_MAX_LOOKBACK_DAYS = 28;
 const IQR_TO_SIGMA = 0.7413;
 
 function isValue(value: unknown): value is number {
@@ -47,7 +49,9 @@ export interface BaselineInsufficientResult {
 export type BaselineResult = BaselineValueResult | BaselineInsufficientResult | null;
 
 /**
- * Trailing median of the previous 14 non-missing days, excluding day t and every later day.
+ * `series` has one entry per calendar day (null or undefined for a day without data).
+ * Trailing median of the previous 14 non-missing days, excluding day t and every later day,
+ * looking back at most 28 calendar days: a longer gap never pulls in older days.
  * `breaks` are device/source change indices: the window does not
  * use days before the latest break at or before t, and collection restarts.
  */
@@ -64,7 +68,8 @@ export function personalBaseline(
       else break;
     }
     const previous: number[] = [];
-    for (let i = t - 1; i >= 0 && previous.length < BASELINE_DAYS; i -= 1) {
+    const oldest = Math.max(0, t - BASELINE_MAX_LOOKBACK_DAYS);
+    for (let i = t - 1; i >= oldest && previous.length < BASELINE_DAYS; i -= 1) {
       if (i < breakAt) break;
       if (!isValue(series[i])) continue;
       previous.push(series[i] as number);

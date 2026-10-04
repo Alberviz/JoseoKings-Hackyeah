@@ -1,18 +1,16 @@
-// Parent orientation status engine.
-// Aggregates child check-in responses (tummy comfort, energy) and watch metrics (steps, sleep, resting HR)
-// into a deterministic, orientative status for parents.
-// STRICTLY 100% deterministic math. NO AI, NO ML, NO LLM.
-// Grounded in Consensus evidence (CLINICAL_EVIDENCE_AND_ALGORITHMS.md).
-// No medical claims, no flare predictions, no invented composite indices.
+// Parent status engine.
+// Compares watch metrics (steps, sleep, resting HR) with the child's own usual range and reports
+// what the child marked in the check-in. Deterministic math only: no AI, no ML, no LLM.
+// Grounded in docs/research/CLINICAL_EVIDENCE_AND_ALGORITHMS.md.
+// Wording follows docs/PRODUCT.md section 6: no medical claims, no advice, no predictions,
+// no invented composite indices, no colours or warning levels.
 
 import { outsideUsualRange, personalBaseline, S_MIN } from "./baseline";
 import { hampel } from "./clean";
 import { asScore } from "./counts";
 import type { CheckInScore, RangeBand } from "./types";
 
-export type ParentStatusBand = "stable" | "attention" | "sustained_change";
-
-export type ParentStatusColor = "verde" | "amarillo" | "naranja";
+export type ParentStatusBand = "usualRange" | "differentFromUsual" | "collectingBaseline";
 
 export interface DailyParentInput {
   date: string;
@@ -36,22 +34,20 @@ export interface MetricEvaluation {
   consecutiveOutsideDays: number;
 }
 
-export interface ConfidenceScoreInfo {
-  score: number; // 0 to 100
+export interface WatchCoverageInfo {
+  /** Share of days in the window that have watch data, from 0 to 1. */
+  coverage: number;
   validDays: number;
   totalDays: number;
-  ratio: number; // 0.0 to 1.0
   description: string;
 }
 
 export interface ParentStatusResult {
   status: ParentStatusBand;
   label: string;
-  color: ParentStatusColor;
-  confidenceScore: ConfidenceScoreInfo;
+  watchCoverage: WatchCoverageInfo;
   headline: string;
   descriptions: string[];
-  actionSuggestion: string;
   targetDate: string;
   metrics: {
     steps?: MetricEvaluation;
@@ -82,26 +78,48 @@ function isDayValid(day: DailyParentInput): boolean {
   );
 }
 
-export function calculateWearTimeConfidence(days: DailyParentInput[]): ConfidenceScoreInfo {
+const DAY_MS = 86_400_000;
+
+function dayNumber(date: string): number {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!match) return Number.NaN;
+  return Math.round(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])) / DAY_MS);
+}
+
+/**
+ * One slot per calendar day from the first to the last logged date, so a gap in the log
+ * stays a gap in the series. Falls back to the sorted list when a date is not YYYY-MM-DD.
+ */
+function toCalendarDays(sorted: DailyParentInput[]): Array<DailyParentInput | null> {
+  const numbers = sorted.map((d) => dayNumber(d.date));
+  if (numbers.some((n) => Number.isNaN(n))) return sorted;
+  const first = numbers[0];
+  const calendar: Array<DailyParentInput | null> = Array.from(
+    { length: numbers[numbers.length - 1] - first + 1 },
+    () => null,
+  );
+  sorted.forEach((day, i) => {
+    calendar[numbers[i] - first] = day;
+  });
+  return calendar;
+}
+
+export function calculateWatchCoverage(days: DailyParentInput[]): WatchCoverageInfo {
   const totalDays = days.length;
   if (totalDays === 0) {
     return {
-      score: 0,
+      coverage: 0,
       validDays: 0,
       totalDays: 0,
-      ratio: 0,
-      description: "Sin datos registrados para calcular la validez.",
+      description: "No days logged yet.",
     };
   }
   const validDays = days.filter(isDayValid).length;
-  const ratio = validDays / totalDays;
-  const score = Math.round(ratio * 100);
   return {
-    score,
+    coverage: validDays / totalDays,
     validDays,
     totalDays,
-    ratio,
-    description: `El reloj tuvo datos válidos en ${validDays} de los ${totalDays} días (${score}%).`,
+    description: `Watch data was present on ${validDays} of ${totalDays} days.`,
   };
 }
 
@@ -111,20 +129,11 @@ export function evaluateParentStatus(
 ): ParentStatusResult {
   if (!days || days.length === 0) {
     return {
-      status: "stable",
-      label: "Estable",
-      color: "verde",
-      confidenceScore: {
-        score: 0,
-        validDays: 0,
-        totalDays: 0,
-        ratio: 0,
-        description: "Sin datos registrados para calcular la validez.",
-      },
-      headline: "Sin datos registrados",
-      descriptions: ["Aún no hay registros disponibles para evaluar el período."],
-      actionSuggestion:
-        "Registrar los check-ins diarios y usar el reloj para comenzar a construir la referencia habitual del peque.",
+      status: "collectingBaseline",
+      label: "Collecting baseline",
+      watchCoverage: calculateWatchCoverage([]),
+      headline: "No data logged yet",
+      descriptions: ["There are no entries yet for this period."],
       targetDate: options.targetDate ?? "",
       metrics: {},
       checkInSummary: {
@@ -152,7 +161,10 @@ export function evaluateParentStatus(
   const windowSize = options.windowDays ?? 14;
   const windowStart = Math.max(0, targetIndex - windowSize + 1);
   const evaluationWindow = sortedDays.slice(windowStart, targetIndex + 1);
-  const confidenceScore = calculateWearTimeConfidence(evaluationWindow);
+  const watchCoverage = calculateWatchCoverage(evaluationWindow);
+
+  const calendarDays = toCalendarDays(sortedDays);
+  const calendarTargetIndex = calendarDays.findIndex((d) => d === targetDay);
 
   // Helper to extract and analyze metric
   function analyzeMetricSeries(
@@ -160,7 +172,7 @@ export function evaluateParentStatus(
     sMin: number,
     metricName: "steps" | "sleep" | "restingHr",
   ): MetricEvaluation | undefined {
-    const rawSeries = sortedDays.map(extractor);
+    const rawSeries = calendarDays.map((d) => (d ? extractor(d) : null));
     const hasAnyValue = rawSeries.some((v) => typeof v === "number" && !Number.isNaN(v));
     if (!hasAnyValue) return undefined;
 
@@ -169,8 +181,8 @@ export function evaluateParentStatus(
     const deviations = baselines.map((b) => (b && b.kind === "value" ? b.d : null));
     const a9Marked = outsideUsualRange(deviations);
 
-    const targetVal = rawSeries[targetIndex] ?? null;
-    const targetBase = baselines[targetIndex];
+    const targetVal = rawSeries[calendarTargetIndex] ?? null;
+    const targetBase = baselines[calendarTargetIndex];
 
     let deviation: number | null = null;
     let baselineMedian: number | null = null;
@@ -181,12 +193,12 @@ export function evaluateParentStatus(
       deviation = targetBase.d;
       baselineMedian = targetBase.median;
       band = targetBase.band;
-      outsideRange = Math.abs(targetBase.d) > 2 || a9Marked[targetIndex];
+      outsideRange = Math.abs(targetBase.d) > 2 || a9Marked[calendarTargetIndex];
     }
 
     // Count consecutive outside days ending at targetIndex
     let consecutiveOutsideDays = 0;
-    for (let i = targetIndex; i >= 0; i -= 1) {
+    for (let i = calendarTargetIndex; i >= 0; i -= 1) {
       const b = baselines[i];
       if (b && b.kind === "value" && (Math.abs(b.d) > 2 || a9Marked[i])) {
         consecutiveOutsideDays += 1;
@@ -234,124 +246,100 @@ export function evaluateParentStatus(
     }
   }
 
-  // Band evaluation logic
+  // Status: only the watch metrics against the child's own usual range.
   const evaluatedMetrics = [stepsEval, sleepEval, restingHrEval].filter(
     (m): m is MetricEvaluation => m !== undefined,
   );
+  const hasBaseline = evaluatedMetrics.some((m) => m.band !== "collecting-baseline");
+  const hasDifference = evaluatedMetrics.some((m) => m.outsideRange);
 
-  const hasSustainedMetricDeparture = evaluatedMetrics.some((m) => m.consecutiveOutsideDays >= 3);
-  const hasSustainedDiscomfort = consecutiveDiscomfortDays >= 3 || consecutiveLowEnergyDays >= 3;
+  let status: ParentStatusBand = "usualRange";
+  let label = "Usual range";
+  let headline = "Within the usual range";
 
-  const hasModerateMetricDeparture = evaluatedMetrics.some((m) => m.outsideRange);
-  const hasIsolatedDiscomfort =
-    (todayComfort === 1 || todayComfort === 2) && consecutiveDiscomfortDays < 3;
-  const hasIsolatedLowEnergy =
-    (todayEnergy === 1 || todayEnergy === 2) && consecutiveLowEnergyDays < 3;
-
-  let status: ParentStatusBand = "stable";
-  let label = "Estable";
-  let color: ParentStatusColor = "verde";
-  let headline = "Dentro del rango habitual";
-  let actionSuggestion =
-    "Mantener las rutinas diarias habituales y las actividades que el peque disfrute.";
-
-  if (hasSustainedMetricDeparture || hasSustainedDiscomfort) {
-    status = "sustained_change";
-    label = "Cambio sostenido";
-    color = "naranja";
-    headline = "Cambio continuado respecto al rango habitual";
-    actionSuggestion =
-      "Se observan varios días consecutivos con variaciones o molestias. Sugerimos anotar estas observaciones en el registro para comentarlas con el equipo médico en la próxima consulta.";
-  } else if (hasModerateMetricDeparture || hasIsolatedDiscomfort || hasIsolatedLowEnergy) {
-    status = "attention";
-    label = "Atención";
-    color = "amarillo";
-    headline = "Variación puntual respecto a lo habitual";
-    actionSuggestion =
-      "Priorizar el descanso hoy, mantener una buena hidratación y optar por rutinas suaves y tranquilas.";
+  if (!hasBaseline) {
+    status = "collectingBaseline";
+    label = "Collecting baseline";
+    headline = "Collecting the usual range";
+  } else if (hasDifference) {
+    status = "differentFromUsual";
+    label = "Different from usual";
+    headline = "Different from the usual range";
   }
 
-  // Generate plain-language, non-alarmist descriptions
+  // Plain-language, neutral descriptions
   const descriptions: string[] = [];
 
   if (sleepEval && sleepEval.value !== null) {
     if (sleepEval.band === "below") {
-      descriptions.push("El descanso de anoche estuvo por debajo de su rango habitual.");
+      descriptions.push("Last night's sleep was below the usual range.");
     } else if (sleepEval.band === "above") {
-      descriptions.push("El descanso de anoche estuvo por encima de su rango habitual.");
+      descriptions.push("Last night's sleep was above the usual range.");
     } else if (sleepEval.band === "within") {
-      descriptions.push("El descanso de anoche se mantuvo dentro de su rango habitual.");
+      descriptions.push("Last night's sleep was within the usual range.");
     } else {
       const hours = (sleepEval.value / 60).toFixed(1);
       descriptions.push(
-        `El descanso registrado anoche fue de ${hours} horas (recopilando datos de referencia).`,
+        `Sleep logged last night was ${hours} hours (still collecting a baseline).`,
       );
     }
   }
 
   if (stepsEval && stepsEval.value !== null) {
     if (stepsEval.band === "below") {
-      descriptions.push("La actividad física estuvo por debajo de su rango habitual.");
+      descriptions.push("Steps were below the usual range.");
     } else if (stepsEval.band === "above") {
-      descriptions.push("La actividad física estuvo por encima de su rango habitual.");
+      descriptions.push("Steps were above the usual range.");
     } else if (stepsEval.band === "within") {
-      descriptions.push("La actividad física se mantuvo dentro de su rango habitual.");
+      descriptions.push("Steps were within the usual range.");
     }
   }
 
   if (restingHrEval && restingHrEval.value !== null) {
     if (restingHrEval.band === "above") {
-      descriptions.push(
-        "La frecuencia cardíaca en reposo nocturno estuvo por encima de su rango habitual.",
-      );
+      descriptions.push("Night-time resting heart rate was above the usual range.");
     } else if (restingHrEval.band === "below") {
-      descriptions.push(
-        "La frecuencia cardíaca en reposo nocturno estuvo por debajo de su rango habitual.",
-      );
+      descriptions.push("Night-time resting heart rate was below the usual range.");
     } else if (restingHrEval.band === "within") {
-      descriptions.push(
-        "La frecuencia cardíaca en reposo nocturno se mantuvo dentro de su rango habitual.",
-      );
+      descriptions.push("Night-time resting heart rate was within the usual range.");
     }
   }
 
-  // Child check-in descriptions
+  // Child check-in descriptions (what the child marked, nothing more)
   if (consecutiveDiscomfortDays >= 3) {
     descriptions.push(
-      `El peque lleva ${consecutiveDiscomfortDays} días seguidos señalando molestias en la barriga.`,
+      `The child marked belly discomfort on the last ${consecutiveDiscomfortDays} days.`,
     );
   } else if (todayComfort === 1) {
-    descriptions.push("El peque ha señalado algo de molestia en la barriga hoy.");
+    descriptions.push("The child marked a little belly discomfort today.");
   } else if (todayComfort === 2) {
-    descriptions.push("El peque ha señalado molestia notable en la barriga hoy.");
+    descriptions.push("The child marked a lot of belly discomfort today.");
   } else if (todayComfort === 0) {
-    descriptions.push("El peque ha señalado encontrarse bien de la barriga hoy.");
+    descriptions.push("The child marked a comfortable belly today.");
   }
 
   if (consecutiveLowEnergyDays >= 3) {
     descriptions.push(
-      `El peque lleva ${consecutiveLowEnergyDays} días seguidos señalando cansancio.`,
+      `The child marked feeling tired on the last ${consecutiveLowEnergyDays} days.`,
     );
   } else if (todayEnergy === 1) {
-    descriptions.push("El peque ha señalado estar algo cansado hoy.");
+    descriptions.push("The child marked feeling a little tired today.");
   } else if (todayEnergy === 2) {
-    descriptions.push("El peque ha señalado bastante cansancio hoy.");
+    descriptions.push("The child marked feeling very tired today.");
   } else if (todayEnergy === 0) {
-    descriptions.push("El peque ha señalado un buen nivel de energía hoy.");
+    descriptions.push("The child marked a good amount of energy today.");
   }
 
   if (targetDay.bellyComfort === "notToday") {
-    descriptions.push("El peque prefirió no completar el registro hoy.");
+    descriptions.push("The child chose not to complete the check-in today.");
   }
 
   return {
     status,
     label,
-    color,
-    confidenceScore,
+    watchCoverage,
     headline,
     descriptions,
-    actionSuggestion,
     targetDate,
     metrics: {
       steps: stepsEval,

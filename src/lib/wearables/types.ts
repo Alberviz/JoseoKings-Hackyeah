@@ -1,124 +1,41 @@
 export type WearableMetric =
   | "steps"
-  | "heart_rate"
-  | "active_minutes"
+  | "heartRate"
+  | "activeMinutes"
   | "calories"
   | "distance"
   | "spo2"
-  | "sleep_session"
-  | "sleep_segment";
+  | "sleepSession"
+  | "sleepSegment";
 
-export type SleepStage = "awake" | "sleep" | "out_of_bed" | "light" | "deep" | "rem" | string;
+export type SleepStage = "awake" | "sleep" | "outOfBed" | "light" | "deep" | "rem" | string;
 
-export interface WatchSampleRow {
-  id?: number;
-  subject_id: string;
+/** One raw reading from the watch, kept in memory on the device. */
+export type WatchSample = {
   metric: WearableMetric;
-  start_at: string;
-  end_at: string;
+  startAt: string;
+  endAt: string;
   value: number;
-  value_max?: number | null;
-  value_min?: number | null;
+  valueMax?: number | null;
+  valueMin?: number | null;
   stage?: SleepStage | null;
   source: string;
-  ingested_at?: string;
-}
+};
 
-export interface CollectorRunRow {
-  id?: number;
-  subject_id: string;
-  started_at: string;
-  window_start: string;
-  window_end: string;
-  rows_written: number;
-  counts: Record<string, number>;
-  errors: Record<string, string>;
-}
-
-export interface CheckinRow {
-  id?: number;
-  subject_id: string;
-  local_date: string;
-  belly_comfort: number | null;
-  energy: number | null;
-  play_pace: number | null;
-  skipped: boolean;
-  answered_at: string;
-}
-
-export interface ParentLogRow {
-  id?: number;
-  subject_id: string;
-  local_date: string;
-  sleep_hours?: number | null;
-  school?: "attended" | "left-early" | "missed" | "no-school" | null;
-  medication_taken?: "yes" | "partly" | "no" | "not-applicable" | null;
-  note?: string | null;
-  created_at?: string;
-}
-
-export interface ParentObservationRow {
-  id?: number;
-  subject_id: string;
-  observed_at: string;
-  local_date: string;
-  kind: string;
-  value_num?: number | null;
-  value_text?: string | null;
-  created_at?: string;
-}
-
-export interface MissionDoneRow {
-  id?: number;
-  subject_id: string;
-  done_at: string;
-  local_date: string;
-  mission_id: string;
-  company: "alone" | "someone" | "family";
-  stopped_early: boolean;
-}
-
-export interface FoodEntryRow {
-  id?: number;
-  subject_id: string;
-  local_date: string;
-  tags: string[];
-  text?: string | null;
-  created_at?: string;
-}
-
-export interface ConsultationRow {
-  id?: number;
-  subject_id: string;
-  local_date: string;
-}
-
-export interface DailyMetricRow {
-  subject_id: string;
-  local_date: string;
+/** Per-day figures computed on the device from the raw watch samples. */
+export type DailyMetric = {
+  localDate: string;
   steps: number | null;
-  hr_waking_hours_covered: number | null;
-  resting_hr: number | null;
-  sleep_minutes: number | null;
-  sleep_onset_at: string | null;
-  sleep_offset_at: string | null;
-  valid_activity: boolean;
-  valid_sleep: boolean;
-  computed_at?: string;
-  algorithm_version: string;
-}
-
-export interface AnalysisRunRow {
-  id?: number;
-  subject_id: string;
-  run_at?: string;
-  period_start: string;
-  period_end: string;
-  algorithm_version: string;
-  seed: number;
-  params: Record<string, unknown>;
-  results: Record<string, unknown>;
-}
+  hrWakingHoursCovered: number | null;
+  restingHr: number | null;
+  sleepMinutes: number | null;
+  sleepOnsetAt: string | null;
+  sleepOffsetAt: string | null;
+  validActivity: boolean;
+  validSleep: boolean;
+  computedAt?: string;
+  algorithmVersion: string;
+};
 
 // Algorithm types
 export type CheckInScore = 0 | 1 | 2 | "notToday" | null;

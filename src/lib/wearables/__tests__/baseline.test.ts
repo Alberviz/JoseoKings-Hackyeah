@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { outsideUsualRange, personalBaseline, rangeBand } from "../baseline";
+import {
+  BASELINE_MAX_LOOKBACK_DAYS,
+  outsideUsualRange,
+  personalBaseline,
+  rangeBand,
+} from "../baseline";
 import { median } from "../stats";
 
 describe("baseline (A2 Personal baseline & A9 outside-range)", () => {
@@ -40,6 +45,40 @@ describe("baseline (A2 Personal baseline & A9 outside-range)", () => {
     if (reset[39]?.kind === "insufficient-data") {
       expect(reset[39].have).toBe(9);
     }
+  });
+
+  it("looks back at most 28 calendar days and never pulls in older days across a gap", () => {
+    expect(BASELINE_MAX_LOOKBACK_DAYS).toBe(28);
+    // 14 old days at 50, then a 20-day gap, then a new day at 80 on index 34.
+    const series: Array<number | null> = [
+      ...Array.from({ length: 14 }, () => 50),
+      ...Array.from({ length: 20 }, () => null),
+      80,
+    ];
+    const result = personalBaseline(series, { sMin: 1 });
+    // Old days sit 21 to 34 days before index 34; only those within 28 days count (indices 6 to 13).
+    expect(result[34]?.kind).toBe("insufficient-data");
+    if (result[34]?.kind === "insufficient-data") {
+      expect(result[34].reason).toBe("collecting-baseline");
+      expect(result[34].have).toBe(8);
+      expect(result[34].need).toBe(14);
+    }
+  });
+
+  it("keeps the 14 valid days minimum and still builds a baseline inside the 28 day window", () => {
+    // 14 valid days spread over 28 calendar days (every other day), target on index 28.
+    const series: Array<number | null> = Array.from({ length: 29 }, (_, i) =>
+      i === 28 ? 60 : i % 2 === 0 ? 50 : null,
+    );
+    const result = personalBaseline(series, { sMin: 1 });
+    expect(result[28]?.kind).toBe("value");
+    if (result[28]?.kind === "value") expect(result[28].median).toBe(50);
+
+    // One day further and the oldest valid day falls out of the window.
+    const longer = [...series.slice(0, 28), null, 60];
+    const later = personalBaseline(longer, { sMin: 1 });
+    expect(later[29]?.kind).toBe("insufficient-data");
+    if (later[29]?.kind === "insufficient-data") expect(later[29].have).toBe(13);
   });
 
   it("classifies range bands strictly using +-2 thresholds", () => {
