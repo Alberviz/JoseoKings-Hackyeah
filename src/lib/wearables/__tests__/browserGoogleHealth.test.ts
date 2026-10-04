@@ -288,7 +288,7 @@ describe("browserGoogleHealth", () => {
     expect(result.devices).toEqual(["Pixel Watch 2"]);
   });
 
-  it("includes dataSourceFamily=users/me/dataSourceFamilies/all-sources in query params", async () => {
+  it("does not include invalid dataSourceFamily by default in dataPoints query params", async () => {
     let capturedUrl = "";
     vi.stubGlobal(
       "fetch",
@@ -304,6 +304,6 @@ describe("browserGoogleHealth", () => {
       endTimeMillis: 2000,
     });
 
-    expect(capturedUrl).toContain("dataSourceFamily=users%2Fme%2FdataSourceFamilies%2Fall-sources");
+    expect(capturedUrl).not.toContain("dataSourceFamily");
   });
 });
