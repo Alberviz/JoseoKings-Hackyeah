@@ -22,7 +22,7 @@ export function getFoodCooccurrence(state: AppState, range: DateRange): FoodCooc
   const termDaysMap = new Map<string, Set<DateKey>>();
 
   for (const entry of entries) {
-    const words = entry.text.toLowerCase().match(/[a-z]{3,}/g) ?? [];
+    const words = entry.text.toLowerCase().match(/\p{L}{3,}/gu) ?? [];
     for (const word of words) {
       if (!STOPWORDS.has(word)) {
         let daysSet = termDaysMap.get(word);

@@ -4,6 +4,7 @@ import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays } from "@/lib/dates";
 import { buildDemoState } from "@/lib/demo-data";
 import { createDefaultEconomy } from "@/lib/economy";
+import { CORROBORATION_LABELS } from "@/lib/missions/corroboration";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState, MissionCompany, ParentLog } from "@/types";
 import { buildReport } from "./buildReport";
@@ -38,7 +39,7 @@ describe("buildReport", () => {
     const state = makeEmptyState();
     const report = buildReport(state, TODAY);
 
-    expect(report.childNickname).toBe("Lucas");
+    expect(report.childNickname).toBe("Child");
     expect(report.isDemo).toBe(false);
     expect(report.generatedDate).toBe(TODAY);
     expect(report.disclaimer).toBe(REPORT_DISCLAIMER);
@@ -67,8 +68,8 @@ describe("buildReport", () => {
       { company: "other", label: confidenceLabel("other"), count: 0 },
     ]);
     expect(report.activity.byCorroboration).toEqual([
-      { method: "wearable", label: "Movement noted by the wearable", count: 0 },
-      { method: "motion", label: "Movement noted by the phone", count: 0 },
+      { method: "wearable", label: CORROBORATION_LABELS.wearable, count: 0 },
+      { method: "motion", label: CORROBORATION_LABELS.motion, count: 0 },
       { method: "none", label: "Self-reported only", count: 0 },
     ]);
     expect(report.activity.corroborationTotals).toEqual({ wearable: 0, motion: 0, none: 0 });
@@ -115,7 +116,7 @@ describe("buildReport", () => {
 
     const report = buildReport(state, TODAY);
 
-    expect(report.period.previousConsultationDate).toBe(consultationDate);
+    expect(report.period.previousConsultationDate).toBeNull();
     expect(report.period.startDate).toBe(addDays(TODAY, -29));
     expect(report.period.endDate).toBe(TODAY);
     expect(report.period.totalDays).toBe(30);
@@ -127,7 +128,7 @@ describe("buildReport", () => {
 
     const report = buildReport(state, TODAY);
 
-    expect(report.period.previousConsultationDate).toBe(TODAY);
+    expect(report.period.previousConsultationDate).toBeNull();
     expect(report.period.startDate).toBe(addDays(TODAY, -29));
     expect(report.period.endDate).toBe(TODAY);
     expect(report.period.totalDays).toBe(30);
@@ -190,7 +191,7 @@ describe("buildReport", () => {
         answers: {
           [QUESTION_IDS.bellyComfort]: "skipped",
         },
-        notToday: true, // discomfort due to notToday!
+        notToday: true, // skipped day: not a discomfort day
         createdAt: `${d3}T10:00:00Z`,
       },
       {
@@ -256,8 +257,8 @@ describe("buildReport", () => {
     // care days: d1, d2, d3, d4 (check-ins), plus d6 (mission log without check-in) => 5 days
     expect(report.metrics.careDaysCount).toBe(5);
 
-    // discomfort days: d1 (bellyPain 3), d3 (notToday true), d4 (bellyPain 4) => 3 days
-    expect(report.metrics.discomfortDaysCount).toBe(3);
+    // discomfort days: d1 and d4 (belly answers at or above the threshold); the "not today" day d3 is not one
+    expect(report.metrics.discomfortDaysCount).toBe(2);
 
     // sleep metrics: 3 logs in period with sleepHours (8 + 7.5 + 9) / 3 = 24.5 / 3 = 8.1666... -> 8.2
     expect(report.metrics.sleepRecordedDaysCount).toBe(3);
@@ -342,7 +343,7 @@ describe("buildReport", () => {
     ]);
   });
 
-  it("extracts food co-occurrences on discomfort days sorted by frequency", () => {
+  it("lists food co-occurrences on discomfort days alphabetically, not ranked", () => {
     const state = makeEmptyState();
     state.consultations = [{ id: "c-1", date: addDays(TODAY, -10) }]; // totalDays = 10
 
@@ -362,8 +363,8 @@ describe("buildReport", () => {
       {
         id: "ci-2",
         date: badDay2,
-        answers: { [QUESTION_IDS.bellyComfort]: "skipped" },
-        notToday: true,
+        answers: { [QUESTION_IDS.bellyComfort]: 2 },
+        notToday: false,
         createdAt: `${badDay2}T10:00:00Z`,
       },
       {
@@ -387,10 +388,70 @@ describe("buildReport", () => {
     const report = buildReport(state, TODAY);
 
     expect(report.foodsOnDiscomfortDays).toEqual([
-      { text: "Pizza", count: 2 },
       { text: "Burger", count: 1 },
       { text: "Ice cream", count: 1 },
+      { text: "Pizza", count: 2 },
     ]);
+  });
+
+  it("does not treat a skipped check-in day as a discomfort day or pull its foods in", () => {
+    const state = makeEmptyState();
+    const skipped = addDays(TODAY, -3);
+    state.checkIns = [
+      {
+        id: "ci-skip",
+        date: skipped,
+        answers: {},
+        notToday: true,
+        createdAt: `${skipped}T10:00:00Z`,
+      },
+    ];
+    state.foodEntries = [
+      { id: "f-1", date: skipped, text: "Pizza", createdAt: `${skipped}T12:00:00Z` },
+    ];
+
+    const report = buildReport(state, TODAY);
+    expect(report.metrics.discomfortDaysCount).toBe(0);
+    expect(report.foodsOnDiscomfortDays).toEqual([]);
+  });
+
+  it("uses the first parent log of a date for sleep and school counts", () => {
+    const state = makeEmptyState();
+    const day = addDays(TODAY, -3);
+    state.parentLogs = [
+      { date: day, sleepHours: 8, school: "home" as ParentLog["school"] },
+      { date: day, sleepHours: 4, school: "attended" as ParentLog["school"] },
+    ];
+
+    const report = buildReport(state, TODAY);
+    expect(report.metrics.sleepRecordedDaysCount).toBe(1);
+    expect(report.metrics.avgSleepHours).toBe(8);
+    expect(report.metrics.schoolImpactedDaysCount).toBe(1);
+  });
+
+  it("uses the first check-in of a date", () => {
+    const state = makeEmptyState();
+    const day = addDays(TODAY, -3);
+    state.checkIns = [
+      {
+        id: "ci-a",
+        date: day,
+        answers: { [QUESTION_IDS.bellyComfort]: 0 },
+        notToday: false,
+        createdAt: `${day}T08:00:00Z`,
+      },
+      {
+        id: "ci-b",
+        date: day,
+        answers: { [QUESTION_IDS.bellyComfort]: 2 },
+        notToday: false,
+        createdAt: `${day}T18:00:00Z`,
+      },
+    ];
+
+    const report = buildReport(state, TODAY);
+    expect(report.metrics.checkInDaysCount).toBe(1);
+    expect(report.metrics.discomfortDaysCount).toBe(0);
   });
 
   it("works seamlessly with buildDemoState", () => {
@@ -514,8 +575,8 @@ describe("buildReport wearable and observed sections", () => {
       none: 1,
     });
     expect(report.activity.byCorroboration).toEqual([
-      { method: "wearable", label: "Movement noted by the wearable", count: 1 },
-      { method: "motion", label: "Movement noted by the phone", count: 1 },
+      { method: "wearable", label: CORROBORATION_LABELS.wearable, count: 1 },
+      { method: "motion", label: CORROBORATION_LABELS.motion, count: 1 },
       { method: "none", label: "Self-reported only", count: 1 },
     ]);
   });

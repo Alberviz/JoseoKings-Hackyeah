@@ -77,11 +77,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         ? "Resting HR"
         : "Nocturnal resting HR";
 
-  const adherencePercentage = Math.round(
-    data.metrics.checkInCompletionRate > 1
-      ? data.metrics.checkInCompletionRate
-      : data.metrics.checkInCompletionRate * 100,
-  );
+  const adherencePercentage = Math.round(data.metrics.checkInCompletionRate * 100);
 
   return (
     <>

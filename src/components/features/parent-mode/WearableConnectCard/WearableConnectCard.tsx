@@ -120,6 +120,12 @@ export function WearableConnectCard() {
             Wearable connection is not set up in this build. Demo data still works.
           </StatusMessage>
         )}
+        {isConfigured && !hasRealData ? (
+          <Text size="sm" tone="muted">
+            During the hackathon, connecting needs an account added by the team. Use demo data to
+            try it.
+          </Text>
+        ) : null}
         <ButtonRow>
           {hasRealData ? (
             <Button variant="primary" onClick={sync} disabled={isWorking || !isConfigured}>
