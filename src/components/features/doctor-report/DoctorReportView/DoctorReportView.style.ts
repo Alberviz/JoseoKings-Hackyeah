@@ -479,3 +479,32 @@ export const DisclaimerText = styled.p`
     line-height: 1.25 !important;
   }
 `;
+
+/** Where a section's numbers come from: Child, Family, Watch. */
+export const SourceTag = styled.span`
+  align-self: flex-start;
+  padding: 1px 8px;
+  border: 1px solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  background: ${({ theme }) => theme.colors.primarySoft};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.75rem;
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+
+  @media print {
+    font-size: 7pt !important;
+    padding: 0 6px !important;
+    background: ${({ theme }) => theme.colors.surface} !important;
+  }
+`;
+
+export const ChartsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  @media print {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+`;

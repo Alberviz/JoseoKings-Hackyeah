@@ -42,7 +42,22 @@ const mockReportData: DoctorReportData = {
     steps: { n: 20, median: 5200, q1: 3900, q3: 6800 },
     restingHr: { n: 18, median: 61, q1: 58, q3: 64 },
     sleepHours: { n: 18, median: 7.8, q1: 7.2, q3: 8.4 },
+    series: [
+      { date: "2026-09-01", steps: 5000, restingHr: 60, sleepHours: 8 },
+      { date: "2026-09-02", steps: null, restingHr: null, sleepHours: null },
+    ],
   },
+  crossComparison: [
+    {
+      source: "Child",
+      signal: "Belly comfort answer",
+      metric: "Steps",
+      n: 20,
+      rho: -0.42,
+      low: -0.7,
+      high: -0.08,
+    },
+  ],
   observed: {
     loggedDays: 22,
     school: { attended: 15, leftEarly: 1, missed: 1, noSchool: 5 },
@@ -168,7 +183,7 @@ describe("DoctorReportView", () => {
     expect(screen.getByText("5200 steps")).toBeTruthy();
     expect(screen.getByText("3900 to 6800 steps")).toBeTruthy();
     expect(screen.getByText("61 bpm")).toBeTruthy();
-    expect(screen.getByText(/Source: Watch/)).toBeTruthy();
+    expect(screen.getAllByText("Source: Watch").length).toBe(1);
   });
 
   it("shows no-data text and a demo banner for the watch section", () => {
@@ -185,13 +200,30 @@ describe("DoctorReportView", () => {
             steps: empty,
             restingHr: empty,
             sleepHours: empty,
+            series: [],
           },
+          crossComparison: [],
         }}
       />,
     );
 
     expect(screen.getByText("No data from the watch in this period.")).toBeTruthy();
-    expect(screen.getByText("Demo data")).toBeTruthy();
+    expect(screen.getAllByText("Demo data").length).toBeGreaterThan(0);
+  });
+
+  it("renders charts and the clinician comparison with N and interval", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    expect(screen.getAllByRole("img").length).toBe(3);
+    expect(screen.getByText("Child, family and watch together")).toBeTruthy();
+    expect(screen.getByText("-0.7 to -0.08")).toBeTruthy();
+    expect(screen.getByText("-0.42")).toBeTruthy();
+  });
+
+  it("explains when there are too few paired days", () => {
+    renderWithTheme(<DoctorReportView data={{ ...mockReportData, crossComparison: [] }} />);
+
+    expect(screen.getByText(/Not enough days with both/)).toBeTruthy();
   });
 
   it("renders the observed by the family counts", () => {

@@ -11,6 +11,30 @@ export type DayStripEntry = {
   hadDiscomfort: boolean;
   hasParentLog: boolean;
   sleepHours?: number;
+  /** Set only on days with a parent log. */
+  schoolImpacted?: boolean;
+};
+
+/** One day of valid watch values; null when the watch has no trusted value. */
+export type WatchDailyPoint = {
+  date: DateKey;
+  steps: number | null;
+  restingHr: number | null;
+  sleepHours: number | null;
+};
+
+export type CrossComparisonRow = {
+  /** Who entered the signal. */
+  source: "Child" | "Family";
+  signal: string;
+  metric: string;
+  /** Days with both values. */
+  n: number;
+  /** Spearman rank correlation. */
+  rho: number;
+  /** 95% bootstrap interval of rho. */
+  low: number;
+  high: number;
 };
 
 export type FoodCooccurrence = {
@@ -41,6 +65,8 @@ export type WatchReportSection = {
   /** Nocturnal resting heart rate, beats per minute. */
   restingHr: WatchMetricSummary;
   sleepHours: WatchMetricSummary;
+  /** One point per day of the period, for the charts. */
+  series: WatchDailyPoint[];
 };
 
 /** Day counts from the parent log. Never scores, never causes. */
@@ -74,6 +100,8 @@ export type DoctorReportData = {
     byConfidence: ActivityConfidenceCount[];
   };
   foodsOnDiscomfortDays: FoodCooccurrence[];
+  /** Spearman rows for the clinician: only pairs with enough days. */
+  crossComparison: CrossComparisonRow[];
   watch: WatchReportSection;
   observed: ObservedSection;
   dayStrip: DayStripEntry[];

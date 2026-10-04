@@ -5,6 +5,7 @@ import { confidenceLabel } from "@/lib/rewards";
 import { createEmptyWatchState } from "@/lib/storage/watchStore";
 import type { AppState, DateKey, MissionCompany } from "@/types";
 import type { WatchState } from "@/types/watch";
+import { compareChildWithWatch } from "./crossComparison";
 import { buildObservedSection, buildWatchSection } from "./sections";
 import type {
   ActivityConfidenceCount,
@@ -103,6 +104,7 @@ export function buildReport(
       hadDiscomfort,
       hasParentLog: Boolean(parentLog),
       ...(parentLog?.sleepHours !== undefined ? { sleepHours: parentLog.sleepHours } : {}),
+      ...(parentLog ? { schoolImpacted: isSchoolImpacted(parentLog.school) } : {}),
     });
   }
 
@@ -156,6 +158,8 @@ export function buildReport(
     .map(([text, count]) => ({ text, count }))
     .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
 
+  const watchSection = buildWatchSection(watch, startDate, endDate);
+
   return {
     childNickname: state.child?.nickname ?? "Lucas",
     isDemo: Boolean(state.isDemo),
@@ -180,7 +184,8 @@ export function buildReport(
       byConfidence,
     },
     foodsOnDiscomfortDays,
-    watch: buildWatchSection(watch, startDate, endDate),
+    crossComparison: compareChildWithWatch(dayStrip, watchSection.series),
+    watch: watchSection,
     observed: buildObservedSection(periodParentLogs),
     dayStrip,
     disclaimer: REPORT_DISCLAIMER,

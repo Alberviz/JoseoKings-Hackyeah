@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui";
+import { DailyChart } from "../DailyChart/DailyChart";
 import { APP_NAME } from "@/config/app";
 import type { DoctorReportData, WatchMetricSummary } from "@/lib/report/types";
 import {
@@ -9,6 +10,7 @@ import {
   ActivityConfidenceGrid,
   ActivityConfidenceLabel,
   ActivityOverview,
+  ChartsGrid,
   DemoBadge,
   DisclaimerBanner,
   DisclaimerText,
@@ -25,6 +27,7 @@ import {
   ScreenOnly,
   SectionNote,
   SectionTitle,
+  SourceTag,
   StatCard,
   StatDetail,
   StatLabel,
@@ -103,6 +106,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         {/* Section 1: Overview & Metrics */}
         <ReportSection aria-labelledby="section-overview">
           <SectionTitle id="section-overview">Overview & Metrics</SectionTitle>
+          <SourceTag>Source: Child and Family</SourceTag>
           <StatsGrid>
             <StatCard>
               <StatLabel>Check-in consistency</StatLabel>
@@ -159,6 +163,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         {/* Section 2: Physical Movement & Activity */}
         <ReportSection aria-labelledby="section-activity">
           <SectionTitle id="section-activity">Physical Movement & Activity</SectionTitle>
+          <SourceTag>Source: Child (missions)</SourceTag>
           <ActivityOverview>
             <TotalMissionsBadge>
               Total completed missions:{" "}
@@ -183,15 +188,16 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         {/* Section 3: Watch data */}
         <ReportSection aria-labelledby="section-watch">
           <SectionTitle id="section-watch">Watch data</SectionTitle>
+          <SourceTag>Source: Watch</SourceTag>
           {data.watch.isDemo && <DemoBadge>Demo data</DemoBadge>}
           {data.watch.validDays === 0 ? (
             <SectionNote>No data from the watch in this period.</SectionNote>
           ) : (
             <>
               <SectionNote>
-                Source: {data.watch.source}. Median and middle half (interquartile range) of the
-                days with enough data. Valid days: {data.watch.validDays} of {data.period.totalDays}
-                . Measured by the watch, not checked clinically.
+                Median and middle half (interquartile range) of the days with enough data. Valid
+                days: {data.watch.validDays} of {data.period.totalDays}. Measured by the watch, not
+                checked clinically.
               </SectionNote>
               <TableContainer>
                 <Table aria-label="Watch data summary">
@@ -221,6 +227,79 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                   </TableBody>
                 </Table>
               </TableContainer>
+              <ChartsGrid>
+                <DailyChart
+                  title="Steps per day"
+                  unit="steps"
+                  values={data.watch.series.map((p) => p.steps)}
+                  markers={data.dayStrip.map((d) => d.hadDiscomfort)}
+                />
+                <DailyChart
+                  title="Resting heart rate at night"
+                  unit="bpm"
+                  values={data.watch.series.map((p) => p.restingHr)}
+                  markers={data.dayStrip.map((d) => d.hadDiscomfort)}
+                />
+                <DailyChart
+                  title="Sleep"
+                  unit="h"
+                  values={data.watch.series.map((p) => p.sleepHours)}
+                  markers={data.dayStrip.map((d) => d.hadDiscomfort)}
+                />
+              </ChartsGrid>
+              <SectionNote>
+                Orange marks show days the child marked discomfort. Each chart covers the whole
+                period.
+              </SectionNote>
+            </>
+          )}
+        </ReportSection>
+
+        {/* Cross comparison for the clinician */}
+        <ReportSection aria-labelledby="section-cross">
+          <SectionTitle id="section-cross">Child, family and watch together</SectionTitle>
+          <SourceTag>Source: Child, Family and Watch</SourceTag>
+          {data.watch.isDemo && <DemoBadge>Demo data</DemoBadge>}
+          {data.crossComparison.length === 0 ? (
+            <SectionNote>
+              Not enough days with both a child or family entry and a watch value (at least 14
+              needed).
+            </SectionNote>
+          ) : (
+            <>
+              <SectionNote>
+                For the clinician: Spearman rank correlation (rho, from -1 to 1) per day, with a 95%
+                bootstrap interval and the number of paired days (N). It shows whether two series
+                move together. It does not show cause.
+              </SectionNote>
+              <TableContainer>
+                <Table aria-label="Child, family and watch comparison">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell scope="col">Entered by</TableHeaderCell>
+                      <TableHeaderCell scope="col">Signal</TableHeaderCell>
+                      <TableHeaderCell scope="col">Watch value</TableHeaderCell>
+                      <TableHeaderCell scope="col">N</TableHeaderCell>
+                      <TableHeaderCell scope="col">rho</TableHeaderCell>
+                      <TableHeaderCell scope="col">95% interval</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {data.crossComparison.map((row) => (
+                      <TableRow key={`${row.signal}-${row.metric}`}>
+                        <TableCell>{row.source}</TableCell>
+                        <TableCell>{row.signal}</TableCell>
+                        <TableCell>{row.metric}</TableCell>
+                        <TableCell>{row.n}</TableCell>
+                        <TableCell>{row.rho}</TableCell>
+                        <TableCell>
+                          {row.low} to {row.high}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </>
           )}
         </ReportSection>
@@ -228,6 +307,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         {/* Section 4: Observed by the family */}
         <ReportSection aria-labelledby="section-observed">
           <SectionTitle id="section-observed">Observed by the family</SectionTitle>
+          <SourceTag>Source: Family</SourceTag>
           {data.observed.loggedDays === 0 ? (
             <SectionNote>No daily notes from the family in this period.</SectionNote>
           ) : (
@@ -271,6 +351,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         {/* Section 5: Daily strip / timeline */}
         <ReportSection aria-labelledby="section-timeline">
           <SectionTitle id="section-timeline">Daily strip / timeline</SectionTitle>
+          <SourceTag>Source: Child</SourceTag>
           <TableContainer>
             <Table aria-label="Daily check-in and activity timeline">
               <TableHead>
@@ -318,6 +399,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
         {/* Section 6: Co-occurring foods on discomfort days */}
         <ReportSection aria-labelledby="section-foods">
           <SectionTitle id="section-foods">Co-occurring foods on discomfort days</SectionTitle>
+          <SourceTag>Source: Family</SourceTag>
           <SectionNote>
             The family logged these foods on days when discomfort was reported (co-occurrence counts
             only, not ranked as causes).

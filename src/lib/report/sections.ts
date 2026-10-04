@@ -1,7 +1,13 @@
+import { addDays, daysBetween } from "@/lib/dates";
 import { median, quartiles } from "@/lib/wearables/stats";
 import type { DateKey, ParentLog } from "@/types";
 import type { WatchState } from "@/types/watch";
-import type { ObservedSection, WatchMetricSummary, WatchReportSection } from "./types";
+import type {
+  ObservedSection,
+  WatchDailyPoint,
+  WatchMetricSummary,
+  WatchReportSection,
+} from "./types";
 
 function summarise(values: number[], decimals: number): WatchMetricSummary {
   if (values.length === 0) return { n: 0, median: null, q1: null, q3: null };
@@ -22,6 +28,7 @@ export function buildWatchSection(
   const restingHr: number[] = [];
   const sleepHours: number[] = [];
   let validDays = 0;
+  const byDate = new Map<DateKey, WatchDailyPoint>();
 
   for (const d of days) {
     const hasSteps = d.dayComplete && d.steps !== null;
@@ -31,6 +38,19 @@ export function buildWatchSection(
     if (hasHr) restingHr.push(d.restingHr as number);
     if (hasSleep) sleepHours.push((d.sleepMinutes as number) / 60);
     if (hasSteps || hasHr || hasSleep) validDays += 1;
+    byDate.set(d.date, {
+      date: d.date,
+      steps: hasSteps ? (d.steps as number) : null,
+      restingHr: hasHr ? (d.restingHr as number) : null,
+      sleepHours: hasSleep ? Math.round(((d.sleepMinutes as number) / 60) * 10) / 10 : null,
+    });
+  }
+
+  const series: WatchDailyPoint[] = [];
+  const total = daysBetween(startDate, endDate) + 1;
+  for (let i = 0; i < total; i += 1) {
+    const date = addDays(startDate, i);
+    series.push(byDate.get(date) ?? { date, steps: null, restingHr: null, sleepHours: null });
   }
 
   return {
@@ -40,6 +60,7 @@ export function buildWatchSection(
     steps: summarise(steps, 0),
     restingHr: summarise(restingHr, 0),
     sleepHours: summarise(sleepHours, 1),
+    series,
   };
 }
 
