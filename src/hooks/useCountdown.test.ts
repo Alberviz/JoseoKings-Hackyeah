@@ -183,4 +183,20 @@ describe("useCountdown", () => {
     expect(result.current.isDone).toBe(true);
     expect(onDone).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps the time already counted when start() is called while running", () => {
+    const { result } = renderHook(() => useCountdown({ seconds: 10, running: true }));
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    act(() => {
+      result.current.start();
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(result.current.remaining).toBe(5);
+  });
 });

@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sessionStore } from "@/hooks/useParentSession";
-import { createPinRecord } from "@/lib/pin";
+import { createPinRecord, PIN_ATTEMPTS_STORAGE_KEY } from "@/lib/pin";
 
 describe("sessionStore", () => {
   beforeEach(() => {
@@ -82,5 +82,32 @@ describe("sessionStore", () => {
     expect(successResult.success).toBe(true);
     expect(sessionStore.getSnapshot().isUnlocked).toBe(true);
     expect(sessionStore.getSnapshot().attempts.failures).toBe(0);
+  });
+
+  it("keeps failed attempts and the lockout after a reload", async () => {
+    const settings = await createPinRecord("1234");
+    for (let i = 0; i < 5; i += 1) {
+      await sessionStore.unlock("9999", settings);
+    }
+    expect(sessionStore.getSnapshot().isLockedOut).toBe(true);
+    expect(localStorage.getItem(PIN_ATTEMPTS_STORAGE_KEY)).not.toBeNull();
+
+    vi.resetModules();
+    const reloaded = await import("@/hooks/useParentSession");
+    expect(reloaded.sessionStore.getSnapshot().isLockedOut).toBe(true);
+    const result = await reloaded.sessionStore.unlock("1234", settings);
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Too many failed attempts");
+    reloaded.sessionStore.resetForTesting();
+  });
+
+  it("rejects a second unlock while the first PIN check is still running", async () => {
+    const settings = await createPinRecord("1234");
+    const first = sessionStore.unlock("9999", settings);
+    const second = await sessionStore.unlock("9999", settings);
+    expect(second.success).toBe(false);
+    expect(second.error).toContain("Please wait");
+    await first;
+    expect(sessionStore.getSnapshot().attempts.failures).toBe(1);
   });
 });
