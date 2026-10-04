@@ -4,12 +4,38 @@ import type { WearableSample } from "@/lib/wearables/types";
 
 export const WEARABLE_STORAGE_KEY = "crohncare_wearable_daily";
 
+/** Key used before the rename to "wearable" (2026-10-04). Only read to migrate old data. */
+export const LEGACY_WATCH_STORAGE_KEY = "crohncare_watch_daily";
+
+/**
+ * Moves data saved under the old key to the new one: when the new key is missing and the old one
+ * exists, the old value is saved under the new key and the old key is removed. When both exist the
+ * new one wins and the old one is removed. Never throws.
+ */
+export function migrateLegacyWearableKey(): void {
+  try {
+    const storage = window.localStorage;
+    const legacy = storage.getItem(LEGACY_WATCH_STORAGE_KEY);
+    if (legacy === null) return;
+    if (storage.getItem(WEARABLE_STORAGE_KEY) === null) {
+      storage.setItem(WEARABLE_STORAGE_KEY, legacy);
+    }
+    storage.removeItem(LEGACY_WATCH_STORAGE_KEY);
+  } catch {
+    // storage blocked or full: the old data stays where it is
+  }
+}
+
+/** Values saved before the rename: "watch-daily" and kind "watch" become "wearable". */
+const legacyRestingHrSource = (value: unknown) =>
+  value === "watch-daily" ? "wearable-daily" : value;
+
 const wearableDaySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   steps: z.number().nullable(),
   restingHr: z.number().nullable(),
   restingHrSource: z
-    .enum(["night-samples", "wearable-daily"])
+    .preprocess(legacyRestingHrSource, z.enum(["night-samples", "wearable-daily"]))
     .nullable()
     .optional()
     .catch(undefined),
@@ -28,7 +54,9 @@ const deviceMetricSchema = z.enum(["steps", "heartRate", "sleep"]);
 
 const wearableDeviceSchema = z.object({
   id: z.string(),
-  kind: z.enum(["wearable", "phone", "other"]),
+  kind: z
+    .enum(["wearable", "watch", "phone", "other"])
+    .transform((kind) => (kind === "watch" ? "wearable" : kind)),
   label: z.string(),
   metrics: z.array(deviceMetricSchema),
   sampleCounts: z.partialRecord(deviceMetricSchema, z.number()).optional().catch(undefined),
@@ -98,6 +126,7 @@ export function createEmptyWearableState(): WearableState {
 }
 
 export function loadWearableState(): WearableState {
+  migrateLegacyWearableKey();
   try {
     const raw = window.localStorage.getItem(WEARABLE_STORAGE_KEY);
     if (!raw) return createEmptyWearableState();
@@ -154,6 +183,7 @@ export function mergeWearableDays(
 export function clearWearableState(): void {
   try {
     window.localStorage.removeItem(WEARABLE_STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_WATCH_STORAGE_KEY);
   } catch {
     // ignore
   }

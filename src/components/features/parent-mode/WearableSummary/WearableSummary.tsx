@@ -5,6 +5,7 @@ import { addDays, todayKey } from "@/lib/dates";
 import { getDayStatuses } from "@/lib/patterns";
 import {
   createEmptyWearableState,
+  migrateLegacyWearableKey,
   WEARABLE_STORAGE_KEY,
   wearableStateSchema,
 } from "@/lib/storage/wearableStore";
@@ -28,6 +29,7 @@ function subscribe(onChange: () => void): () => void {
 }
 
 function readRawWearable(): string | null {
+  migrateLegacyWearableKey();
   try {
     return window.localStorage.getItem(WEARABLE_STORAGE_KEY);
   } catch {

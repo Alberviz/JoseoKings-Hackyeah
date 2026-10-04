@@ -34,6 +34,24 @@ describe("backup with wearable state", () => {
     expect(() => importBackup(json)).not.toThrow();
   });
 
+  it("reads an old backup that keeps the data under the watch field", () => {
+    const old = { ...wearable, devices: [{ id: "a", kind: "watch", label: "A", metrics: [] }] };
+    const json = JSON.stringify({ ...createEmptyState(), watch: old });
+    const result = importBackupWearable(json);
+    expect(result?.days).toEqual(wearable.days);
+    expect(result?.devices?.[0].kind).toBe("wearable");
+    expect(() => importBackup(json)).not.toThrow();
+  });
+
+  it("prefers the wearable field when a backup has both", () => {
+    const json = JSON.stringify({
+      ...createEmptyState(),
+      wearable,
+      watch: { ...wearable, days: [] },
+    });
+    expect(importBackupWearable(json)?.days).toEqual(wearable.days);
+  });
+
   it("old backups without wearable import fine", () => {
     const json = exportBackup(createEmptyState());
     expect(importBackupWearable(json)).toBeNull();

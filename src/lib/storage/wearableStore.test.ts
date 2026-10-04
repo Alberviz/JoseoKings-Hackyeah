@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { WearableState } from "@/types/wearable";
 import {
   createEmptyWearableState,
+  clearWearableState,
+  LEGACY_WATCH_STORAGE_KEY,
   loadWearableState,
   mergeWearableDays,
   saveWearableState,
@@ -165,5 +167,42 @@ describe("wearable store", () => {
     const merged = mergeWearableDays(existing, [{ ...day, date: "2026-10-02" }], { isDemo: false });
     expect(merged.days.map((d) => d.date)).toEqual(["2026-10-01", "2026-10-02"]);
     expect(merged.deviceSelection).toEqual(existing.deviceSelection);
+  });
+
+  describe("migration from the old watch names", () => {
+    const legacyState = {
+      days: [{ ...day, restingHrSource: "watch-daily" }],
+      lastSyncAt: "2026-10-02T08:00:00.000Z",
+      isDemo: false,
+      devices: [{ ...device, kind: "watch" }],
+    };
+
+    it("moves the old key to the new key and removes the old one", () => {
+      localStorage.setItem(LEGACY_WATCH_STORAGE_KEY, JSON.stringify(legacyState));
+      const loaded = loadWearableState();
+      expect(loaded.days).toHaveLength(1);
+      expect(loaded.days[0].restingHrSource).toBe("wearable-daily");
+      expect(loaded.devices?.[0].kind).toBe("wearable");
+      expect(localStorage.getItem(LEGACY_WATCH_STORAGE_KEY)).toBeNull();
+      expect(localStorage.getItem(WEARABLE_STORAGE_KEY)).not.toBeNull();
+    });
+
+    it("keeps the new key when both exist and drops the old one", () => {
+      store({ ...legacyState, days: [] });
+      localStorage.setItem(LEGACY_WATCH_STORAGE_KEY, JSON.stringify(legacyState));
+      expect(loadWearableState().days).toHaveLength(0);
+      expect(localStorage.getItem(LEGACY_WATCH_STORAGE_KEY)).toBeNull();
+    });
+
+    it("does nothing when neither key exists", () => {
+      expect(loadWearableState().days).toEqual([]);
+      expect(localStorage.getItem(WEARABLE_STORAGE_KEY)).toBeNull();
+    });
+
+    it("clearing removes the old key too", () => {
+      localStorage.setItem(LEGACY_WATCH_STORAGE_KEY, "{}");
+      clearWearableState();
+      expect(localStorage.getItem(LEGACY_WATCH_STORAGE_KEY)).toBeNull();
+    });
   });
 });

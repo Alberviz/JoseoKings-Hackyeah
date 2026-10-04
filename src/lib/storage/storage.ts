@@ -142,14 +142,18 @@ export function exportBackup(state: AppState, wearable?: WearableState): string 
 }
 
 /**
- * Reads the optional wearable state from a backup JSON string.
- * Returns null when the backup has none (older backups) or it is invalid.
+ * Reads the optional wearable state from a backup JSON string. Backups made before the rename
+ * keep it under the old "watch" key, which is read as well.
+ * Returns null when the backup has none or it is invalid.
  */
 export function importBackupWearable(jsonString: string): WearableState | null {
   try {
     const parsed: unknown = JSON.parse(jsonString);
-    if (typeof parsed !== "object" || parsed === null || !("wearable" in parsed)) return null;
-    const result = wearableStateSchema.safeParse((parsed as { wearable: unknown }).wearable);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const block = parsed as { wearable?: unknown; watch?: unknown };
+    const raw = "wearable" in block ? block.wearable : block.watch;
+    if (raw === undefined) return null;
+    const result = wearableStateSchema.safeParse(raw);
     return result.success ? result.data : null;
   } catch {
     return null;

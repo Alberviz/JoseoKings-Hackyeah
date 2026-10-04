@@ -100,10 +100,10 @@ export const missionMoodAfterSchema: z.ZodType<MissionMoodAfter> = z.enum([
   "great",
 ]);
 
-export const missionCorroborationSchema: z.ZodType<MissionCorroboration> = z.enum([
-  "wearable",
-  "motion",
-]);
+/** Old logs saved the value "watch": it is read as "wearable". */
+export const missionCorroborationSchema: z.ZodType<MissionCorroboration> = z
+  .enum(["wearable", "watch", "motion"])
+  .transform((value): MissionCorroboration => (value === "watch" ? "wearable" : value));
 
 export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   id: z.string(),
