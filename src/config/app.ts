@@ -1,5 +1,5 @@
-// Working name, still to be confirmed by the team.
-export const APP_NAME = "Mycrohnie";
+// Working name, confirmed for the sprint.
+export const APP_NAME = "MyCrohnie";
 export const APP_DESCRIPTION =
   "A daily game that helps children with inflammatory bowel disease share how they feel, and helps families and doctors see the picture.";
 
