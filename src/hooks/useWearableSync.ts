@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   clearWearableState,
   createEmptyWearableState,
@@ -22,7 +22,18 @@ import {
   type FetchedMetricKey,
   type MetricFetchStatus,
 } from "@/lib/wearables/browserGoogleHealth";
-import { requestGoogleAccessToken, type AccessToken } from "@/lib/wearables/googleIdentity";
+import {
+  loadGoogleIdentity,
+  requestGoogleAccessToken,
+  type AccessToken,
+} from "@/lib/wearables/googleIdentity";
+import {
+  failedMetrics,
+  mergeDevices,
+  mergeRawSamples,
+  mergeSyncedDays,
+  partialMetrics,
+} from "@/lib/wearables/mergeSync";
 import { localDateTime } from "@/lib/wearables/validity";
 import type { WearableSample } from "@/lib/wearables/types";
 import type { DeviceMetric, WearableState } from "@/types/wearable";
@@ -56,6 +67,12 @@ export function useWearableSync() {
   const wearableRef = useRef<WearableState>(wearable);
   const rawSamplesRef = useRef<WearableSample[]>(wearable.rawSamples ?? []);
 
+  // Load the Google script as soon as the connect UI is on screen, so the sign-in popup can open
+  // inside the click (browsers block a popup that opens after an await). A failure is retried on click.
+  useEffect(() => {
+    if (CLIENT_ID) loadGoogleIdentity().catch(() => undefined);
+  }, []);
+
   // The one place that saves and shows a new state; never called from inside a state updater.
   const commit = useCallback((next: WearableState) => {
     wearableRef.current = next;
@@ -88,22 +105,32 @@ export function useWearableSync() {
         endTimeMillis: now,
         timeZone,
       });
-      const failed = Object.values(result.metricStatus).some((m) => m?.status !== "ok");
-      rawSamplesRef.current = result.samples;
+      const failedKeys = failedMetrics(result.metricStatus);
+      const partialKeys = partialMetrics(result.metricStatus);
+      const failed = failedKeys.size > 0 || partialKeys.size > 0;
       const current = loadWearableState();
       const base = current.isDemo ? createEmptyWearableState() : current;
-      const deviceSelection = sanitizeDeviceSelection(result.devices, base.deviceSelection);
-      const days = buildWearableDays(result.samples, {
-        timeZone,
-        fromDate,
-        deviceIds: resolveDeviceSelection(result.devices, deviceSelection),
-      });
+      // A metric that failed keeps what was saved for it; only the metrics read now are replaced.
+      const samples = mergeRawSamples(base.rawSamples, result.samples, failedKeys);
+      const devices = mergeDevices(base.devices, result.devices, failedKeys);
+      rawSamplesRef.current = samples;
+      const deviceSelection = sanitizeDeviceSelection(devices, base.deviceSelection);
+      const days = mergeSyncedDays(
+        base.days,
+        buildWearableDays(samples, {
+          timeZone,
+          fromDate,
+          deviceIds: resolveDeviceSelection(devices, deviceSelection),
+        }),
+        failedKeys,
+        partialKeys,
+      );
       commit(
         mergeWearableDays(base, days, {
           isDemo: false,
-          devices: result.devices,
+          devices,
           deviceSelection,
-          rawSamples: result.samples,
+          rawSamples: samples,
         }),
       );
       setMetricStatus(result.metricStatus);
