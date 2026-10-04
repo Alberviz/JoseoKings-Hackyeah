@@ -138,7 +138,9 @@ export function heartRatePointsToRows(points: HealthDataPoint[]): WatchSample[] 
 export function sleepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
   const rows: WatchSample[] = [];
   for (const point of points) {
-    if (point.sleep?.metadata?.nap === true) continue;
+    // Some apps flag a long main sleep as a nap too; only skip naps that are not the main sleep.
+    const meta = point.sleep?.metadata;
+    if (meta?.nap === true && meta.mainSleep !== true) continue;
     const start = toMs(point.sleep?.interval?.startTime);
     const end = toMs(point.sleep?.interval?.endTime);
     if (start === null || end === null || end <= start) continue;

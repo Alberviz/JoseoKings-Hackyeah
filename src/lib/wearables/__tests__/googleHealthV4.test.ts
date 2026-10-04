@@ -51,6 +51,12 @@ describe("googleHealthV4 converters", () => {
     expect(rows[0]).toMatchObject({ metric: "sleepSession", value: 450 });
   });
 
+  it("keeps a session flagged both as nap and as main sleep", () => {
+    const point = sleepWatch("2026-09-02T01:00:00Z", "2026-09-02T03:10:00Z", "130", true);
+    point.sleep!.metadata = { nap: true, mainSleep: true };
+    expect(sleepPointsToRows([point])).toHaveLength(1);
+  });
+
   it("falls back to the session length when minutesAsleep is missing", () => {
     const point = sleepWatch("2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", "x", false);
     const rows = sleepPointsToRows([point]);
