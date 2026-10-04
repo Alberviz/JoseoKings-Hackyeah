@@ -121,8 +121,8 @@ describe("buildDemoState", () => {
   it("accepts custom settings", () => {
     const custom = buildDemoState({
       today: TODAY,
-      settings: { pinHash: "h", pinSalt: "s", allowedMissionIds: ["wall-sit"] },
+      settings: { pinHash: "h", pinSalt: "s", reminderTime: "08:30" },
     });
-    expect(custom.settings?.allowedMissionIds).toEqual(["wall-sit"]);
+    expect(custom.settings?.reminderTime).toBe("08:30");
   });
 });

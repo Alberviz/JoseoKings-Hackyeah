@@ -76,7 +76,6 @@ describe("AppStateProvider and useAppState hook", () => {
     const settings: ParentSettings = {
       pinHash: "hash123",
       pinSalt: "salt123",
-      allowedMissionIds: ["mission-1"],
     };
 
     act(() => {

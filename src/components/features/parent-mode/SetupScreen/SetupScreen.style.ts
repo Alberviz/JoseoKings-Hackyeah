@@ -16,18 +16,6 @@ export const SetupForm = styled.form`
   width: 100%;
 `;
 
-export const ChipWrap = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-export const ErrorText = styled.p`
-  margin: 0;
-  font-size: ${({ theme }) => theme.fontSize.sm};
-  color: ${({ theme }) => theme.colors.urgent};
-`;
-
 export const AlertBox = styled.div<{ $variant?: "urgent" | "info" }>`
   padding: ${({ theme }) => theme.spacing.md};
   border-radius: ${({ theme }) => theme.radius.md};

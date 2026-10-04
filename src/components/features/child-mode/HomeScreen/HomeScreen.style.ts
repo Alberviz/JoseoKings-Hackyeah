@@ -188,28 +188,6 @@ export const ParentLabel = styled.span`
   line-height: 1;
 `;
 
-export const SmallParentLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
-  color: ${({ theme }) => theme.colors.textMuted};
-  font-size: ${({ theme }) => theme.fontSize.sm};
-  text-decoration: underline;
-  min-height: ${({ theme }) => theme.touchTarget};
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.text};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.focus};
-    outline-offset: 2px;
-  }
-`;
-
 export const DragonStage = styled.section`
   display: flex;
   flex-direction: column;

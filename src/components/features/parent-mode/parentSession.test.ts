@@ -30,7 +30,6 @@ describe("sessionStore", () => {
     const emptyRecordResult = await sessionStore.unlock("1234", {
       pinHash: "",
       pinSalt: "",
-      allowedMissionIds: [],
     });
     expect(emptyRecordResult.success).toBe(false);
     expect(emptyRecordResult.error).toBe("No PIN has been created yet.");
@@ -71,7 +70,6 @@ describe("sessionStore", () => {
     const pinRecord = await createPinRecord("1234");
     const settings = {
       ...pinRecord,
-      allowedMissionIds: ["dragon-breathing"],
     };
 
     // 1 wrong attempt
