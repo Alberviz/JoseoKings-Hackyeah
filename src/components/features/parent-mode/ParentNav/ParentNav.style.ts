@@ -40,7 +40,7 @@ export const NavList = styled.ul`
   list-style: none;
   background: ${({ theme }) => theme.colors.surface};
   border: ${({ theme }) => theme.borderWidth} solid ${({ theme }) => theme.colors.ink};
-  border-radius: ${({ theme }) => theme.radius.pill};
+  border-radius: ${({ theme }) => theme.radius.lg};
   box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
   pointer-events: auto;
 `;
@@ -52,21 +52,7 @@ export const NavItem = styled.li`
 
 type TabProps = { $isActive: boolean; $section: ParentSection };
 
-// Material 3 pattern: the indicator is a pill around the icon, the label sits below it.
-export const TabIconPill = styled.span<TabProps>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 58px;
-  height: 32px;
-  border: ${({ theme }) => theme.borderWidth} solid
-    ${({ theme, $isActive }) => ($isActive ? theme.colors.ink : "transparent")};
-  border-radius: ${({ theme }) => theme.radius.pill};
-  background: ${({ theme, $isActive, $section }) =>
-    $isActive ? theme.sections[$section].fill : "transparent"};
-  transition: transform 120ms ease;
-`;
-
+// The whole active tab is filled with its section colour and outlined in ink.
 export const TabLink = styled(Link)<TabProps>`
   display: flex;
   flex-direction: column;
@@ -75,19 +61,20 @@ export const TabLink = styled(Link)<TabProps>`
   gap: 2px;
   width: 100%;
   min-height: ${TAB_HEIGHT};
-  padding: 2px 0;
+  padding: 3px 1px;
+  border: ${({ theme }) => theme.borderWidth} solid
+    ${({ theme, $isActive }) => ($isActive ? theme.colors.ink : "transparent")};
+  border-radius: 14px;
+  background: ${({ theme, $isActive, $section }) =>
+    $isActive ? theme.sections[$section].fill : "transparent"};
   color: ${({ theme, $isActive }) => ($isActive ? theme.colors.ink : theme.colors.textMuted)};
-  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-size: calc(${({ theme }) => theme.fontSize.sm} - 1px);
   font-weight: ${({ theme, $isActive }) =>
     $isActive ? theme.fontWeight.bold : theme.fontWeight.medium};
   text-decoration: none;
   cursor: pointer;
   -webkit-touch-callout: none;
   user-select: none;
-
-  &:active ${TabIconPill} {
-    transform: scale(0.92);
-  }
 `;
 
 // The Exit sheet floats just above the tray, with the same sticker look.
