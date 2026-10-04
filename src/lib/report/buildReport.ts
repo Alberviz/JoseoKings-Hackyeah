@@ -12,6 +12,7 @@ import type {
   DayStripEntry,
   DoctorReportData,
   FoodCooccurrence,
+  MissionCorroborationCount,
 } from "./types";
 
 const COMPANIES: readonly MissionCompany[] = ["alone", "family", "other"];
@@ -77,11 +78,34 @@ export function buildReport(
     missionDates.add(m.date);
   }
 
+  const periodDailyLogs = ((state.dailyLogs ?? []) as any[]).filter(
+    (d) => d && d.date >= startDate && d.date <= endDate,
+  );
+  const periodParentObservations = ((state.parentObservations ?? []) as any[]).filter(
+    (o) => o && o.date >= startDate && o.date <= endDate,
+  );
+
+  const dailyLogByDate = new Map<DateKey, any>();
+  for (const d of periodDailyLogs) {
+    if (!dailyLogByDate.has(d.date)) {
+      dailyLogByDate.set(d.date, d);
+    }
+  }
+
+  const parentObsByDate = new Map<DateKey, any[]>();
+  for (const o of periodParentObservations) {
+    const list = parentObsByDate.get(o.date) ?? [];
+    list.push(o);
+    parentObsByDate.set(o.date, list);
+  }
+
   const dayStrip: DayStripEntry[] = [];
   for (let i = 0; i < totalDays; i += 1) {
     const day = addDays(startDate, i);
     const checkIn = checkInByDate.get(day);
     const parentLog = parentLogByDate.get(day);
+    const dailyLog = dailyLogByDate.get(day);
+    const parentObsList = parentObsByDate.get(day) ?? [];
 
     const rawBelly = checkIn?.answers?.[QUESTION_IDS.bellyComfort];
     const bellyComfort =
@@ -99,6 +123,64 @@ export function buildReport(
     const hadDiscomfort =
       (bellyComfort !== null && bellyComfort >= DISCOMFORT_THRESHOLD) || notToday;
 
+    const daytimeBathroomCount =
+      parentLog?.daytimeBathroomCount ??
+      dailyLog?.daytimeBathroomCount ??
+      dailyLog?.daytimeVisits ??
+      (parentObsList.length > 0
+        ? parentObsList.reduce(
+            (max: number, o: any) =>
+              Math.max(max, o.daytimeBathroomCount ?? o.daytimeVisits ?? o.valueNum ?? 0),
+            0,
+          )
+        : undefined);
+
+    const nighttimeBathroomCount =
+      parentLog?.nighttimeBathroomCount ??
+      dailyLog?.nighttimeBathroomCount ??
+      dailyLog?.nighttimeVisits ??
+      (parentLog?.stoolNight === "yes" || dailyLog?.stoolNight === "yes"
+        ? 1
+        : parentObsList.length > 0
+          ? parentObsList.reduce(
+              (max: number, o: any) =>
+                Math.max(
+                  max,
+                  o.nighttimeBathroomCount ??
+                    o.nighttimeVisits ??
+                    (o.stoolNight === "yes" ? 1 : o.valueNum ?? 0),
+                ),
+              0,
+            )
+          : undefined);
+
+    const looserStools =
+      Boolean(parentLog?.looserStools) ||
+      parentLog?.stoolConsistency === "looser" ||
+      parentLog?.stoolConsistency === "watery" ||
+      Boolean(dailyLog?.looserStools) ||
+      dailyLog?.stoolConsistency === "looser" ||
+      dailyLog?.stoolConsistency === "watery" ||
+      parentObsList.some(
+        (o: any) =>
+          Boolean(o.looserStools) ||
+          o.stoolConsistency === "looser" ||
+          o.stoolConsistency === "watery" ||
+          o.kind === "looser_stools",
+      );
+
+    const bloodVisible =
+      Boolean(parentLog?.bloodVisible) ||
+      parentLog?.stoolBlood === "visible" ||
+      Boolean(dailyLog?.bloodVisible) ||
+      dailyLog?.stoolBlood === "visible" ||
+      parentObsList.some(
+        (o: any) =>
+          Boolean(o.bloodVisible) ||
+          o.stoolBlood === "visible" ||
+          o.kind === "blood_visible",
+      );
+
     dayStrip.push({
       date: day,
       hasCheckIn: Boolean(checkIn),
@@ -108,9 +190,13 @@ export function buildReport(
       playPace,
       hadMissions: missionDates.has(day),
       hadDiscomfort,
-      hasParentLog: Boolean(parentLog),
+      hasParentLog: Boolean(parentLog || dailyLog || parentObsList.length > 0),
       ...(parentLog?.sleepHours !== undefined ? { sleepHours: parentLog.sleepHours } : {}),
       ...(parentLog ? { schoolImpacted: isSchoolImpacted(parentLog.school) } : {}),
+      ...(typeof daytimeBathroomCount === "number" ? { daytimeBathroomCount } : {}),
+      ...(typeof nighttimeBathroomCount === "number" ? { nighttimeBathroomCount } : {}),
+      ...(looserStools ? { looserStools: true } : {}),
+      ...(bloodVisible ? { bloodVisible: true } : {}),
     });
   }
 
@@ -145,6 +231,22 @@ export function buildReport(
     label: confidenceLabel(company),
     count: completedMissions.filter((m) => m.company === company).length,
   }));
+
+  const watchCorroboratedCount = completedMissions.filter(
+    (m) => m.corroboration === "watch",
+  ).length;
+  const motionCorroboratedCount = completedMissions.filter(
+    (m) => m.corroboration === "motion",
+  ).length;
+  const noneCorroboratedCount = completedMissions.filter(
+    (m) => !m.corroboration,
+  ).length;
+
+  const byCorroboration: MissionCorroborationCount[] = [
+    { method: "watch", label: "Watch verified", count: watchCorroboratedCount },
+    { method: "motion", label: "Motion sensor verified", count: motionCorroboratedCount },
+    { method: "none", label: "Self-reported only", count: noneCorroboratedCount },
+  ];
 
   const discomfortDates = new Set<DateKey>(
     dayStrip.filter((d) => d.hadDiscomfort).map((d) => d.date),
@@ -189,11 +291,17 @@ export function buildReport(
     activity: {
       totalMissionsCompleted: completedMissions.length,
       byConfidence,
+      byCorroboration,
+      corroborationTotals: {
+        watch: watchCorroboratedCount,
+        motion: motionCorroboratedCount,
+        none: noneCorroboratedCount,
+      },
     },
     foodsOnDiscomfortDays,
     crossComparison: compareChildWithWatch(dayStrip, watchSection.series),
     watch: watchSection,
-    observed: buildObservedSection(periodParentLogs),
+    observed: buildObservedSection(periodParentLogs, periodDailyLogs, periodParentObservations),
     dayStrip,
     disclaimer: REPORT_DISCLAIMER,
   };

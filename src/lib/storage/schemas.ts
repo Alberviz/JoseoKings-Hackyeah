@@ -169,6 +169,10 @@ export const parentLogSchema: z.ZodType<ParentLog> = z.object({
   stoolNight: stoolNightSchema.optional(),
   stoolConsistency: stoolConsistencySchema.optional(),
   stoolBlood: stoolBloodSchema.optional(),
+  daytimeBathroomCount: z.number().min(0).optional(),
+  nighttimeBathroomCount: z.number().min(0).optional(),
+  looserStools: z.boolean().optional(),
+  bloodVisible: z.boolean().optional(),
   note: z.string().optional(),
 });
 

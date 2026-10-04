@@ -40,4 +40,8 @@ export type AppState = {
   parentLogs: ParentLog[];
   foodEntries: FoodEntry[];
   consultations: Consultation[];
+  /** Optional daily logs (alternative data stream for parent logs). */
+  dailyLogs?: any[];
+  /** Optional physical observations entered by family. */
+  parentObservations?: any[];
 };

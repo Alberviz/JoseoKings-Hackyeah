@@ -185,6 +185,19 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                 </ActivityConfidenceCard>
               ))}
             </ActivityConfidenceGrid>
+
+            {data.activity.byCorroboration && data.activity.byCorroboration.length > 0 && (
+              <ActivityConfidenceGrid>
+                {data.activity.byCorroboration.map((corrob) => (
+                  <ActivityConfidenceCard key={corrob.method}>
+                    <ActivityConfidenceLabel>{corrob.label}</ActivityConfidenceLabel>
+                    <ActivityConfidenceCount>
+                      {corrob.count} {corrob.count === 1 ? "mission" : "missions"}
+                    </ActivityConfidenceCount>
+                  </ActivityConfidenceCard>
+                ))}
+              </ActivityConfidenceGrid>
+            )}
           </ActivityOverview>
         </ReportSection>
 
@@ -216,8 +229,8 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                     {(
                       [
                         ["Steps per day", data.watch.steps, "steps"],
-                        ["Resting heart rate at night", data.watch.restingHr, "bpm"],
-                        ["Sleep", data.watch.sleepHours, "h"],
+                        ["Nocturnal resting HR", data.watch.restingHr, "bpm"],
+                        ["Sleep duration", data.watch.sleepHours, "h"],
                       ] as const
                     ).map(([label, metric, unit]) => (
                       <TableRow key={label}>
@@ -238,13 +251,13 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                   markers={data.dayStrip.map((d) => d.hadDiscomfort)}
                 />
                 <DailyChart
-                  title="Resting heart rate at night"
+                  title="Nocturnal resting HR"
                   unit="bpm"
                   values={data.watch.series.map((p) => p.restingHr)}
                   markers={data.dayStrip.map((d) => d.hadDiscomfort)}
                 />
                 <DailyChart
-                  title="Sleep"
+                  title="Sleep duration"
                   unit="h"
                   values={data.watch.series.map((p) => p.sleepHours)}
                   markers={data.dayStrip.map((d) => d.hadDiscomfort)}
@@ -329,14 +342,48 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                   <TableBody>
                     {(
                       [
-                        ["School: attended", data.observed.school.attended],
-                        ["School: left early", data.observed.school.leftEarly],
-                        ["School: missed", data.observed.school.missed],
-                        ["School: no school that day", data.observed.school.noSchool],
-                        ["Medication: taken", data.observed.medication.yes],
-                        ["Medication: partly taken", data.observed.medication.partly],
-                        ["Medication: not taken", data.observed.medication.no],
-                        ["Medication: not applicable", data.observed.medication.notApplicable],
+                        ["School: attended", `${data.observed.school.attended}`],
+                        ["School: left early", `${data.observed.school.leftEarly}`],
+                        ["School: missed", `${data.observed.school.missed}`],
+                        ["School: no school that day", `${data.observed.school.noSchool}`],
+                        ["Medication: taken", `${data.observed.medication.yes}`],
+                        ["Medication: partly taken", `${data.observed.medication.partly}`],
+                        ["Medication: not taken", `${data.observed.medication.no}`],
+                        ["Medication: not applicable", `${data.observed.medication.notApplicable}`],
+                        ...(data.observed.bathroom
+                          ? [
+                              [
+                                "Bathroom: daytime visits",
+                                data.observed.bathroom.avgDaytimePerDay !== null
+                                  ? `${data.observed.bathroom.totalDaytime} total (avg ${data.observed.bathroom.avgDaytimePerDay.toFixed(1)}/day)`
+                                  : `${data.observed.bathroom.totalDaytime} total`,
+                              ],
+                              [
+                                "Bathroom: nighttime visits",
+                                data.observed.bathroom.avgNighttimePerDay !== null
+                                  ? `${data.observed.bathroom.totalNighttime} total (avg ${data.observed.bathroom.avgNighttimePerDay.toFixed(1)}/day)`
+                                  : `${data.observed.bathroom.totalNighttime} total`,
+                              ],
+                              [
+                                "Bathroom: total visits",
+                                data.observed.bathroom.avgVisitsPerDay !== null
+                                  ? `${data.observed.bathroom.totalVisits} total (avg ${data.observed.bathroom.avgVisitsPerDay.toFixed(1)}/day)`
+                                  : `${data.observed.bathroom.totalVisits} total`,
+                              ],
+                              [
+                                "Bathroom: looser stools reported",
+                                `${data.observed.bathroom.daysWithLooserStools} ${
+                                  data.observed.bathroom.daysWithLooserStools === 1 ? "day" : "days"
+                                }`,
+                              ],
+                              [
+                                "Bathroom: visible blood reported",
+                                `${data.observed.bathroom.daysWithBloodVisible} ${
+                                  data.observed.bathroom.daysWithBloodVisible === 1 ? "day" : "days"
+                                }`,
+                              ],
+                            ]
+                          : []),
                       ] as const
                     ).map(([label, count]) => (
                       <TableRow key={label}>

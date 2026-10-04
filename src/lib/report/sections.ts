@@ -3,6 +3,7 @@ import { median, quartiles } from "@/lib/wearables/stats";
 import type { DateKey, ParentLog } from "@/types";
 import type { WatchState } from "@/types/watch";
 import type {
+  BathroomObservedSummary,
   ObservedSection,
   WatchDailyPoint,
   WatchMetricSummary,
@@ -64,9 +65,209 @@ export function buildWatchSection(
   };
 }
 
-/** Day counts of what the family entered in the period. */
-export function buildObservedSection(periodLogs: ParentLog[]): ObservedSection {
+type DayBathroomRecord = {
+  daytime: number;
+  nighttime: number;
+  looser: boolean;
+  blood: boolean;
+  hasBathroom: boolean;
+};
+
+/** Day counts and clinical observations from family entries in the period. */
+export function buildObservedSection(
+  periodLogs: ParentLog[],
+  dailyLogs: any[] = [],
+  parentObservations: any[] = [],
+): ObservedSection {
   const count = (pick: (p: ParentLog) => boolean) => periodLogs.filter(pick).length;
+
+  const recordsByDate = new Map<DateKey, DayBathroomRecord>();
+
+  const getOrCreate = (date: DateKey): DayBathroomRecord => {
+    let rec = recordsByDate.get(date);
+    if (!rec) {
+      rec = { daytime: 0, nighttime: 0, looser: false, blood: false, hasBathroom: false };
+      recordsByDate.set(date, rec);
+    }
+    return rec;
+  };
+
+  for (const p of periodLogs) {
+    if (!p.date) continue;
+    const rec = getOrCreate(p.date);
+    const hasStoolFields =
+      p.stoolFrequency !== undefined ||
+      p.stoolNight !== undefined ||
+      p.stoolConsistency !== undefined ||
+      p.stoolBlood !== undefined;
+    const hasCounts =
+      p.daytimeBathroomCount !== undefined ||
+      p.nighttimeBathroomCount !== undefined ||
+      p.looserStools !== undefined ||
+      p.bloodVisible !== undefined;
+
+    if (hasStoolFields || hasCounts) {
+      rec.hasBathroom = true;
+    }
+
+    if (typeof p.daytimeBathroomCount === "number") {
+      rec.daytime = Math.max(rec.daytime, p.daytimeBathroomCount);
+    }
+    if (typeof p.nighttimeBathroomCount === "number") {
+      rec.nighttime = Math.max(rec.nighttime, p.nighttimeBathroomCount);
+    } else if (p.stoolNight === "yes" && rec.nighttime === 0) {
+      rec.nighttime = 1;
+    }
+
+    if (
+      p.looserStools === true ||
+      p.stoolConsistency === "looser" ||
+      p.stoolConsistency === "watery"
+    ) {
+      rec.looser = true;
+    }
+    if (p.bloodVisible === true || p.stoolBlood === "visible") {
+      rec.blood = true;
+    }
+  }
+
+  for (const d of dailyLogs ?? []) {
+    if (!d || !d.date) continue;
+    const rec = getOrCreate(d.date);
+    const hasCounts =
+      d.daytimeBathroomCount !== undefined ||
+      d.daytimeVisits !== undefined ||
+      d.daytimeCount !== undefined ||
+      d.nighttimeBathroomCount !== undefined ||
+      d.nighttimeVisits !== undefined ||
+      d.nighttimeCount !== undefined ||
+      d.looserStools !== undefined ||
+      d.bloodVisible !== undefined ||
+      d.stoolFrequency !== undefined ||
+      d.stoolNight !== undefined;
+
+    if (hasCounts) {
+      rec.hasBathroom = true;
+    }
+
+    const dayCount = d.daytimeBathroomCount ?? d.daytimeVisits ?? d.daytimeCount;
+    if (typeof dayCount === "number") {
+      rec.daytime = Math.max(rec.daytime, dayCount);
+    }
+
+    const nightCount = d.nighttimeBathroomCount ?? d.nighttimeVisits ?? d.nighttimeCount;
+    if (typeof nightCount === "number") {
+      rec.nighttime = Math.max(rec.nighttime, nightCount);
+    } else if (d.stoolNight === "yes" && rec.nighttime === 0) {
+      rec.nighttime = 1;
+    }
+
+    if (
+      d.looserStools === true ||
+      d.looserStoolsFlag === true ||
+      d.stoolConsistency === "looser" ||
+      d.stoolConsistency === "watery"
+    ) {
+      rec.looser = true;
+    }
+    if (
+      d.bloodVisible === true ||
+      d.bloodVisibleFlag === true ||
+      d.stoolBlood === "visible"
+    ) {
+      rec.blood = true;
+    }
+  }
+
+  for (const obs of parentObservations ?? []) {
+    if (!obs || !obs.date) continue;
+    const rec = getOrCreate(obs.date);
+    rec.hasBathroom = true;
+
+    const dayCount = obs.daytimeBathroomCount ?? obs.daytimeVisits ?? obs.daytimeCount;
+    if (typeof dayCount === "number") {
+      rec.daytime = Math.max(rec.daytime, dayCount);
+    } else if (
+      obs.kind === "bathroom_day" ||
+      obs.kind === "bathroom_daytime" ||
+      (obs.kind === "bathroom_visits" && obs.valueText === "day")
+    ) {
+      rec.daytime += obs.valueNum ?? 1;
+    }
+
+    const nightCount = obs.nighttimeBathroomCount ?? obs.nighttimeVisits ?? obs.nighttimeCount;
+    if (typeof nightCount === "number") {
+      rec.nighttime = Math.max(rec.nighttime, nightCount);
+    } else if (
+      obs.kind === "bathroom_night" ||
+      obs.kind === "bathroom_nighttime" ||
+      (obs.kind === "bathroom_visits" && obs.valueText === "night")
+    ) {
+      rec.nighttime += obs.valueNum ?? 1;
+    } else if (obs.stoolNight === "yes" && rec.nighttime === 0) {
+      rec.nighttime = 1;
+    }
+
+    if (
+      obs.looserStools === true ||
+      obs.looserStoolsFlag === true ||
+      obs.stoolConsistency === "looser" ||
+      obs.stoolConsistency === "watery" ||
+      obs.kind === "looser_stools" ||
+      obs.kind === "stool_looser" ||
+      (obs.kind === "bathroom_visits" && obs.valueText?.toLowerCase().includes("loose"))
+    ) {
+      rec.looser = true;
+    }
+
+    if (
+      obs.bloodVisible === true ||
+      obs.bloodVisibleFlag === true ||
+      obs.stoolBlood === "visible" ||
+      obs.kind === "blood_visible" ||
+      obs.kind === "blood_seen" ||
+      (obs.kind === "bathroom_visits" && obs.valueText?.toLowerCase().includes("blood"))
+    ) {
+      rec.blood = true;
+    }
+  }
+
+  let totalDaytime = 0;
+  let totalNighttime = 0;
+  let daysWithLooserStools = 0;
+  let daysWithBloodVisible = 0;
+  let daysLogged = 0;
+
+  for (const rec of recordsByDate.values()) {
+    if (rec.hasBathroom) {
+      daysLogged += 1;
+    }
+    totalDaytime += rec.daytime;
+    totalNighttime += rec.nighttime;
+    if (rec.looser) daysWithLooserStools += 1;
+    if (rec.blood) daysWithBloodVisible += 1;
+  }
+
+  const totalVisits = totalDaytime + totalNighttime;
+  const avgDaytimePerDay =
+    daysLogged > 0 ? Math.round((totalDaytime / daysLogged) * 10) / 10 : null;
+  const avgNighttimePerDay =
+    daysLogged > 0 ? Math.round((totalNighttime / daysLogged) * 10) / 10 : null;
+  const avgVisitsPerDay =
+    daysLogged > 0 ? Math.round((totalVisits / daysLogged) * 10) / 10 : null;
+
+  const bathroom: BathroomObservedSummary = {
+    totalDaytime,
+    totalNighttime,
+    totalVisits,
+    avgDaytimePerDay,
+    avgNighttimePerDay,
+    avgVisitsPerDay,
+    daysWithLooserStools,
+    daysWithBloodVisible,
+    daysLogged,
+  };
+
   return {
     loggedDays: periodLogs.length,
     school: {
@@ -81,5 +282,6 @@ export function buildObservedSection(periodLogs: ParentLog[]): ObservedSection {
       no: count((p) => p.medicationTaken === "no"),
       notApplicable: count((p) => p.medicationTaken === "not-applicable"),
     },
+    bathroom,
   };
 }

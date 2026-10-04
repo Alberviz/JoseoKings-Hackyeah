@@ -67,12 +67,39 @@ export function DailyChart({ title, unit, values, markers }: DailyChartProps) {
         role="img"
         aria-label={label}
       >
+        <title>{label}</title>
+        {present.length === 0 ? (
+          <line
+            x1={PAD}
+            y1={HEIGHT / 2}
+            x2={WIDTH - PAD}
+            y2={HEIGHT / 2}
+            stroke="currentColor"
+            strokeDasharray="3 3"
+            opacity={0.2}
+          />
+        ) : (
+          <line
+            x1={PAD}
+            y1={HEIGHT - PAD}
+            x2={WIDTH - PAD}
+            y2={HEIGHT - PAD}
+            stroke="currentColor"
+            opacity={0.08}
+          />
+        )}
         <ChartLine d={path} />
         {dots.map((d) => (
-          <ChartDot key={d.key} cx={d.x} cy={d.y} r={1.8} />
+          <ChartDot key={d.key} cx={d.x} cy={d.y} r={1.8}>
+            <title>{`Day ${d.key + 1}: ${values[d.key]} ${unit}`}</title>
+          </ChartDot>
         ))}
         {markers.map((on, i) =>
-          on ? <MarkerDot key={`m${i}`} cx={xAt(i)} cy={MARKER_Y} r={2.2} /> : null,
+          on ? (
+            <MarkerDot key={`m${i}`} cx={xAt(i)} cy={MARKER_Y} r={2.2}>
+              <title>{`Day ${i + 1}: discomfort marked`}</title>
+            </MarkerDot>
+          ) : null,
         )}
       </ChartSvg>
     </ChartFigure>

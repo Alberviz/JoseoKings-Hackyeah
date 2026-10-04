@@ -8,7 +8,7 @@ export const PrintGlobalStyle = createGlobalStyle`
     }
 
     body {
-      background: ${({ theme }) => theme.colors.surface} !important;
+      background: #ffffff !important;
       color: ${({ theme }) => theme.colors.text} !important;
     }
 
@@ -19,6 +19,9 @@ export const PrintGlobalStyle = createGlobalStyle`
       min-height: auto !important;
     }
 
+    nav,
+    button,
+    [role="navigation"],
     .no-print {
       display: none !important;
     }
@@ -27,6 +30,11 @@ export const PrintGlobalStyle = createGlobalStyle`
     section, table, tr, figure, article, aside {
       break-inside: avoid;
       page-break-inside: avoid;
+    }
+
+    h1, h2, h3 {
+      break-after: avoid;
+      page-break-after: avoid;
     }
 
     * {

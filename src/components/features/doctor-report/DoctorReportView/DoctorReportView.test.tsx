@@ -30,6 +30,16 @@ const mockReportData: DoctorReportData = {
       { company: "alone", label: "Done on their own", count: 5 },
       { company: "other", label: "Done with someone", count: 2 },
     ],
+    byCorroboration: [
+      { method: "watch", label: "Watch verified", count: 10 },
+      { method: "motion", label: "Motion sensor verified", count: 4 },
+      { method: "none", label: "Self-reported only", count: 1 },
+    ],
+    corroborationTotals: {
+      watch: 10,
+      motion: 4,
+      none: 1,
+    },
   },
   foodsOnDiscomfortDays: [
     { text: "Milk", count: 3 },
@@ -62,6 +72,17 @@ const mockReportData: DoctorReportData = {
     loggedDays: 22,
     school: { attended: 15, leftEarly: 1, missed: 1, noSchool: 5 },
     medication: { yes: 20, partly: 0, no: 1, notApplicable: 1 },
+    bathroom: {
+      totalDaytime: 33,
+      totalNighttime: 5,
+      totalVisits: 38,
+      avgDaytimePerDay: 1.5,
+      avgNighttimePerDay: 0.2,
+      avgVisitsPerDay: 1.7,
+      daysWithLooserStools: 4,
+      daysWithBloodVisible: 1,
+      daysLogged: 22,
+    },
   },
   dayStrip: [
     {
@@ -240,12 +261,43 @@ describe("DoctorReportView", () => {
     expect(screen.getByText(/Not enough days with both/)).toBeTruthy();
   });
 
-  it("renders the observed by the family counts", () => {
+  it("renders the observed by the family counts including bathroom clinical observations", () => {
     renderWithTheme(<DoctorReportView data={mockReportData} />);
 
     expect(screen.getByText("Observed by the family")).toBeTruthy();
     expect(screen.getByText("School: attended")).toBeTruthy();
     expect(screen.getByText("Medication: taken")).toBeTruthy();
+    expect(screen.getByText("Bathroom: daytime visits")).toBeTruthy();
+    expect(screen.getByText("33 total (avg 1.5/day)")).toBeTruthy();
+    expect(screen.getByText("Bathroom: nighttime visits")).toBeTruthy();
+    expect(screen.getByText("5 total (avg 0.2/day)")).toBeTruthy();
+    expect(screen.getByText("Bathroom: total visits")).toBeTruthy();
+    expect(screen.getByText("38 total (avg 1.7/day)")).toBeTruthy();
+    expect(screen.getByText("Bathroom: looser stools reported")).toBeTruthy();
+    expect(screen.getByText("4 days")).toBeTruthy();
+    expect(screen.getByText("Bathroom: visible blood reported")).toBeTruthy();
+    expect(screen.getByText("1 day")).toBeTruthy();
+  });
+
+  it("renders mission corroboration breakdown when available", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    expect(screen.getByText("Watch verified")).toBeTruthy();
+    expect(screen.getByText("10 missions")).toBeTruthy();
+    expect(screen.getByText("Motion sensor verified")).toBeTruthy();
+    expect(screen.getByText("4 missions")).toBeTruthy();
+    expect(screen.getByText("Self-reported only")).toBeTruthy();
+    expect(screen.getByText("1 mission")).toBeTruthy();
+  });
+
+  it("renders daily SVG sparklines with titles and accessibility attributes", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    const svgs = screen.getAllByRole("img");
+    expect(svgs.length).toBe(3);
+    expect(screen.getAllByText("Steps per day").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Nocturnal resting HR").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Sleep duration").length).toBeGreaterThan(0);
   });
 
   it("renders mandatory disclaimer banner", () => {

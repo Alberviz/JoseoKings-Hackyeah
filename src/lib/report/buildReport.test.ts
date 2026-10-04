@@ -66,6 +66,12 @@ describe("buildReport", () => {
       { company: "family", label: confidenceLabel("family"), count: 0 },
       { company: "other", label: confidenceLabel("other"), count: 0 },
     ]);
+    expect(report.activity.byCorroboration).toEqual([
+      { method: "watch", label: "Watch verified", count: 0 },
+      { method: "motion", label: "Motion sensor verified", count: 0 },
+      { method: "none", label: "Self-reported only", count: 0 },
+    ]);
+    expect(report.activity.corroborationTotals).toEqual({ watch: 0, motion: 0, none: 0 });
 
     expect(report.foodsOnDiscomfortDays).toEqual([]);
     expect(report.dayStrip).toHaveLength(30);
@@ -453,5 +459,131 @@ describe("buildReport watch and observed sections", () => {
     });
     expect(report.watch.steps.median).toBe(4000);
     expect(report.watch.isDemo).toBe(true);
+  });
+
+  it("groups completed missions by corroboration method and provides totals", () => {
+    const state = makeEmptyState();
+    const TODAY = "2026-10-04";
+    state.missionLogs = [
+      {
+        id: "m-1",
+        date: "2026-10-01",
+        missionId: "dragon-breathing",
+        status: "completed",
+        company: "alone",
+        confirmedBy: "child",
+        createdAt: "2026-10-01T10:00:00Z",
+        corroboration: "watch",
+      },
+      {
+        id: "m-2",
+        date: "2026-10-02",
+        missionId: "bed-stretch",
+        status: "completed",
+        company: "family",
+        confirmedBy: "parent-pin",
+        createdAt: "2026-10-02T10:00:00Z",
+        corroboration: "motion",
+      },
+      {
+        id: "m-3",
+        date: "2026-10-03",
+        missionId: "flamingo-balance",
+        status: "completed",
+        company: "family",
+        confirmedBy: "parent-pin",
+        createdAt: "2026-10-03T10:00:00Z",
+      }, // none
+      {
+        id: "m-4",
+        date: "2026-10-03",
+        missionId: "wall-sit",
+        status: "rest", // not completed, shouldn't be counted
+        company: "alone",
+        confirmedBy: "child",
+        createdAt: "2026-10-03T11:00:00Z",
+        corroboration: "watch",
+      },
+    ];
+
+    const report = buildReport(state, TODAY);
+    expect(report.activity.totalMissionsCompleted).toBe(3);
+    expect(report.activity.corroborationTotals).toEqual({
+      watch: 1,
+      motion: 1,
+      none: 1,
+    });
+    expect(report.activity.byCorroboration).toEqual([
+      { method: "watch", label: "Watch verified", count: 1 },
+      { method: "motion", label: "Motion sensor verified", count: 1 },
+      { method: "none", label: "Self-reported only", count: 1 },
+    ]);
+  });
+
+  it("integrates bathroom observations from parentLogs, dailyLogs, and parentObservations", () => {
+    const state = makeEmptyState();
+    const TODAY = "2026-10-04";
+
+    state.parentLogs = [
+      {
+        date: "2026-10-01",
+        daytimeBathroomCount: 3,
+        nighttimeBathroomCount: 1,
+        looserStools: true,
+        bloodVisible: false,
+      },
+      {
+        date: "2026-10-02",
+        stoolFrequency: "more",
+        stoolNight: "yes",
+        stoolConsistency: "looser",
+        stoolBlood: "visible",
+      },
+    ];
+
+    state.dailyLogs = [
+      {
+        date: "2026-10-03",
+        daytimeBathroomCount: 2,
+        nighttimeBathroomCount: 0,
+        looserStools: false,
+        bloodVisible: false,
+      },
+    ];
+
+    state.parentObservations = [
+      {
+        date: "2026-10-04",
+        daytimeBathroomCount: 1,
+        nighttimeBathroomCount: 2,
+        looserStools: true,
+        bloodVisible: true,
+      },
+    ];
+
+    const report = buildReport(state, TODAY);
+
+    expect(report.observed.bathroom).toEqual({
+      totalDaytime: 6, // 3 + 0 + 2 + 1
+      totalNighttime: 4, // 1 + 1 (stoolNight: yes) + 0 + 2
+      totalVisits: 10,
+      avgDaytimePerDay: 1.5, // 6 / 4 = 1.5
+      avgNighttimePerDay: 1, // 4 / 4 = 1.0
+      avgVisitsPerDay: 2.5, // 10 / 4 = 2.5
+      daysWithLooserStools: 3, // 10-01, 10-02, 10-04
+      daysWithBloodVisible: 2, // 10-02, 10-04
+      daysLogged: 4,
+    });
+
+    const day1 = report.dayStrip.find((d) => d.date === "2026-10-01");
+    expect(day1?.daytimeBathroomCount).toBe(3);
+    expect(day1?.nighttimeBathroomCount).toBe(1);
+    expect(day1?.looserStools).toBe(true);
+    expect(day1?.bloodVisible).toBeUndefined();
+
+    const day2 = report.dayStrip.find((d) => d.date === "2026-10-02");
+    expect(day2?.nighttimeBathroomCount).toBe(1);
+    expect(day2?.looserStools).toBe(true);
+    expect(day2?.bloodVisible).toBe(true);
   });
 });
