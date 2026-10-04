@@ -1,6 +1,6 @@
 # Product
 
-What we are building and the rules it follows. This is the source of truth for the product. If another file (a draft, an `IDEA.md`, a research note) disagrees with this one, **this file wins**. Changes go through a PR approved by Alberto. How it is built is in [`ARCHITECTURE.md`](ARCHITECTURE.md); who builds what is in [`TASKS.md`](TASKS.md).
+What we are building and the rules it follows. This is the source of truth for the product. If another file (a draft, an `IDEA.md`, a research note) disagrees with this one, **this file wins**. Changes go through a PR approved by Alberto. How it is built is in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 Status: agreed by Alberto on 2026-10-03. Items marked **Default** are provisional choices so the team can start; Alberto may change them (section 9).
 
@@ -12,7 +12,7 @@ A Progressive Web App for families with a child aged 8 to 12 who has inflammator
 
 Working name: **Mycrohnie** (previous name CrohnCare). The name may change; do not hard-code it outside `src/config/app.ts`.
 
-Hackathon category: **Sport & Healthcare** (open task). Rules and judging criteria are in [`HANDOFF.md`](HANDOFF.md), section 3.
+Hackathon category: **Sport & Healthcare** (open task).
 
 ## 2. The problem
 
@@ -74,7 +74,7 @@ Optionally, a parent can connect the child's **wearable** (section 5.6, task W1)
 
 ### 5.1 Privacy
 
-- **Health data stays on the device by default.** Check-ins, mission records, the parent log, the food diary and wearable data are kept on the device, with no analytics and no third parties. Rules in [`AGENTS.md`](../AGENTS.md).
+- **Health data stays on the device by default.** Check-ins, mission records, the parent log, the food diary and wearable data are kept on the device, with no analytics and no third parties.
 - **No accounts or login for the family.** The only sign-in is the parent's Google consent when connecting a wearable (section 5.6).
 - **Check-ins, the parent log and the food diary are never sent to a server** unless Alberto approves it separately.
 - A server copy of **wearable data** exists only if the W1 design needs it (Álvaro decides), and then only under the guardrails in section 5.6.
@@ -124,7 +124,7 @@ Labels are about how the record was made, not about trust. Never write "declared
 
 ### 5.6 Wearable data (wearables)
 
-Decided by Alberto on 2026-10-04 (`DECISIONS.md`). A test with an Amazfit GTS 2 proved the path: Zepp app, Health Connect (Android), Google Health app, then the Google Health API v4 (`health.googleapis.com`) returned steps, heart rate and sleep stages. Implementation is task W1 in [`TASKS.md`](TASKS.md).
+Decided by Alberto on 2026-10-04 (`DECISIONS.md`). A test with an Amazfit GTS 2 proved the path: Zepp app, Health Connect (Android), Google Health app, then the Google Health API v4 (`health.googleapis.com`) returned steps, heart rate and sleep stages.
 
 1. **Allowed, with consent.** Data from the child's wearable can be read through the Google Health API with **read-only scopes** (`googlehealth.activity_and_fitness`, `googlehealth.health_metrics_and_measurements`, `googlehealth.sleep`), only after the parent connects their Google account and consents. Google Fit is not used (closed). Other sources (Health Connect on the device, CSV import) are allowed later under the same rules.
 2. **Privacy.** By default the parent's device reads the API and keeps the data on that device, like all other data. A server copy is allowed only if the W1 design needs it (Álvaro decides) and then: EU region, pseudonymous ids (no names, emails or drug names), service-role access only, no analytics or third parties, deletable on request. Check-ins, the parent log and the food diary are **not** sent to the server unless Alberto approves it separately. Secrets (client secret, refresh tokens) live only in `.env.local` or the server environment, never in the repo, in issues or in client code.

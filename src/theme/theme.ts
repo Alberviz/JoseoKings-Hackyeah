@@ -28,7 +28,7 @@ export const theme = {
     // Blue ring: the yellow highlight does not reach 3:1 on paper, so it is not used for focus.
     focus: "#0B57D0",
     overlay: "rgba(31, 47, 107, 0.55)",
-    // Kraków dragon companion and child home (palette from Baitiare, 2026-10-03).
+    // Kraków dragon companion and child home palette.
     dragonBody: "#36C5D4",
     dragonBodyBorder: "#258D9C",
     dragonBelly: "#E0F7EC",

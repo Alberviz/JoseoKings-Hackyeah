@@ -1,6 +1,6 @@
 # Architecture
 
-How the product in [`PRODUCT.md`](PRODUCT.md) is built. Rules for code style are in [`AGENTS.md`](../AGENTS.md). This file is the contract between tasks: if you need to change a type, a route or a folder owner listed here, ask Alberto or Claude first.
+How the product in [`PRODUCT.md`](PRODUCT.md) is built. Code style is summarised in the [`README`](../README.md#project-structure). This file is the contract between tasks: if you need to change a type, a route or a folder owner listed here, ask Alberto or Claude first.
 
 ---
 
@@ -79,7 +79,7 @@ Rules for the data:
 | `src/components/features/patterns/`               | Farouk                                | T14                                                                                                            |
 | `src/components/features/doctor-report/`          | Juan                                  | T11                                                                                                            |
 | `src/app/` (routes)                               | Whoever owns the feature screen       | `page.tsx` renders **one** screen. Routes are predefined below.                                                |
-| `docs/`, `README.md`                              | Claudia (docs), Claude (rules)        | `AGENTS.md`, `PRODUCT.md`, `ARCHITECTURE.md` need Alberto's OK.                                                |
+| `docs/`, `README.md`                              | Claudia (docs), Claude (rules)        | `PRODUCT.md`, `ARCHITECTURE.md` need Alberto's OK.                                                             |
 
 The restroom map and the menu reader were removed from the tree on 2026-10-03 (paused product). They are in git history if the team ever returns to them.
 
@@ -100,7 +100,7 @@ Defined in `src/config/app.ts` (`ROUTES`). Do not hard-code paths.
 | `/parent/report`   | Doctor report view and print                                        | parent |
 | `/parent/settings` | PIN, backup export and import, consultations                        | parent |
 
-The v2 child routes (Play flow, Shop, Food, Customize) were planned in `docs/V2-CHILD-PLAN.md` and are now in `ROUTES` (`/play`, `/shop`, `/food`, `/customize`).
+The v2 child routes (Play flow, Shop, Food, Customize) are in `ROUTES` (`/play`, `/shop`, `/food`, `/customize`).
 
 First run: if `AppState.child` is `null`, `/` redirects to `/parent/setup`.
 
@@ -134,7 +134,7 @@ Pure functions in `src/lib/rewards/`, with tests. The numbers are constants in o
 
 ### 7.2 Coins, fire and the shop (v2)
 
-Pure functions in `src/lib/economy/`, constants in `src/config/economy.ts`, types in `src/types/economy.ts`. Plan: `docs/V2-CHILD-PLAN.md`.
+Pure functions in `src/lib/economy/`, constants in `src/config/economy.ts`, types in `src/types/economy.ts`.
 
 - **Coins** are earned by the act: check-in 5, "not today" 3, mission completed 12, rest 6. Coins from the logs are derived (idempotent, like `syncCompanion`); spending is stored. Coins never go below zero.
 - The coins buy **food and wearables** (glasses, t-shirt, hat) in the shop. This replaces the item unlocks by points of the old layer.
@@ -183,7 +183,7 @@ parent phone <-- JSON ------------ Health   parent phone <-- pseudonymous data -
 
 - `src/lib/report/buildReport(state, today)` returns a plain object (period, by default since the last consultation, and parents may choose From and To; day strip, counts, food entries on discomfort days, sleep and school summary, active days with confidence labels, and an optional wearable section built from `WearableDay` records: totals, averages and ranges, labelled as measured by the wearable, gaps shown as "No wearable data yet"). It has tests.
 - The view in `doctor-report/` renders it for A4 portrait and uses print CSS (`@media print`, `@page`) so that `window.print()` produces a clean page and "Save as PDF" works on the device. **No PDF library.**
-- Test printing in desktop Chrome and on a real phone, including the installed PWA on iPhone, because `window.print()` may behave differently there. Log findings in `ERRORS.md`.
+- Test printing in desktop Chrome and on a real phone, including the installed PWA on iPhone, because `window.print()` may behave differently there.
 
 ## 10. Demo data
 
@@ -198,7 +198,7 @@ parent phone <-- JSON ------------ Health   parent phone <-- pseudonymous data -
 
 ## 12. Dependencies
 
-Approved for the project: `zod` (T1). W1 (wearable data) may need an OAuth or server helper; Álvaro proposes it in the W1 issue and Alberto approves it before it is added. Anything else needs approval, as in `AGENTS.md`. No charting library (charts are small SVG components), no PDF library, no animation library, no Tailwind.
+Approved for the project: `zod` (T1). W1 (wearable data) may need an OAuth or server helper; Álvaro proposes it in the W1 issue and Alberto approves it before it is added. Anything else needs approval. No charting library (charts are small SVG components), no PDF library, no animation library, no Tailwind.
 
 ## 13. Content files (`src/content/`)
 
