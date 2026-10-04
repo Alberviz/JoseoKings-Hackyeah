@@ -6,8 +6,15 @@ import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
+import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
 import { formatMissionTitle } from "../missionLabels";
 import {
+  AnswerLabel,
+  AnswerValue,
+  DegreeFaceCircle,
+  DegreeFaceEye,
+  DegreeFaceMouth,
+  DegreeFaceSvg,
   FactItem,
   FactList,
   MissionHeader,
@@ -16,6 +23,47 @@ import {
   PromptCard,
   SummaryContainer,
 } from "./SummaryCard.style";
+
+function getCheckInAnswerLabel(questionId: string, answerValue: unknown): string {
+  if (typeof answerValue !== "number") return "-";
+  const question = CHECK_IN_QUESTIONS.find((q) => q.id === questionId);
+  const option = question?.options.find((o) => o.value === answerValue);
+  return option?.label ?? String(answerValue);
+}
+
+function DegreeFace({ level }: { level: number }) {
+  if (level === 0) {
+    return (
+      <DegreeFaceSvg viewBox="0 0 20 20" aria-hidden="true">
+        <DegreeFaceCircle cx="10" cy="10" r="9" $level={0} />
+        <DegreeFaceEye cx="7" cy="8" r="1.3" />
+        <DegreeFaceEye cx="13" cy="8" r="1.3" />
+        <DegreeFaceMouth d="M6.5 12 Q10 16 13.5 12" />
+      </DegreeFaceSvg>
+    );
+  }
+  if (level === 1) {
+    return (
+      <DegreeFaceSvg viewBox="0 0 20 20" aria-hidden="true">
+        <DegreeFaceCircle cx="10" cy="10" r="9" $level={1} />
+        <DegreeFaceEye cx="7" cy="8" r="1.3" />
+        <DegreeFaceEye cx="13" cy="8" r="1.3" />
+        <DegreeFaceMouth d="M7 13 H13" />
+      </DegreeFaceSvg>
+    );
+  }
+  if (level === 2) {
+    return (
+      <DegreeFaceSvg viewBox="0 0 20 20" aria-hidden="true">
+        <DegreeFaceCircle cx="10" cy="10" r="9" $level={2} />
+        <DegreeFaceEye cx="7" cy="8" r="1.3" />
+        <DegreeFaceEye cx="13" cy="8" r="1.3" />
+        <DegreeFaceMouth d="M6.5 14 Q10 10.5 13.5 14" />
+      </DegreeFaceSvg>
+    );
+  }
+  return null;
+}
 
 type SummaryCardProps = {
   state: AppState;
@@ -63,21 +111,45 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
                   <FactList>
                     <FactItem>
                       <Text size="sm">Belly comfort</Text>
-                      <Text size="sm">
-                        Level {String(todayCheckIn.answers[QUESTION_IDS.bellyComfort] ?? "-")}
-                      </Text>
+                      {(() => {
+                        const val = todayCheckIn.answers[QUESTION_IDS.bellyComfort];
+                        return (
+                          <AnswerValue>
+                            {typeof val === "number" ? <DegreeFace level={val} /> : null}
+                            <AnswerLabel>
+                              {getCheckInAnswerLabel(QUESTION_IDS.bellyComfort, val)}
+                            </AnswerLabel>
+                          </AnswerValue>
+                        );
+                      })()}
                     </FactItem>
                     <FactItem>
                       <Text size="sm">Energy</Text>
-                      <Text size="sm">
-                        Level {String(todayCheckIn.answers[QUESTION_IDS.energy] ?? "-")}
-                      </Text>
+                      {(() => {
+                        const val = todayCheckIn.answers[QUESTION_IDS.energy];
+                        return (
+                          <AnswerValue>
+                            {typeof val === "number" ? <DegreeFace level={val} /> : null}
+                            <AnswerLabel>
+                              {getCheckInAnswerLabel(QUESTION_IDS.energy, val)}
+                            </AnswerLabel>
+                          </AnswerValue>
+                        );
+                      })()}
                     </FactItem>
                     <FactItem>
                       <Text size="sm">Play pace</Text>
-                      <Text size="sm">
-                        Level {String(todayCheckIn.answers[QUESTION_IDS.playPace] ?? "-")}
-                      </Text>
+                      {(() => {
+                        const val = todayCheckIn.answers[QUESTION_IDS.playPace];
+                        return (
+                          <AnswerValue>
+                            {typeof val === "number" ? <DegreeFace level={val} /> : null}
+                            <AnswerLabel>
+                              {getCheckInAnswerLabel(QUESTION_IDS.playPace, val)}
+                            </AnswerLabel>
+                          </AnswerValue>
+                        );
+                      })()}
                     </FactItem>
                     {todayCheckIn.childNote ? (
                       <FactItem>
