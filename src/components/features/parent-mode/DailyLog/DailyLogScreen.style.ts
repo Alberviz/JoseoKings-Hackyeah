@@ -83,7 +83,6 @@ export const FormSection = styled.div`
   padding-top: ${({ theme }) => theme.spacing.md};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
 `;
-
 export const SleepSliderCard = styled.div`
   display: flex;
   flex-direction: column;
