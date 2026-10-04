@@ -38,7 +38,7 @@ import {
   SvgPolygon,
 } from "./Companion.style";
 
-export type CompanionSize = "sm" | "md" | "lg";
+export type CompanionSize = "sm" | "md" | "lg" | "fill";
 export type CompanionStage = 1 | 2 | 3;
 
 export const DRAGON_ARTWORK: Record<CompanionStage, string> = {
