@@ -6,7 +6,6 @@ describe("reminder utility", () => {
   const baseSettings: ParentSettings = {
     pinHash: "hash",
     pinSalt: "salt",
-    allowedMissionIds: ["m1"],
     reminderEnabled: true,
     reminderTime: "20:00",
   };

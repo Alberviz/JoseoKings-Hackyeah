@@ -16,12 +16,6 @@ export const StyledForm = styled.form`
   width: 100%;
 `;
 
-export const ChipWrap = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
 export const HiddenFileInput = styled.input`
   display: none;
 `;
@@ -47,4 +41,11 @@ export const AlertBox = styled.div<{ $variant?: "urgent" | "info" | "success" }>
   }};
   font-size: ${({ theme }) => theme.fontSize.sm};
   line-height: 1.4;
+`;
+
+export const SubtitleRow = styled.span`
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;

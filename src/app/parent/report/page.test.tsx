@@ -18,7 +18,6 @@ function DemoLoader({ children }: { children: React.ReactNode }) {
         const demo = buildDemoState({
           settings: {
             ...pinRecord,
-            allowedMissionIds: ["move-1", "move-2"],
           },
         });
         actions.loadDemo(demo);
@@ -80,7 +79,6 @@ describe("DoctorReportPage", () => {
     );
 
     expect(await findByText(`${APP_NAME} · Consultation Summary`)).toBeDefined();
-    expect(await findByRole("link", { name: /Back to parent summary/i })).toBeDefined();
     expect(await findByRole("button", { name: "Save as PDF / Print" })).toBeDefined();
   });
 });

@@ -4,11 +4,8 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "r
 import { useRouter } from "next/navigation";
 import {
   Button,
-  Card,
   Chip,
   Dialog,
-  Heading,
-  LinkButton,
   OptionButton,
   OptionGroup,
   Screen,
@@ -17,7 +14,6 @@ import {
   TextField,
 } from "@/components/ui";
 import { ROUTES } from "@/config/app";
-import { MISSION_IDS } from "@/config/content-ids";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { buildDemoState } from "@/lib/demo-data";
@@ -29,7 +25,6 @@ import {
   loadWatchState,
   saveWatchState,
 } from "@/lib/storage";
-import type { DeviceRole } from "@/types";
 import {
   DEFAULT_REMINDER_TIME,
   getNotificationPermission,
@@ -43,18 +38,18 @@ import {
   isBiometricEnrolled,
   registerBiometric,
 } from "@/lib/biometrics";
-import { formatMissionTitle } from "../missionLabels";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
+import { SectionCard } from "../SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "../sections";
 import { PinGate } from "../PinGate/PinGate";
 import { WatchConnectCard } from "../WatchConnectCard/WatchConnectCard";
 import {
   AlertBox,
-  ChipWrap,
   HiddenFileInput,
   SettingsContainer,
   StyledForm,
+  SubtitleRow,
 } from "./SettingsScreen.style";
-
-const ALL_MISSIONS = Object.values(MISSION_IDS);
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -67,9 +62,6 @@ export function SettingsScreen() {
     getNotificationPermission(),
   );
   const [reminderMessage, setReminderMessage] = useState<string | undefined>(undefined);
-
-  // Enabled missions state
-  const [missionsError, setMissionsError] = useState<string | undefined>(undefined);
 
   // Change PIN state
   const [currentPin, setCurrentPin] = useState("");
@@ -127,36 +119,6 @@ export function SettingsScreen() {
       </Screen>
     );
   }
-
-  const enabledMissions = state.settings?.allowedMissionIds ?? ALL_MISSIONS;
-  const currentDeviceRole: DeviceRole = state.settings?.deviceRole ?? "both";
-
-  const handleDeviceRoleChange = (role: DeviceRole) => {
-    if (!state.settings) return;
-    actions.setSettings({
-      ...state.settings,
-      deviceRole: role,
-    });
-  };
-
-  const handleToggleMission = (missionId: string) => {
-    if (!state.settings) return;
-    const exists = enabledMissions.includes(missionId);
-    if (exists && enabledMissions.length === 1) {
-      setMissionsError("At least one mission must be enabled.");
-      return;
-    }
-
-    const nextMissions = exists
-      ? enabledMissions.filter((id) => id !== missionId)
-      : [...enabledMissions, missionId];
-
-    setMissionsError(undefined);
-    actions.setSettings({
-      ...state.settings,
-      allowedMissionIds: nextMissions,
-    });
-  };
 
   const handleChangePinSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -258,10 +220,7 @@ export function SettingsScreen() {
       const demoState = buildDemoState();
       actions.loadDemo(demoState);
       const demoPinRecord = await createPinRecord("1234");
-      actions.setSettings({
-        ...demoPinRecord,
-        allowedMissionIds: demoState.settings?.allowedMissionIds ?? ALL_MISSIONS,
-      });
+      actions.setSettings(demoPinRecord);
       setImportSuccess("Demo data loaded. Demo PIN is 1234.");
       setImportError(undefined);
     } catch (err) {
@@ -280,77 +239,24 @@ export function SettingsScreen() {
     <Screen>
       <SettingsContainer>
         <Stack gap="lg">
-          <Stack gap="xs">
-            <Stack gap="sm" direction="row" align="center">
-              <Heading level={1}>Parent settings</Heading>
-              {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
-            </Stack>
-            <Text tone="muted">Manage missions, security, and app data.</Text>
-          </Stack>
-
-          <LinkButton href={ROUTES.parent} variant="secondary">
-            ← Back to parent summary
-          </LinkButton>
-
-          {/* Device role */}
-          <Card label="Device role">
-            <Stack gap="md">
-              <Heading level={2}>This phone is for</Heading>
-              <Text size="sm" tone="muted">
-                Choose how this phone is used. Child-only phones hide parent shortcuts, and
-                parent-only phones open directly in parent mode.
-              </Text>
-              <OptionGroup legend="This phone is for" hideLegend columns={3}>
-                <OptionButton
-                  label="My child"
-                  selected={currentDeviceRole === "child"}
-                  onSelect={() => handleDeviceRoleChange("child")}
-                />
-                <OptionButton
-                  label="Me (parent)"
-                  selected={currentDeviceRole === "parent"}
-                  onSelect={() => handleDeviceRoleChange("parent")}
-                />
-                <OptionButton
-                  label="Both"
-                  selected={currentDeviceRole === "both"}
-                  onSelect={() => handleDeviceRoleChange("both")}
-                />
-              </OptionGroup>
-            </Stack>
-          </Card>
+          <ParentBanner
+            section="more"
+            icon="settings"
+            title="Parent settings"
+            stickers={1}
+            subtitle={
+              <SubtitleRow>
+                Security, reminders and app data
+                {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
+              </SubtitleRow>
+            }
+          />
 
           <WatchConnectCard />
 
-          {/* 1. Enabled missions */}
-          <Card label="Enabled missions">
-            <Stack gap="md">
-              <Heading level={2}>Enabled missions</Heading>
-              <Text size="sm" tone="muted">
-                Choose which missions appear in child mode. At least one mission must be enabled.
-              </Text>
-              <ChipWrap>
-                {ALL_MISSIONS.map((id) => (
-                  <Chip
-                    key={id}
-                    label={formatMissionTitle(id)}
-                    selected={enabledMissions.includes(id)}
-                    onToggle={() => handleToggleMission(id)}
-                  />
-                ))}
-              </ChipWrap>
-              {missionsError ? (
-                <AlertBox $variant="urgent" role="alert">
-                  {missionsError}
-                </AlertBox>
-              ) : null}
-            </Stack>
-          </Card>
-
           {/* Daily care reminder */}
-          <Card label="Daily care reminder">
+          <SectionCard section="more" title="Daily care reminder">
             <Stack gap="md">
-              <Heading level={2}>Daily care reminder</Heading>
               <Text size="sm" tone="muted">
                 A local device reminder to record or follow today&apos;s routine. No drug names or
                 doses are ever stored or shown.
@@ -450,12 +356,11 @@ export function SettingsScreen() {
                 </Stack>
               ) : null}
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 2. Change PIN */}
-          <Card label="Change PIN">
+          <SectionCard section="more" title="Change PIN">
             <StyledForm onSubmit={handleChangePinSubmit}>
-              <Heading level={2}>Change PIN</Heading>
               <Text size="sm" tone="muted">
                 Enter your current 4-digit PIN, then choose a new one.
               </Text>
@@ -513,7 +418,7 @@ export function SettingsScreen() {
 
               <Button
                 type="submit"
-                variant="primary"
+                variant={SECTION_BUTTON_VARIANT.more}
                 disabled={
                   currentPin.length !== 4 ||
                   newPin.length !== 4 ||
@@ -524,12 +429,11 @@ export function SettingsScreen() {
                 Update PIN
               </Button>
             </StyledForm>
-          </Card>
+          </SectionCard>
 
           {/* Biometric unlock (Face ID / Fingerprint) */}
-          <Card label="Biometric unlock">
+          <SectionCard section="more" title="Face ID & Fingerprint" label="Biometric unlock">
             <Stack gap="md">
-              <Heading level={2}>Face ID & Fingerprint</Heading>
               <Text size="sm" tone="muted">
                 Unlock parent mode faster using your device&apos;s Face ID, Touch ID, or fingerprint
                 sensor.
@@ -594,12 +498,11 @@ export function SettingsScreen() {
                 </Text>
               )}
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 3. Backup and restore */}
-          <Card label="Backup and restore">
+          <SectionCard section="more" title="Backup and restore">
             <Stack gap="md">
-              <Heading level={2}>Backup and restore</Heading>
               <Text size="sm" tone="muted">
                 All data is stored only on this device. You can download a backup file or restore a
                 previously saved backup.
@@ -640,33 +543,31 @@ export function SettingsScreen() {
                 </Button>
               </Stack>
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 4. Demo data */}
-          <Card label="Demo data">
+          <SectionCard section="more" title="Demo data">
             <Stack gap="md">
-              <Heading level={2}>Demo data</Heading>
               <Text size="sm" tone="muted">
                 Load 90 days of fictional sample data to test and preview the app features.
               </Text>
               {state.isDemo ? (
-                <Card label="Demo PIN information">
+                <AlertBox $variant="info" aria-label="Demo PIN information">
                   <Stack gap="xs" direction="row" align="center">
                     <Chip label="Demo data" tone="primary" />
                     <Text size="sm">Demo PIN: 1234</Text>
                   </Stack>
-                </Card>
+                </AlertBox>
               ) : null}
               <Button variant="secondary" onClick={handleLoadDemo}>
                 Load demo data
               </Button>
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 5. Clear all data */}
-          <Card label="Clear data">
+          <SectionCard section="more" title="Clear all data" label="Clear data">
             <Stack gap="md">
-              <Heading level={2}>Clear all data</Heading>
               <Text size="sm" tone="muted">
                 Permanently delete all child profile, check-ins, mission logs, and settings from
                 this device.
@@ -675,7 +576,7 @@ export function SettingsScreen() {
                 Clear all data
               </Button>
             </Stack>
-          </Card>
+          </SectionCard>
 
           <Dialog
             open={isClearDialogOpen}
@@ -693,15 +594,6 @@ export function SettingsScreen() {
               </Button>
             </Stack>
           </Dialog>
-
-          <Stack gap="sm">
-            <Button variant="secondary" onClick={session.lock} fullWidth>
-              Lock
-            </Button>
-            <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-              Back to child mode
-            </LinkButton>
-          </Stack>
         </Stack>
       </SettingsContainer>
     </Screen>

@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppStateProvider } from "@/components/providers/AppStateProvider";
-import { MISSION_IDS } from "@/config/content-ids";
 import { sessionStore } from "@/hooks/useParentSession";
 import { addDays, todayKey } from "@/lib/dates";
 import { createDefaultEconomy } from "@/lib/economy";
@@ -41,7 +40,6 @@ async function seedReadyState(): Promise<AppState> {
     child: { nickname: "Lucas" },
     settings: {
       ...pinRecord,
-      allowedMissionIds: Object.values(MISSION_IDS),
     },
     companion: {
       name: "Hero",

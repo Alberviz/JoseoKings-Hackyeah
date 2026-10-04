@@ -9,16 +9,10 @@ export type ChildProfile = {
   nickname: string;
 };
 
-export type DeviceRole = "child" | "parent" | "both";
-
 export type ParentSettings = {
   /** PBKDF2 hash and salt, base64. Never the PIN itself. */
   pinHash: string;
   pinSalt: string;
-  /** Missions the parents enabled. The child picks only from these. */
-  allowedMissionIds: string[];
-  /** Who this device is for. Defaults to "both". */
-  deviceRole?: DeviceRole;
   /** Optional daily care / medicine reminder time in HH:MM format (local time). No drug names. */
   reminderTime?: string;
   /** Whether the daily reminder is enabled on this device. */

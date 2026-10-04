@@ -1,9 +1,13 @@
 export { DailyLogScreen } from "./DailyLog/DailyLogScreen";
 export { FoodDiaryScreen } from "./FoodDiary/FoodDiaryScreen";
 export { ParentHomeScreen } from "./ParentHomeScreen/ParentHomeScreen";
+export { ParentBanner } from "./ParentBanner/ParentBanner";
 export { PinGate } from "./PinGate/PinGate";
 export { SettingsScreen } from "./SettingsScreen/SettingsScreen";
+export { SectionCard } from "./SectionCard/SectionCard";
 export { SetupScreen } from "./SetupScreen/SetupScreen";
 export { WatchConnectCard } from "./WatchConnectCard/WatchConnectCard";
 export { SummaryCard } from "./SummaryCard/SummaryCard";
 export { formatMissionTitle } from "./missionLabels";
+export { SECTION_BUTTON_VARIANT } from "./sections";
+export type { ParentSection } from "./sections";

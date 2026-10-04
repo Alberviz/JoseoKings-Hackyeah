@@ -1,9 +1,9 @@
 // Single source for design tokens. Never hard-code colors or sizes in .style.ts files.
 export const theme = {
   colors: {
-    // Hand-made notebook look (decision 2026-10-03): cream paper, navy ink outlines, teal and coral.
-    paper: "#F6F0E2",
-    paperGrid: "rgba(31, 47, 107, 0.07)",
+    // Clean, soft pastel sky look: pastel blue background, navy ink outlines, teal and coral.
+    paper: "#E6F4FF",
+    paperGrid: "transparent",
     ink: "#1F2F6B",
     primary: "#127782",
     primaryHover: "#0E5F69",
@@ -19,7 +19,7 @@ export const theme = {
     onUrgent: "#FFFFFF",
     success: "#1E7A46",
     successSoft: "#E3F3EA",
-    background: "#F6F0E2",
+    background: "#E6F4FF",
     surface: "#FFFDF6",
     // Soft hairline for the few places that need a quiet divider. Outlines use ink.
     border: "#D8CFB6",
@@ -46,6 +46,18 @@ export const theme = {
     statusUnknown: "#9AA0B4",
     playButton: "#7054C7",
     childHomeBg: "#BFEAF3",
+    // Soft fills for the parent section colours and the answer pills (docs/DESIGN.md).
+    coralSoft: "#FFD9CC",
+    lavenderSoft: "#E6DDF5",
+    highlightSoft: "#FFF0B8",
+  },
+  // Colour by section in the parent area. fill: banner, card headers, active tab. strong: main button.
+  sections: {
+    summary: { fill: "#D5F1F0", strong: "#127782", onStrong: "#FFFFFF" },
+    log: { fill: "#BFE8CC", strong: "#1E7A46", onStrong: "#FFFFFF" },
+    food: { fill: "#FFD9CC", strong: "#FF7A59", onStrong: "#1F2F6B" },
+    patterns: { fill: "#E6DDF5", strong: "#C6B5E8", onStrong: "#1F2F6B" },
+    more: { fill: "#FFF0B8", strong: "#FFC93C", onStrong: "#1F2F6B" },
   },
   spacing: {
     xs: "4px",

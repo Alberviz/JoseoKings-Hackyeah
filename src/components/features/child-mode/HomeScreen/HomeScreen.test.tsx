@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,7 +31,7 @@ function ProviderWrapper({ children }: { children: ReactNode }) {
   );
 }
 
-describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
+describe("Child Mode HomeScreen", () => {
   beforeEach(() => {
     localStorage.clear();
     mockPush.mockClear();
@@ -120,7 +120,7 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     expect(mascot).toBeDefined();
   });
 
-  it("renders big PLAY button linking to ROUTES.play and three action buttons linking to shop, food, and customize", async () => {
+  it("renders a big PLAY link and one game bar with shop, food and dress up links", async () => {
     const today = todayKey();
     const demo = buildDemoState({ today });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(demo));
@@ -131,32 +131,20 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
       </ProviderWrapper>,
     );
 
-    // Big PLAY button
-    const playButton = await screen.findByTestId("home-play-button");
-    expect(playButton).toBeDefined();
-    fireEvent.click(playButton);
-    expect(mockPush).toHaveBeenCalledWith(ROUTES.play);
+    const playLink = await screen.findByTestId("home-play-button");
+    expect(playLink.getAttribute("href")).toBe(ROUTES.play);
+    expect(playLink.getAttribute("aria-label")).toBe("Play");
 
-    // Shop button
-    const shopButton = screen.getByTestId("nav-shop");
-    expect(shopButton).toBeDefined();
-    fireEvent.click(shopButton);
-    expect(mockPush).toHaveBeenCalledWith(ROUTES.shop);
-
-    // Food button
-    const foodButton = screen.getByTestId("nav-food");
-    expect(foodButton).toBeDefined();
-    fireEvent.click(foodButton);
-    expect(mockPush).toHaveBeenCalledWith(ROUTES.food);
-
-    // Customize button
-    const customizeButton = screen.getByTestId("nav-customize");
-    expect(customizeButton).toBeDefined();
-    fireEvent.click(customizeButton);
-    expect(mockPush).toHaveBeenCalledWith(ROUTES.customize);
+    const bar = screen.getByRole("navigation", { name: "Game" });
+    expect(within(bar).getByTestId("nav-shop").getAttribute("href")).toBe(ROUTES.shop);
+    expect(within(bar).getByTestId("nav-food").getAttribute("href")).toBe(ROUTES.food);
+    expect(within(bar).getByTestId("nav-customize").getAttribute("href")).toBe(ROUTES.customize);
+    expect(within(bar).getByText("Shop")).toBeDefined();
+    expect(within(bar).getByText("Food")).toBeDefined();
+    expect(within(bar).getByText("Dress up")).toBeDefined();
   });
 
-  it("shows daily check-in entry when today's check-in is not done, and hides it when done", async () => {
+  it("shows the check-in bubble when today's check-in is not done, and a chip when it is", async () => {
     const today = todayKey();
     const demo = buildDemoState({ today });
     // State with NO check-in for today
@@ -173,10 +161,11 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
       </ProviderWrapper>,
     );
 
-    // Check-in entry is present
     const checkInLink = await screen.findByTestId("nav-check-in");
-    expect(checkInLink).toBeDefined();
     expect(checkInLink.getAttribute("href")).toBe(ROUTES.checkIn);
+    expect(checkInLink.textContent).toContain("How are you today?");
+    expect(checkInLink.textContent).toContain("Tap to tell me with drawings");
+    expect(screen.queryByTestId("check-in-done")).toBeNull();
 
     unmount();
 
@@ -203,58 +192,9 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
       </ProviderWrapper>,
     );
 
-    await screen.findByTestId("home-play-button");
+    const chip = await screen.findByTestId("check-in-done");
+    expect(chip.textContent).toContain("Told me today");
     expect(screen.queryByTestId("nav-check-in")).toBeNull();
-  });
-
-  it("redirects to ROUTES.parent when deviceRole is parent", async () => {
-    const today = todayKey();
-    const demo = buildDemoState({ today });
-    const parentState: AppState = {
-      ...demo,
-      child: { nickname: "Lucas" },
-      settings: {
-        ...demo.settings!,
-        deviceRole: "parent",
-      },
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(parentState));
-
-    renderWithTheme(
-      <ProviderWrapper>
-        <HomeScreen />
-      </ProviderWrapper>,
-    );
-
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith(ROUTES.parent);
-    });
-  });
-
-  it("renders small parent link and hides door link when deviceRole is child", async () => {
-    const today = todayKey();
-    const demo = buildDemoState({ today });
-    const childOnlyState: AppState = {
-      ...demo,
-      child: { nickname: "Lucas" },
-      settings: {
-        ...demo.settings!,
-        deviceRole: "child",
-      },
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(childOnlyState));
-
-    renderWithTheme(
-      <ProviderWrapper>
-        <HomeScreen />
-      </ProviderWrapper>,
-    );
-
-    await screen.findByTestId("home-play-button");
-    expect(screen.queryByText("Parents")).toBeNull();
-    const smallLink = screen.getByRole("link", { name: "Parent mode" });
-    expect(smallLink).toBeDefined();
-    expect(smallLink.getAttribute("href")).toBe(ROUTES.parent);
   });
 
   it("renders dragon evolution stage badge with English copy and updates with fire level", async () => {
@@ -279,7 +219,7 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     const badge = await screen.findByTestId("evolution-stage-badge");
     expect(badge).toBeDefined();
     expect(badge.textContent).toContain("Baby Dragon");
-    expect(badge.textContent).toContain("50 🔥 to evolve");
+    expect(badge.textContent).toContain("50 fire to grow");
 
     unmount();
 

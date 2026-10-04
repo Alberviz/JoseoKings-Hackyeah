@@ -1,7 +1,7 @@
 import styled, { css } from "styled-components";
 import { pressable } from "../Button/Button.style";
 
-export type ChipTone = "default" | "primary" | "success";
+export type ChipTone = "default" | "primary" | "success" | "mixed" | "harder";
 
 // Text is always ink; the tone only changes the fill, so every tone keeps high contrast.
 const toneStyles = {
@@ -13,6 +13,12 @@ const toneStyles = {
   `,
   success: css`
     background: ${({ theme }) => theme.colors.successSoft};
+  `,
+  mixed: css`
+    background: ${({ theme }) => theme.colors.highlight};
+  `,
+  harder: css`
+    background: ${({ theme }) => theme.colors.coralSoft};
   `,
 };
 
