@@ -550,11 +550,7 @@
           <path class="fill-white" d="M 425 526 L 438 546 L 451 526 M 573 526 L 586 546 L 599 526" />
         </g>
 
-        <!-- State 6: Sad / Down-turned Mouth -->
-        <g id="mouth-state-sad" style="display: none;">
-          <path class="dragon-ink" fill="none"
-                d="M 420 562 C 460 540 564 540 604 562" />
-        </g>
+
 
       </g>
     </g>
