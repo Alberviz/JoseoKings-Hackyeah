@@ -4,10 +4,8 @@ import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
-  Card,
   Chip,
   Dialog,
-  Heading,
   LinkButton,
   OptionButton,
   OptionGroup,
@@ -25,6 +23,9 @@ import { createPinRecord, isValidPin, verifyPin } from "@/lib/pin";
 import { exportBackup, importBackup } from "@/lib/storage";
 import type { DeviceRole } from "@/types";
 import { formatMissionTitle } from "../missionLabels";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
+import { SectionCard } from "../SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "../sections";
 import { PinGate } from "../PinGate/PinGate";
 import {
   AlertBox,
@@ -32,6 +33,7 @@ import {
   HiddenFileInput,
   SettingsContainer,
   StyledForm,
+  SubtitleRow,
 } from "./SettingsScreen.style";
 
 const ALL_MISSIONS = Object.values(MISSION_IDS);
@@ -233,18 +235,22 @@ export function SettingsScreen() {
     <Screen>
       <SettingsContainer>
         <Stack gap="lg">
-          <Stack gap="xs">
-            <Stack gap="sm" direction="row" align="center">
-              <Heading level={1}>Parent settings</Heading>
-              {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
-            </Stack>
-            <Text tone="muted">Manage missions, security, and app data.</Text>
-          </Stack>
+          <ParentBanner
+            section="more"
+            icon="settings"
+            title="Parent settings"
+            hasGear={false}
+            subtitle={
+              <SubtitleRow>
+                This phone
+                {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
+              </SubtitleRow>
+            }
+          />
 
           {/* Device role */}
-          <Card label="Device role">
+          <SectionCard section="more" title="This phone is for" label="Device role">
             <Stack gap="md">
-              <Heading level={2}>This phone is for</Heading>
               <Text size="sm" tone="muted">
                 Choose how this phone is used. Child-only phones hide parent shortcuts, and
                 parent-only phones open directly in parent mode.
@@ -267,12 +273,11 @@ export function SettingsScreen() {
                 />
               </OptionGroup>
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 1. Enabled missions */}
-          <Card label="Enabled missions">
+          <SectionCard section="more" title="Enabled missions">
             <Stack gap="md">
-              <Heading level={2}>Enabled missions</Heading>
               <Text size="sm" tone="muted">
                 Choose which missions appear in child mode. At least one mission must be enabled.
               </Text>
@@ -292,12 +297,11 @@ export function SettingsScreen() {
                 </AlertBox>
               ) : null}
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 2. Change PIN */}
-          <Card label="Change PIN">
+          <SectionCard section="more" title="Change PIN">
             <StyledForm onSubmit={handleChangePinSubmit}>
-              <Heading level={2}>Change PIN</Heading>
               <Text size="sm" tone="muted">
                 Enter your current 4-digit PIN, then choose a new one.
               </Text>
@@ -355,7 +359,7 @@ export function SettingsScreen() {
 
               <Button
                 type="submit"
-                variant="primary"
+                variant={SECTION_BUTTON_VARIANT.more}
                 disabled={
                   currentPin.length !== 4 ||
                   newPin.length !== 4 ||
@@ -366,12 +370,11 @@ export function SettingsScreen() {
                 Update PIN
               </Button>
             </StyledForm>
-          </Card>
+          </SectionCard>
 
           {/* 3. Backup and restore */}
-          <Card label="Backup and restore">
+          <SectionCard section="more" title="Backup and restore">
             <Stack gap="md">
-              <Heading level={2}>Backup and restore</Heading>
               <Text size="sm" tone="muted">
                 All data is stored only on this device. You can download a backup file or restore a
                 previously saved backup.
@@ -412,33 +415,31 @@ export function SettingsScreen() {
                 </Button>
               </Stack>
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 4. Demo data */}
-          <Card label="Demo data">
+          <SectionCard section="more" title="Demo data">
             <Stack gap="md">
-              <Heading level={2}>Demo data</Heading>
               <Text size="sm" tone="muted">
                 Load 90 days of fictional sample data to test and preview the app features.
               </Text>
               {state.isDemo ? (
-                <Card label="Demo PIN information">
+                <AlertBox $variant="info" aria-label="Demo PIN information">
                   <Stack gap="xs" direction="row" align="center">
                     <Chip label="Demo data" tone="primary" />
                     <Text size="sm">Demo PIN: 1234</Text>
                   </Stack>
-                </Card>
+                </AlertBox>
               ) : null}
               <Button variant="secondary" onClick={handleLoadDemo}>
                 Load demo data
               </Button>
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 5. Clear all data */}
-          <Card label="Clear data">
+          <SectionCard section="more" title="Clear all data" label="Clear data">
             <Stack gap="md">
-              <Heading level={2}>Clear all data</Heading>
               <Text size="sm" tone="muted">
                 Permanently delete all child profile, check-ins, mission logs, and settings from
                 this device.
@@ -447,7 +448,7 @@ export function SettingsScreen() {
                 Clear all data
               </Button>
             </Stack>
-          </Card>
+          </SectionCard>
 
           <Dialog
             open={isClearDialogOpen}

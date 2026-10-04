@@ -42,3 +42,10 @@ export const FactLine = styled.p`
   color: ${({ theme }) => theme.colors.textMuted};
   font-size: ${({ theme }) => theme.fontSize.sm};
 `;
+
+export const SubtitleRow = styled.span`
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;

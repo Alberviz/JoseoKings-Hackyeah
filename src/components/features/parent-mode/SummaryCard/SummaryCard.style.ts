@@ -39,11 +39,6 @@ export const AnswerValue = styled.span`
   font-weight: ${({ theme }) => theme.fontWeight.bold};
 `;
 
-export const AnswerLabel = styled.span`
-  font-size: ${({ theme }) => theme.fontSize.sm};
-  color: ${({ theme }) => theme.colors.ink};
-`;
-
 export const DegreeFaceSvg = styled.svg`
   width: 18px;
   height: 18px;
@@ -81,14 +76,4 @@ export const MissionHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-`;
-
-export const PromptCard = styled.aside`
-  padding: ${({ theme }) => theme.spacing.md};
-  background: ${({ theme }) => theme.colors.primarySoft};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.radius.md};
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.sm};
 `;

@@ -9,20 +9,8 @@ export const PatternsLayout = styled.section`
   margin: 0 auto;
 `;
 
-export const ScreenHeader = styled.header`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xs};
-`;
-
-export const HeaderBadgeRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  margin-top: ${({ theme }) => theme.spacing.xs};
-`;
-
 export const DemoBadge = styled.span`
+  margin-left: ${({ theme }) => theme.spacing.sm};
   font-size: ${({ theme }) => theme.fontSize.sm};
   font-weight: ${({ theme }) => theme.fontWeight.bold};
   color: ${({ theme }) => theme.colors.primary};
@@ -50,10 +38,6 @@ export const DisclaimerTitle = styled.span`
 `;
 
 export const EmptyStateCard = styled.article`
-  background-color: ${({ theme }) => theme.colors.surface};
-  border: 2px dashed ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
-  padding: ${({ theme }) => theme.spacing.xl};
   display: flex;
   flex-direction: column;
   align-items: center;

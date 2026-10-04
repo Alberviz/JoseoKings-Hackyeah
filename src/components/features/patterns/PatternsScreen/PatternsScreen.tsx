@@ -1,8 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { PinGate } from "@/components/features/parent-mode";
-import { Heading, LinkButton, Screen, Text } from "@/components/ui";
+import {
+  ParentBanner,
+  PinGate,
+  SECTION_BUTTON_VARIANT,
+  SectionCard,
+} from "@/components/features/parent-mode";
+import { LinkButton, Screen, Text } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { PATTERNS_DISCLAIMER, REPORT_DISCLAIMER } from "@/content";
 import { useAppState } from "@/hooks/useAppState";
@@ -24,9 +29,7 @@ import {
   DisclaimerCard,
   DisclaimerTitle,
   EmptyStateCard,
-  HeaderBadgeRow,
   PatternsLayout,
-  ScreenHeader,
 } from "./PatternsScreen.style";
 
 export function PatternsScreen() {
@@ -60,10 +63,13 @@ export function PatternsScreen() {
     return (
       <Screen>
         <PatternsLayout>
-          <ScreenHeader>
-            <Heading level={1}>Patterns & Trends</Heading>
-            <Text tone="muted">Loading patterns data...</Text>
-          </ScreenHeader>
+          <ParentBanner
+            section="patterns"
+            icon="patterns"
+            title="Patterns & Trends"
+            subtitle="Loading patterns data..."
+            hasGear={false}
+          />
         </PatternsLayout>
       </Screen>
     );
@@ -96,30 +102,31 @@ export function PatternsScreen() {
   return (
     <Screen>
       <PatternsLayout>
-        <ScreenHeader>
-          <Heading level={1}>Patterns & Trends</Heading>
-          <Text tone="muted">
-            Overview of recorded daily check-ins, sleep and reported discomfort over time.
-          </Text>
-          {state.isDemo && (
-            <HeaderBadgeRow>
-              <DemoBadge>Demo data (Lucas, 90 days)</DemoBadge>
-            </HeaderBadgeRow>
-          )}
-        </ScreenHeader>
+        <ParentBanner
+          section="patterns"
+          icon="patterns"
+          title="Patterns & Trends"
+          subtitle={
+            <>
+              Overview of recorded daily check-ins, sleep and reported discomfort over time.
+              {state.isDemo && <DemoBadge>Demo data (Lucas, 90 days)</DemoBadge>}
+            </>
+          }
+        />
 
         {!enough.enough ? (
-          <EmptyStateCard>
-            <Heading level={2}>Not enough data yet</Heading>
-            <Text tone="muted">
-              At least {MIN_ANSWERED_DAYS} days of answered daily check-ins are required to display
-              meaningful patterns and trends. So far, {enough.answeredDays}{" "}
-              {enough.answeredDays === 1 ? "day has" : "days have"} been answered.
-            </Text>
-            <LinkButton href={ROUTES.parentSettings} variant="primary">
-              Go to Parent Settings
-            </LinkButton>
-          </EmptyStateCard>
+          <SectionCard section="patterns" title="Not enough data yet">
+            <EmptyStateCard>
+              <Text tone="muted">
+                At least {MIN_ANSWERED_DAYS} days of answered daily check-ins are required to
+                display meaningful patterns and trends. So far, {enough.answeredDays}{" "}
+                {enough.answeredDays === 1 ? "day has" : "days have"} been answered.
+              </Text>
+              <LinkButton href={ROUTES.parentSettings} variant={SECTION_BUTTON_VARIANT.patterns}>
+                Go to Parent Settings
+              </LinkButton>
+            </EmptyStateCard>
+          </SectionCard>
         ) : (
           <>
             <ColourCalendar summaries={summaries} />

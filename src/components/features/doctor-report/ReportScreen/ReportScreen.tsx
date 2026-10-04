@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { PinGate } from "@/components/features/parent-mode";
+import { ParentBanner, PinGate } from "@/components/features/parent-mode";
 import { Screen, Stack, Text } from "@/components/ui";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { hasPin } from "@/lib/pin";
 import { buildReport } from "@/lib/report";
+import { BannerWrapper } from "./ReportScreen.style";
 import { DoctorReportView } from "../DoctorReportView/DoctorReportView";
 
 // The report shows health information entered by the family: it stays behind the parent PIN.
@@ -50,6 +51,14 @@ export function ReportScreen() {
 
   return (
     <Screen>
+      <BannerWrapper>
+        <ParentBanner
+          section="more"
+          icon="log"
+          title="Doctor report"
+          subtitle="Since the last visit"
+        />
+      </BannerWrapper>
       <DoctorReportView data={report} />
     </Screen>
   );

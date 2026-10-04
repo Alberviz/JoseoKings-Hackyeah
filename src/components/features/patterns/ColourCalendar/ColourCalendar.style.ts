@@ -2,11 +2,7 @@ import styled, { css } from "styled-components";
 
 export type CalendarDayStatus = "calm" | "mild" | "discomfort" | "not-today" | "no-data";
 
-export const CalendarCard = styled.article`
-  background-color: ${({ theme }) => theme.colors.surface};
-  border: 2px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
-  padding: ${({ theme }) => theme.spacing.lg};
+export const CalendarBody = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};

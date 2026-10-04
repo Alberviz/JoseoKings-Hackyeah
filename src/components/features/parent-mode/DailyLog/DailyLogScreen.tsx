@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
-  Card,
-  Heading,
+  Chip,
   OptionButton,
   OptionGroup,
   Screen,
@@ -19,7 +18,10 @@ import { useParentSession } from "@/hooks/useParentSession";
 import { addDays, isDateKey, todayKey } from "@/lib/dates";
 import { hasPin } from "@/lib/pin";
 import type { ActivityLevel, Consultation, MedicationTaken, ParentLog, SchoolDay } from "@/types";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { PinGate } from "../PinGate/PinGate";
+import { SectionCard } from "../SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "../sections";
 import {
   AlertBox,
   ConsultationItem,
@@ -115,9 +117,8 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
   };
 
   return (
-    <Card label="Daily facts">
+    <SectionCard section="log" title="Daily facts">
       <StyledForm onSubmit={handleSaveLog}>
-        <Heading level={2}>Daily facts</Heading>
         <Text size="sm" tone="muted">
           Edit any past day. Saving replaces the log for that day.
         </Text>
@@ -183,11 +184,11 @@ function DayForm({ date, initialLog, onSave }: DayFormProps) {
           maxLength={500}
         />
 
-        <Button type="submit" variant="primary" fullWidth>
+        <Button type="submit" variant={SECTION_BUTTON_VARIANT.log} fullWidth>
           Save day
         </Button>
       </StyledForm>
-    </Card>
+    </SectionCard>
   );
 }
 
@@ -292,14 +293,11 @@ export function DailyLogScreen() {
     <Screen>
       <DailyLogContainer>
         <Stack gap="lg">
-          <Stack gap="xs">
-            <Heading level={1}>Daily log</Heading>
-            <Text tone="muted">{`Facts for ${childName}. No drug names or doses.`}</Text>
-          </Stack>
+          <ParentBanner section="log" icon="log" title="Daily log" subtitle="Facts for the day" />
 
-          <Card label="Day">
+          <SectionCard section="log" title="Day">
             <Stack gap="md">
-              <Heading level={2}>Day</Heading>
+              <Text tone="muted">{`Facts for ${childName}. No drug names or doses.`}</Text>
               <DateNav>
                 <Button
                   type="button"
@@ -325,7 +323,7 @@ export function DailyLogScreen() {
                 onChange={(value) => selectDate(value)}
               />
             </Stack>
-          </Card>
+          </SectionCard>
 
           <DayForm
             key={selectedDate}
@@ -334,9 +332,8 @@ export function DailyLogScreen() {
             onSave={actions.saveParentLog}
           />
 
-          <Card label="Consultations">
+          <SectionCard section="log" title="Consultations">
             <Stack gap="md">
-              <Heading level={2}>Consultations</Heading>
               <Text size="sm" tone="muted">
                 Mark visit dates. The doctor report uses the time since the last consultation.
               </Text>
@@ -370,13 +367,13 @@ export function DailyLogScreen() {
                 <ConsultationList aria-label="Consultation dates">
                   {sortedConsultations.map((item) => (
                     <ConsultationItem key={item.id}>
-                      <Text>{item.date}</Text>
+                      <Chip label={item.date} tone="primary" />
                     </ConsultationItem>
                   ))}
                 </ConsultationList>
               )}
             </Stack>
-          </Card>
+          </SectionCard>
 
           <Stack gap="sm">
             <Button type="button" variant="secondary" onClick={session.lock} fullWidth>

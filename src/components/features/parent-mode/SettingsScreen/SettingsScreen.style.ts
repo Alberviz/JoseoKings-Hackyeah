@@ -48,3 +48,10 @@ export const AlertBox = styled.div<{ $variant?: "urgent" | "info" | "success" }>
   font-size: ${({ theme }) => theme.fontSize.sm};
   line-height: 1.4;
 `;
+
+export const SubtitleRow = styled.span`
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;

@@ -1,18 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  Button,
-  Card,
-  Chip,
-  Dialog,
-  Heading,
-  LinkButton,
-  Screen,
-  Stack,
-  Text,
-} from "@/components/ui";
-import { ROUTES } from "@/config/app";
+import { Button, Chip, Dialog, Screen, Stack, Text } from "@/components/ui";
 import { useAppState } from "@/hooks/useAppState";
 import { useFamilyLink } from "@/hooks/useFamilyLink";
 import { useParentSession } from "@/hooks/useParentSession";
@@ -30,6 +19,9 @@ import {
 } from "@/lib/link";
 import { hasPin } from "@/lib/pin";
 import { PinGate } from "@/components/features/parent-mode/PinGate/PinGate";
+import { ParentBanner } from "@/components/features/parent-mode/ParentBanner/ParentBanner";
+import { SectionCard } from "@/components/features/parent-mode/SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "@/components/features/parent-mode/sections";
 import { CopyCodeButton } from "../CopyCodeButton/CopyCodeButton";
 import { describeLinkError } from "../linkMessages";
 import { QrDisplay } from "../QrDisplay/QrDisplay";
@@ -38,6 +30,7 @@ import {
   FactLine,
   FamilyLinkContainer,
   KeyWarning,
+  SubtitleRow,
   SummaryList,
   SummaryTerm,
   SummaryValue,
@@ -202,20 +195,22 @@ export function FamilyLinkScreen() {
   return (
     <Screen>
       <FamilyLinkContainer>
-        <Stack gap="xs">
-          <Stack gap="sm" direction="row" align="center">
-            <Heading level={1}>Family link</Heading>
-            {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
-          </Stack>
-          <Text tone="muted">
-            Connect {childName}&apos;s phone to this one with a code shown on screen. No internet,
-            no account, nothing leaves your phones.
-          </Text>
-        </Stack>
+        <ParentBanner
+          section="more"
+          icon="more"
+          title="Family link"
+          subtitle={
+            <SubtitleRow>
+              Pair the two phones
+              {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
+            </SubtitleRow>
+          }
+        />
 
-        <LinkButton href={ROUTES.parent} variant="secondary">
-          ← Back to parent summary
-        </LinkButton>
+        <Text tone="muted">
+          Connect {childName}&apos;s phone to this one with a code shown on screen. No internet, no
+          account, nothing leaves your phones.
+        </Text>
 
         {!cryptoAvailable ? (
           <Text tone="urgent">
@@ -225,26 +220,24 @@ export function FamilyLinkScreen() {
         ) : null}
 
         {!link && cryptoAvailable ? (
-          <Card label="Create the family link">
+          <SectionCard section="more" title="Create the family link">
             <Stack gap="md">
-              <Heading level={2}>Create the family link</Heading>
               <Text size="sm">
                 This creates a secret key that lives only on your two phones. The key travels once,
                 in a pairing code you show to {childName}&apos;s phone. Every data code after that
                 can be read only with it.
               </Text>
-              <Button variant="primary" fullWidth onClick={createLink}>
+              <Button variant={SECTION_BUTTON_VARIANT.more} fullWidth onClick={createLink}>
                 Create family link
               </Button>
             </Stack>
-          </Card>
+          </SectionCard>
         ) : null}
 
         {link && cryptoAvailable ? (
           <>
-            <Card label="Pairing code">
+            <SectionCard section="more" title="Pairing code">
               <Stack gap="md">
-                <Heading level={2}>Pairing code</Heading>
                 <FactLine>
                   Linked since {link.linkedAt.slice(0, 10)}
                   {link.lastExchangeAt
@@ -256,7 +249,7 @@ export function FamilyLinkScreen() {
                   does not carry any health record.
                 </KeyWarning>
                 <Button
-                  variant={isPairingVisible ? "secondary" : "primary"}
+                  variant={isPairingVisible ? "secondary" : SECTION_BUTTON_VARIANT.more}
                   fullWidth
                   aria-expanded={isPairingVisible}
                   onClick={() => setIsPairingVisible((value) => !value)}
@@ -270,11 +263,14 @@ export function FamilyLinkScreen() {
                   </>
                 ) : null}
               </Stack>
-            </Card>
+            </SectionCard>
 
-            <Card label="Receive from the child's phone">
+            <SectionCard
+              section="more"
+              title={`Receive from ${childName}`}
+              label="Receive from the child's phone"
+            >
               <Stack gap="md">
-                <Heading level={2}>Receive from {childName}</Heading>
                 <Text size="sm">
                   On {childName}&apos;s phone, open Show your parents. Scan the code it shows; if it
                   has several parts, keep the camera on until all parts are in.
@@ -285,7 +281,7 @@ export function FamilyLinkScreen() {
                   hint={`Point the camera at the data code on ${childName}'s phone.`}
                 />
               </Stack>
-            </Card>
+            </SectionCard>
 
             <Button variant="secondary" fullWidth onClick={() => setIsForgetOpen(true)}>
               Forget this link
@@ -297,9 +293,6 @@ export function FamilyLinkScreen() {
           <Button variant="secondary" onClick={session.lock} fullWidth>
             Lock
           </Button>
-          <LinkButton href={ROUTES.parent} variant="secondary" fullWidth>
-            Back to parent summary
-          </LinkButton>
         </Stack>
 
         <Dialog
@@ -322,7 +315,11 @@ export function FamilyLinkScreen() {
               <Text size="sm" tone="muted">
                 Records already on this phone were kept. Nothing was deleted.
               </Text>
-              <Button variant="primary" fullWidth onClick={() => setLastSummary(null)}>
+              <Button
+                variant={SECTION_BUTTON_VARIANT.more}
+                fullWidth
+                onClick={() => setLastSummary(null)}
+              >
                 Close
               </Button>
             </Stack>
