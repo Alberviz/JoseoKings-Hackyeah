@@ -24,6 +24,32 @@ export type ActivityConfidenceCount = {
   count: number;
 };
 
+export type WatchMetricSummary = {
+  /** Valid days that fed this metric. */
+  n: number;
+  median: number | null;
+  q1: number | null;
+  q3: number | null;
+};
+
+export type WatchReportSection = {
+  source: "Watch";
+  isDemo: boolean;
+  /** Days in the period with at least one valid watch value. */
+  validDays: number;
+  steps: WatchMetricSummary;
+  /** Nocturnal resting heart rate, beats per minute. */
+  restingHr: WatchMetricSummary;
+  sleepHours: WatchMetricSummary;
+};
+
+/** Day counts from the parent log. Never scores, never causes. */
+export type ObservedSection = {
+  loggedDays: number;
+  school: { attended: number; leftEarly: number; missed: number; noSchool: number };
+  medication: { yes: number; partly: number; no: number; notApplicable: number };
+};
+
 export type DoctorReportData = {
   childNickname: string;
   isDemo: boolean;
@@ -48,6 +74,8 @@ export type DoctorReportData = {
     byConfidence: ActivityConfidenceCount[];
   };
   foodsOnDiscomfortDays: FoodCooccurrence[];
+  watch: WatchReportSection;
+  observed: ObservedSection;
   dayStrip: DayStripEntry[];
   disclaimer: string;
 };

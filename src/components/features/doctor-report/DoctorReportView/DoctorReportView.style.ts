@@ -360,7 +360,7 @@ export const Table = styled.table`
   }
 
   @media print {
-    font-size: 8pt !important;
+    font-size: 7.5pt !important;
 
     tbody tr:nth-child(even) {
       background: ${({ theme }) => theme.colors.background} !important;
@@ -405,7 +405,8 @@ export const TableCell = styled.td`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
   @media print {
-    padding: 2px 4px !important;
+    padding: 1px 4px !important;
+    line-height: 1.2 !important;
     border: 1px solid ${({ theme }) => theme.colors.border} !important;
     color: ${({ theme }) => theme.colors.text} !important;
   }

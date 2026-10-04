@@ -1,0 +1,78 @@
+import { describe, expect, it } from "vitest";
+import type { ParentLog } from "@/types";
+import type { WatchDay, WatchState } from "@/types/watch";
+import { buildObservedSection, buildWatchSection } from "./sections";
+
+function day(date: string, over: Partial<WatchDay> = {}): WatchDay {
+  return {
+    date,
+    steps: 5000,
+    restingHr: 60,
+    sleepMinutes: 480,
+    nightComplete: true,
+    dayComplete: true,
+    ...over,
+  };
+}
+
+function state(days: WatchDay[], isDemo = false): WatchState {
+  return { days, lastSyncAt: null, isDemo };
+}
+
+describe("buildWatchSection", () => {
+  it("returns empty summaries when there is no data", () => {
+    const s = buildWatchSection(state([]), "2026-09-01", "2026-09-30");
+    expect(s.validDays).toBe(0);
+    expect(s.steps).toEqual({ n: 0, median: null, q1: null, q3: null });
+    expect(s.source).toBe("Watch");
+  });
+
+  it("computes median and quartiles over period days only", () => {
+    const days = [
+      day("2026-08-31", { steps: 99999 }),
+      day("2026-09-01", { steps: 2000, restingHr: 58, sleepMinutes: 420 }),
+      day("2026-09-02", { steps: 4000, restingHr: 60, sleepMinutes: 480 }),
+      day("2026-09-03", { steps: 6000, restingHr: 62, sleepMinutes: 540 }),
+      day("2026-09-04", { steps: 8000, restingHr: 64, sleepMinutes: 600 }),
+    ];
+    const s = buildWatchSection(state(days), "2026-09-01", "2026-09-30");
+    expect(s.validDays).toBe(4);
+    expect(s.steps).toEqual({ n: 4, median: 5000, q1: 3000, q3: 7000 });
+    expect(s.restingHr.median).toBe(61);
+    expect(s.sleepHours.median).toBe(8.5);
+  });
+
+  it("skips incomplete halves of a day and null values", () => {
+    const days = [
+      day("2026-09-01", { nightComplete: false }),
+      day("2026-09-02", { dayComplete: false, steps: 100 }),
+      day("2026-09-03", { steps: null, restingHr: null, sleepMinutes: null }),
+    ];
+    const s = buildWatchSection(state(days), "2026-09-01", "2026-09-30");
+    expect(s.steps.n).toBe(1);
+    expect(s.restingHr.n).toBe(1);
+    expect(s.sleepHours.n).toBe(1);
+    expect(s.validDays).toBe(2);
+  });
+
+  it("carries the demo flag", () => {
+    expect(buildWatchSection(state([], true), "2026-09-01", "2026-09-30").isDemo).toBe(true);
+  });
+});
+
+describe("buildObservedSection", () => {
+  it("counts school and medication days", () => {
+    const logs: ParentLog[] = [
+      { date: "2026-09-01", school: "attended", medicationTaken: "yes" },
+      { date: "2026-09-02", school: "missed", medicationTaken: "no" },
+      { date: "2026-09-03", school: "left-early", medicationTaken: "partly" },
+      { date: "2026-09-04", school: "no-school", medicationTaken: "not-applicable" },
+      { date: "2026-09-05" },
+    ];
+    expect(buildObservedSection(logs)).toEqual({
+      loggedDays: 5,
+      school: { attended: 1, leftEarly: 1, missed: 1, noSchool: 1 },
+      medication: { yes: 1, partly: 1, no: 1, notApplicable: 1 },
+    });
+  });
+});

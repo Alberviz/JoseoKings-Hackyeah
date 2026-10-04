@@ -2,7 +2,10 @@ import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays, daysBetween, todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
+import { createEmptyWatchState } from "@/lib/storage/watchStore";
 import type { AppState, DateKey, MissionCompany } from "@/types";
+import type { WatchState } from "@/types/watch";
+import { buildObservedSection, buildWatchSection } from "./sections";
 import type {
   ActivityConfidenceCount,
   DayStripEntry,
@@ -18,7 +21,11 @@ function isSchoolImpacted(school?: string): boolean {
   );
 }
 
-export function buildReport(state: AppState, today: DateKey = todayKey()): DoctorReportData {
+export function buildReport(
+  state: AppState,
+  today: DateKey = todayKey(),
+  watch: WatchState = createEmptyWatchState(),
+): DoctorReportData {
   const priorConsultations = [...(state.consultations ?? [])]
     .filter((c) => c.date <= today)
     .sort((a, b) => b.date.localeCompare(a.date));
@@ -173,6 +180,8 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
       byConfidence,
     },
     foodsOnDiscomfortDays,
+    watch: buildWatchSection(watch, startDate, endDate),
+    observed: buildObservedSection(periodParentLogs),
     dayStrip,
     disclaimer: REPORT_DISCLAIMER,
   };

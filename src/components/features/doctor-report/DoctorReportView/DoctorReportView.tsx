@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui";
 import { APP_NAME } from "@/config/app";
-import type { DoctorReportData } from "@/lib/report/types";
+import type { DoctorReportData, WatchMetricSummary } from "@/lib/report/types";
 import {
   ActivityConfidenceCard,
   ActivityConfidenceCount,
@@ -42,6 +42,14 @@ import {
   TotalMissionsBadge,
   TotalMissionsHighlight,
 } from "./DoctorReportView.style";
+
+function formatMedian(metric: WatchMetricSummary, unit: string): string {
+  return metric.median === null ? "—" : `${metric.median} ${unit}`;
+}
+
+function formatRange(metric: WatchMetricSummary, unit: string): string {
+  return metric.q1 === null || metric.q3 === null ? "—" : `${metric.q1} to ${metric.q3} ${unit}`;
+}
 
 export type DoctorReportViewProps = {
   data: DoctorReportData;
@@ -172,7 +180,95 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
           </ActivityOverview>
         </ReportSection>
 
-        {/* Section 3: Daily strip / timeline */}
+        {/* Section 3: Watch data */}
+        <ReportSection aria-labelledby="section-watch">
+          <SectionTitle id="section-watch">Watch data</SectionTitle>
+          {data.watch.isDemo && <DemoBadge>Demo data</DemoBadge>}
+          {data.watch.validDays === 0 ? (
+            <SectionNote>No data from the watch in this period.</SectionNote>
+          ) : (
+            <>
+              <SectionNote>
+                Source: {data.watch.source}. Median and middle half (interquartile range) of the
+                days with enough data. Valid days: {data.watch.validDays} of {data.period.totalDays}
+                . Measured by the watch, not checked clinically.
+              </SectionNote>
+              <TableContainer>
+                <Table aria-label="Watch data summary">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell scope="col">Measure</TableHeaderCell>
+                      <TableHeaderCell scope="col">Median</TableHeaderCell>
+                      <TableHeaderCell scope="col">Middle half</TableHeaderCell>
+                      <TableHeaderCell scope="col">Valid days (N)</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(
+                      [
+                        ["Steps per day", data.watch.steps, "steps"],
+                        ["Resting heart rate at night", data.watch.restingHr, "bpm"],
+                        ["Sleep", data.watch.sleepHours, "h"],
+                      ] as const
+                    ).map(([label, metric, unit]) => (
+                      <TableRow key={label}>
+                        <TableCell>{label}</TableCell>
+                        <TableCell>{formatMedian(metric, unit)}</TableCell>
+                        <TableCell>{formatRange(metric, unit)}</TableCell>
+                        <TableCell>{metric.n}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
+        </ReportSection>
+
+        {/* Section 4: Observed by the family */}
+        <ReportSection aria-labelledby="section-observed">
+          <SectionTitle id="section-observed">Observed by the family</SectionTitle>
+          {data.observed.loggedDays === 0 ? (
+            <SectionNote>No daily notes from the family in this period.</SectionNote>
+          ) : (
+            <>
+              <SectionNote>
+                Day counts from the family daily log ({data.observed.loggedDays} days logged).
+              </SectionNote>
+              <TableContainer>
+                <Table aria-label="Observed by the family">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell scope="col">Item</TableHeaderCell>
+                      <TableHeaderCell scope="col">Days</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(
+                      [
+                        ["School: attended", data.observed.school.attended],
+                        ["School: left early", data.observed.school.leftEarly],
+                        ["School: missed", data.observed.school.missed],
+                        ["School: no school that day", data.observed.school.noSchool],
+                        ["Medication: taken", data.observed.medication.yes],
+                        ["Medication: partly taken", data.observed.medication.partly],
+                        ["Medication: not taken", data.observed.medication.no],
+                        ["Medication: not applicable", data.observed.medication.notApplicable],
+                      ] as const
+                    ).map(([label, count]) => (
+                      <TableRow key={label}>
+                        <TableCell>{label}</TableCell>
+                        <TableCell>{count}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
+        </ReportSection>
+
+        {/* Section 5: Daily strip / timeline */}
         <ReportSection aria-labelledby="section-timeline">
           <SectionTitle id="section-timeline">Daily strip / timeline</SectionTitle>
           <TableContainer>
@@ -219,7 +315,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
           </TableContainer>
         </ReportSection>
 
-        {/* Section 4: Co-occurring foods on discomfort days */}
+        {/* Section 6: Co-occurring foods on discomfort days */}
         <ReportSection aria-labelledby="section-foods">
           <SectionTitle id="section-foods">Co-occurring foods on discomfort days</SectionTitle>
           <SectionNote>
@@ -255,7 +351,7 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
           )}
         </ReportSection>
 
-        {/* Section 5: Mandatory disclaimer banner */}
+        {/* Section 7: Mandatory disclaimer banner */}
         <DisclaimerBanner role="note" aria-label="Clinical disclaimer">
           <DisclaimerTitle>Mandatory Notice</DisclaimerTitle>
           <DisclaimerText>{data.disclaimer}</DisclaimerText>
