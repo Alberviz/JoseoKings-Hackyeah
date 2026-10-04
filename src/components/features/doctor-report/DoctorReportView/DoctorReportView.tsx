@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui";
 import { DailyChart } from "../DailyChart/DailyChart";
 import { APP_NAME } from "@/config/app";
+import { WATCH_METHOD_NOTE_TITLE } from "@/lib/report/sections";
 import type { DoctorReportData, WatchMetricSummary } from "@/lib/report/types";
 import {
   ActivityConfidenceCard,
@@ -19,6 +20,9 @@ import {
   HeaderTitleGroup,
   HeaderTopRow,
   MetaItem,
+  MethodNote,
+  MethodNoteTitle,
+  MethodText,
   PrintGlobalStyle,
   ReportContainer,
   ReportHeader,
@@ -251,7 +255,12 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                       ] as const
                     ).map(([label, metric, unit]) => (
                       <TableRow key={label}>
-                        <TableCell>{label}</TableCell>
+                        <TableCell>
+                          {label}
+                          {label === restingHrLabel && data.watch.restingHrMethodText ? (
+                            <MethodText>{data.watch.restingHrMethodText}</MethodText>
+                          ) : null}
+                        </TableCell>
                         <TableCell>{formatMedian(metric, unit)}</TableCell>
                         <TableCell>{formatRange(metric, unit)}</TableCell>
                         <TableCell>{metric.n}</TableCell>
@@ -284,6 +293,12 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                 Orange marks show days the child marked discomfort. Each chart covers the whole
                 period.
               </SectionNote>
+              <MethodNote aria-labelledby="watch-method-title">
+                <MethodNoteTitle id="watch-method-title">{WATCH_METHOD_NOTE_TITLE}</MethodNoteTitle>
+                {data.watch.methodNote.map((paragraph) => (
+                  <SectionNote key={paragraph}>{paragraph}</SectionNote>
+                ))}
+              </MethodNote>
             </>
           )}
         </ReportSection>
@@ -404,7 +419,12 @@ export function DoctorReportView({ data }: DoctorReportViewProps) {
                       ] as const
                     ).map(([label, count]) => (
                       <TableRow key={label}>
-                        <TableCell>{label}</TableCell>
+                        <TableCell>
+                          {label}
+                          {label === restingHrLabel && data.watch.restingHrMethodText ? (
+                            <MethodText>{data.watch.restingHrMethodText}</MethodText>
+                          ) : null}
+                        </TableCell>
                         <TableCell>{count}</TableCell>
                       </TableRow>
                     ))}

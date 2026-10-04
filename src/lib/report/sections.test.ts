@@ -90,6 +90,63 @@ describe("buildWatchSection", () => {
     expect(mixed.restingHrSource).toBe("mixed");
   });
 
+  it("counts the nights by method and writes the method note with the real gap", () => {
+    const sparse = (date: string, gap: number) =>
+      day(date, {
+        restingHrSource: "night-samples",
+        restingHrMethod: "sparse-3-readings",
+        restingHrGapMin: gap,
+      });
+    const s = buildWatchSection(
+      state([
+        sparse("2026-09-01", 30),
+        sparse("2026-09-02", 30),
+        sparse("2026-09-03", 31),
+        day("2026-09-04", { restingHrSource: "night-samples", restingHrMethod: "dense-30min" }),
+        day("2026-09-05", { restingHrSource: "watch-daily" }),
+      ]),
+      "2026-09-01",
+      "2026-09-30",
+    );
+    expect(s.restingHrNights).toEqual({ dense: 1, sparse: 3 });
+    expect(s.sparseGapMin).toBe(30);
+    expect(s.restingHrMethodText).toBe(
+      "lowest 30-minute average on 1 night; lowest average of 3 readings in a row (watch recorded about every 30 min) on 3 nights",
+    );
+    expect(s.methodNote).toEqual([
+      "The figures are simple fixed calculations done on this device from what the watch recorded. They describe this child's own recordings. They are not a clinical measurement and they have not been validated for this use.",
+      "They follow methods used in research on wearables, which mostly used watches that record heart rate about every minute.",
+      "On 3 of the 4 nights the watch recorded heart rate during sleep about every 30 minutes. For those nights the night-time heart rate uses an adapted method, the lowest average of 3 readings in a row, which is less precise. 1 night used the lowest 30-minute average.",
+      "On some days the resting heart rate is the figure the watch itself reported, not one calculated here.",
+      "Published studies of watch data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
+    ]);
+  });
+
+  it("treats saved days without a method as dense nights and names only that method", () => {
+    const s = buildWatchSection(
+      state([day("2026-09-01", { restingHrSource: "night-samples" })]),
+      "2026-09-01",
+      "2026-09-30",
+    );
+    expect(s.restingHrNights).toEqual({ dense: 1, sparse: 0 });
+    expect(s.sparseGapMin).toBeNull();
+    expect(s.restingHrMethodText).toBe("lowest 30-minute average");
+    expect(s.methodNote.join(" ")).not.toContain("3 readings");
+  });
+
+  it("has no method text when there is no night-time figure, and never claims detection", () => {
+    const s = buildWatchSection(
+      state([day("2026-09-01", { restingHrSource: "watch-daily" })]),
+      "2026-09-01",
+      "2026-09-30",
+    );
+    expect(s.restingHrMethodText).toBeNull();
+    const text = s.methodNote.join(" ").toLowerCase();
+    for (const banned of ["detect", "predict", "normal", "healthy", "strong", "high correlation"]) {
+      expect(text).not.toContain(banned);
+    }
+  });
+
   it("carries the demo flag", () => {
     expect(buildWatchSection(state([], true), "2026-09-01", "2026-09-30").isDemo).toBe(true);
   });

@@ -75,6 +75,14 @@ export type WatchReportSection = {
   deviceLabels: string[];
   /** Where the resting heart rate came from: our night readings, the watch's own daily value, or both. */
   restingHrSource: "night-samples" | "watch-daily" | "mixed" | null;
+  /** Nights with a night-time heart-rate figure, by the method that made it (watch-reported days are not counted). */
+  restingHrNights: { dense: number; sparse: number };
+  /** Median minutes between the watch's heart-rate readings during sleep on the sparse-method nights; null when there are none. */
+  sparseGapMin: number | null;
+  /** Short text for the figure itself, for example "lowest average of 3 readings in a row (watch recorded about every 30 min)"; null without a night-time figure. */
+  restingHrMethodText: string | null;
+  /** The "How the watch figures are made" note, one paragraph per entry. */
+  methodNote: string[];
   isDemo: boolean;
   /** Days in the period with at least one valid watch value. */
   validDays: number;

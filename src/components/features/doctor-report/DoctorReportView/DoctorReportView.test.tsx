@@ -49,6 +49,14 @@ const mockReportData: DoctorReportData = {
     source: "From the watch (Google Health)",
     deviceLabels: ["Watch · Fitbit Charge 6"],
     restingHrSource: "night-samples",
+    restingHrNights: { dense: 4, sparse: 14 },
+    sparseGapMin: 30,
+    restingHrMethodText:
+      "lowest 30-minute average on 4 nights; lowest average of 3 readings in a row (watch recorded about every 30 min) on 14 nights",
+    methodNote: [
+      "The figures are simple fixed calculations done on this device from what the watch recorded.",
+      "Published studies of watch data in inflammatory bowel disease are mostly in adults, and their results are mixed, for example on resting heart rate.",
+    ],
     isDemo: false,
     validDays: 20,
     steps: { n: 20, median: 5200, q1: 3900, q3: 6800 },
@@ -225,6 +233,27 @@ describe("DoctorReportView", () => {
     ).toBe(1);
   });
 
+  it("shows how the night-time heart rate was made and the method note", () => {
+    renderWithTheme(<DoctorReportView data={mockReportData} />);
+
+    expect(screen.getByText(/lowest average of 3 readings in a row/)).toBeTruthy();
+    expect(screen.getByText(/watch recorded about every 30 min/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "How the watch figures are made" })).toBeTruthy();
+    expect(screen.getByText(/their results are mixed/)).toBeTruthy();
+  });
+
+  it("shows no method line without a night-time figure", () => {
+    renderWithTheme(
+      <DoctorReportView
+        data={{
+          ...mockReportData,
+          watch: { ...mockReportData.watch, restingHrMethodText: null },
+        }}
+      />,
+    );
+    expect(screen.queryByText(/readings in a row/)).toBeNull();
+  });
+
   it("says when the resting heart rate is the one reported by the watch", () => {
     renderWithTheme(
       <DoctorReportView
@@ -249,6 +278,10 @@ describe("DoctorReportView", () => {
             source: "From the watch (Google Health)",
             deviceLabels: [],
             restingHrSource: null,
+            restingHrNights: { dense: 0, sparse: 0 },
+            sparseGapMin: null,
+            restingHrMethodText: null,
+            methodNote: [],
             isDemo: true,
             validDays: 0,
             steps: empty,

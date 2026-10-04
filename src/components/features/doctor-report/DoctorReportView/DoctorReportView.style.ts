@@ -444,6 +444,39 @@ export const SectionNote = styled.p`
   }
 `;
 
+/** Small muted line under a figure's name, for example how it was calculated. */
+export const MethodText = styled.span`
+  display: block;
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  color: ${({ theme }) => theme.colors.textMuted};
+
+  @media print {
+    font-size: 7pt !important;
+    color: ${({ theme }) => theme.colors.textMuted} !important;
+  }
+`;
+
+export const MethodNote = styled.aside`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding-top: ${({ theme }) => theme.spacing.sm};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  break-inside: avoid;
+`;
+
+export const MethodNoteTitle = styled.h3`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSize.md};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.text};
+
+  @media print {
+    font-size: 8.5pt !important;
+    color: ${({ theme }) => theme.colors.text} !important;
+  }
+`;
+
 export const DisclaimerBanner = styled.aside`
   padding: ${({ theme }) => theme.spacing.md};
   border-radius: ${({ theme }) => theme.radius.md};
