@@ -20,83 +20,124 @@ describe("browserGoogleHealth", () => {
     ).rejects.toThrow(GoogleHealthError);
   });
 
-  it("fetches and normalizes aggregate buckets from the browser", async () => {
-    const mockAggregateResponse = {
-      bucket: [
-        {
-          startTimeMillis: "1700000000000",
-          endTimeMillis: "1700000060000",
-          dataset: [
-            {
-              dataSourceId:
-                "derived:com.google.step_count.delta:com.google.android.gms:merge_step_deltas",
-              point: [
+  it("fetches steps, heart rate and sleep from the v4 endpoints and normalizes them", async () => {
+    const urls: string[] = [];
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
+      urls.push(url);
+      if (url.includes("/dataTypes/steps/")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              dataPoints: [
                 {
-                  startTimeNanos: "1700000000000000000",
-                  endTimeNanos: "1700000060000000000",
-                  value: [{ intVal: 120 }],
+                  steps: {
+                    interval: {
+                      startTime: "2023-11-14T22:13:20Z",
+                      endTime: "2023-11-14T22:14:20Z",
+                    },
+                    count: "120",
+                  },
                 },
               ],
-            },
-          ],
-        },
-      ],
-    };
-
-    const mockFetch = vi.fn().mockImplementation((url: string) => {
-      if (url.includes("/dataset:aggregate")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockAggregateResponse),
+            }),
         });
       }
-      if (url.includes("/sessions")) {
+      if (url.includes("/dataTypes/heart-rate/")) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ session: [] }),
+          json: () =>
+            Promise.resolve({
+              dataPoints: [
+                {
+                  heartRate: {
+                    sampleTime: { physicalTime: "2023-11-14T22:13:25Z" },
+                    beatsPerMinute: "70",
+                  },
+                },
+                {
+                  heartRate: {
+                    sampleTime: { physicalTime: "2023-11-14T22:13:45Z" },
+                    beatsPerMinute: "72",
+                  },
+                },
+              ],
+            }),
         });
       }
-      return Promise.resolve({ ok: false, status: 404 });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
     });
-
     vi.stubGlobal("fetch", mockFetch);
 
     const result = await fetchBrowserGoogleHealth({
       accessToken: "mock-token",
       startTimeMillis: 1700000000000,
       endTimeMillis: 1700000060000,
+      timeZone: "UTC",
     });
 
-    expect(result.samples.length).toBeGreaterThan(0);
+    expect(urls.every((u) => u.startsWith("https://health.googleapis.com/v4/users/me/"))).toBe(
+      true,
+    );
+    expect(mockFetch.mock.calls[0][1].headers.Authorization).toBe("Bearer mock-token");
     const stepSample = result.samples.find((s) => s.metric === "steps");
-    expect(stepSample).toBeDefined();
     expect(stepSample?.value).toBe(120);
+    // two heart-rate readings in the same minute are thinned to one
+    expect(result.samples.filter((s) => s.metric === "heartRate")).toHaveLength(1);
     expect(result.dailyMetrics.length).toBe(1);
     expect(result.metricStatus.steps).toEqual({ status: "ok" });
     expect(result.metricStatus.sleep).toEqual({ status: "ok" });
   });
 
+  it("splits heart rate into requests of at most 14 days", async () => {
+    const hrUrls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        if (url.includes("/heart-rate/")) hrUrls.push(url);
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
+      }),
+    );
+    const day = 86_400_000;
+    await fetchBrowserGoogleHealth({
+      accessToken: "t",
+      startTimeMillis: 1700000000000,
+      endTimeMillis: 1700000000000 + 29 * day,
+    });
+    expect(hrUrls).toHaveLength(3);
+  });
+
+  it("follows nextPageToken", async () => {
+    let stepCalls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        if (url.includes("/dataTypes/steps/")) {
+          stepCalls += 1;
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve(stepCalls === 1 ? { dataPoints: [], nextPageToken: "abc" } : {}),
+          });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      }),
+    );
+    await fetchBrowserGoogleHealth({
+      accessToken: "t",
+      startTimeMillis: 1000,
+      endTimeMillis: 2000,
+    });
+    expect(stepCalls).toBe(2);
+  });
+
   it("reports a typed per-metric status instead of an empty result when a metric fails", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockImplementation((url: string, init?: { body?: string }) => {
-        if (url.includes("/dataset:aggregate")) {
-          const body = JSON.parse(init?.body ?? "{}") as {
-            aggregateBy: Array<{ dataTypeName: string }>;
-          };
-          const type = body.aggregateBy[0].dataTypeName;
-          if (type === "com.google.heart_rate.bpm") {
-            return Promise.resolve({ ok: false, status: 500 });
-          }
-          if (type === "com.google.calories.expended") {
-            return Promise.reject(new Error("offline"));
-          }
-          if (type === "com.google.distance.delta") {
-            return Promise.resolve({ ok: true, json: () => Promise.resolve(null) });
-          }
-          return Promise.resolve({ ok: true, json: () => Promise.resolve({ bucket: [] }) });
-        }
-        return Promise.resolve({ ok: false, status: 503 });
+      vi.fn().mockImplementation((url: string) => {
+        if (url.includes("/heart-rate/")) return Promise.resolve({ ok: false, status: 500 });
+        if (url.includes("/sleep/")) return Promise.reject(new Error("offline"));
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(null) });
       }),
     );
 
@@ -106,19 +147,17 @@ describe("browserGoogleHealth", () => {
       endTimeMillis: 1700000060000,
     });
 
-    expect(result.metricStatus.steps).toEqual({ status: "ok" });
+    expect(result.metricStatus.steps).toEqual({ status: "invalid-response" });
     expect(result.metricStatus.heartRate).toEqual({ status: "http-error", httpStatus: 500 });
-    expect(result.metricStatus.calories).toEqual({ status: "network-error", message: "offline" });
-    expect(result.metricStatus.distance).toEqual({ status: "invalid-response" });
-    expect(result.metricStatus.sleep).toEqual({ status: "http-error", httpStatus: 503 });
+    expect(result.metricStatus.sleep).toEqual({ status: "network-error", message: "offline" });
   });
 
-  it("still throws on 403 from the sessions endpoint", async () => {
+  it("still throws on 403 from the sleep endpoint", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockImplementation((url: string) => {
-        if (url.includes("/sessions")) return Promise.resolve({ ok: false, status: 403 });
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ bucket: [] }) });
+        if (url.includes("/sleep/")) return Promise.resolve({ ok: false, status: 403 });
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
       }),
     );
 
