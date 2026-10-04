@@ -68,6 +68,27 @@ describe("describeDevice", () => {
     expect(info.label).toBe("Wearable · Google Pixel Watch 3");
   });
 
+  it("keeps the wearable and the phone of the same app apart so steps are not summed", () => {
+    const phoneSide = { ...ZEPP_BAND_SOURCE, device: { formFactor: "PHONE" } };
+    const wearable = describeDevice(ZEPP_BAND_SOURCE);
+    const phone = describeDevice(phoneSide);
+    expect(wearable.id).toBe("com.huami.watch.hmwatchmanager");
+    expect(phone.id).toBe("com.huami.watch.hmwatchmanager|phone");
+    expect(phone.kind).toBe("phone");
+  });
+
+  it("keeps a nap out of the device list unless the app flags it as main sleep", () => {
+    const nap = (mainSleep: boolean) => ({
+      ...sleepFrom(ZEPP_BAND_SOURCE, "2026-09-01T13:00:00Z", "2026-09-01T14:00:00Z", "50"),
+      sleep: {
+        interval: { startTime: "2026-09-01T13:00:00Z", endTime: "2026-09-01T14:00:00Z" },
+        metadata: { nap: true, mainSleep },
+      },
+    });
+    expect(buildDeviceList({ sleep: [nap(false)] })).toEqual([]);
+    expect(buildDeviceList({ sleep: [nap(true)] })).toHaveLength(1);
+  });
+
   it("falls back to the application, then to unknown", () => {
     expect(describeDevice({ application: { name: "Health Sync" } })).toEqual({
       id: "Health Sync",

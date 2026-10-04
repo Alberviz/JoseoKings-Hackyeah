@@ -1,6 +1,5 @@
 export * from "./types";
 export * from "./browserGoogleHealth";
-export * from "./normalize";
 export * from "./stats";
 export * from "./clean";
 export { nocturnalRestingHr } from "./restingHr";
@@ -9,7 +8,6 @@ export {
   asScore,
   periodCounts,
   foodCooccurrence,
-  missionsVsEnergy,
   consultationComparison,
   type DayForCounts,
 } from "./counts";

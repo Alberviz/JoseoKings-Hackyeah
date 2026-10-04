@@ -335,4 +335,29 @@ describe("browserGoogleHealth", () => {
     expect(result.metricStatus.sleep).toEqual({ status: "http-error", httpStatus: 500 });
     expect(result.metricStatus.steps).toEqual({ status: "ok", count: 0 });
   });
+
+  it("marks a metric as partial when the page limit is reached", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        const endless = url.includes("/dataTypes/steps/");
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              dataPoints: [],
+              ...(endless ? { nextPageToken: "more" } : {}),
+            }),
+        });
+      }),
+    );
+    const result = await fetchBrowserGoogleHealth({
+      accessToken: "mock-token",
+      startTimeMillis: Date.parse("2026-09-01T10:00:00Z"),
+      endTimeMillis: Date.parse("2026-09-03T10:00:00Z"),
+      timeZone: "UTC",
+    });
+    expect(result.metricStatus.steps).toEqual({ status: "ok", count: 0, partial: true });
+    expect(result.metricStatus.sleep).toEqual({ status: "ok", count: 0 });
+  });
 });
