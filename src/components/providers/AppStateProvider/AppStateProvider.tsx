@@ -182,6 +182,10 @@ export function AppStateProvider({ children }: AppStateProviderProps) {
 
   useEffect(() => {
     store.load();
+    // Ask the browser not to evict local data under storage pressure. Safe to ignore on failure.
+    if (typeof navigator !== "undefined" && typeof navigator.storage?.persist === "function") {
+      navigator.storage.persist().catch(() => undefined);
+    }
   }, [store]);
 
   const addCheckIn = useCallback(
