@@ -63,6 +63,27 @@ describe("watch store", () => {
     expect(loadWatchState()).toEqual(state);
   });
 
+  it("round-trips the night method, its gap and the main-sleep flag", () => {
+    const state: WatchState = {
+      days: [
+        {
+          ...day,
+          restingHrSource: "night-samples",
+          restingHrMethod: "sparse-3-readings",
+          restingHrGapMin: 30,
+        },
+      ],
+      lastSyncAt: null,
+      isDemo: false,
+      devices: [
+        { id: "watch-uid-1", kind: "watch", label: "Watch · Fitbit Charge 6", metrics: ["sleep"] },
+      ],
+      rawSamples: [{ ...sample, metric: "sleepSession", isMainSleep: true }],
+    };
+    saveWatchState(state);
+    expect(loadWatchState()).toEqual(state);
+  });
+
   it("migrates the old shape: device names and the global selection are dropped", () => {
     store({
       days: [day],

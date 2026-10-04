@@ -107,4 +107,95 @@ describe("validity (A0 wear-time rule)", () => {
     expect(res.mainSleep?.durationMin).toBe(300);
     expect(res.mainSleep?.start).toBe(onset2);
   });
+
+  describe("sparse heart-rate sampling and the source's main-sleep flag", () => {
+    const MIN = 60_000;
+    const grid = (start: number, count: number, gapMin = 30) =>
+      Array.from({ length: count }, (_, i) => ({
+        timestamp: start + (1 + i * gapMin) * MIN,
+        bpm: 58,
+      }));
+
+    it("accepts a 30-minute grid night with 16 readings", () => {
+      const start = Date.parse("2026-06-01T22:00:00Z");
+      const res = assessNight(
+        grid(start, 16),
+        [{ start, end: start + 500 * MIN }],
+        "2026-06-02",
+        "UTC",
+      );
+      expect(res.hrMethod).toBe("sparse-3-readings");
+      expect(res.hrMedianGapMin).toBe(30);
+      expect(res.nightValid).toBe(true);
+    });
+
+    it("rejects a sparse night with 5 readings or a short span", () => {
+      const start = Date.parse("2026-06-01T22:00:00Z");
+      const session = [{ start, end: start + 500 * MIN }];
+      expect(assessNight(grid(start, 5), session, "2026-06-02", "UTC").nightValid).toBe(false);
+      expect(assessNight(grid(start, 6, 29), session, "2026-06-02", "UTC").nightValid).toBe(false);
+      expect(assessNight(grid(start, 6, 30), session, "2026-06-02", "UTC").nightValid).toBe(true);
+    });
+
+    it("keeps the dense thresholds when readings are about every minute", () => {
+      const start = Date.parse("2026-06-01T22:00:00Z");
+      const dense = Array.from({ length: 19 }, (_, i) => ({
+        timestamp: start + i * MIN,
+        bpm: 58,
+      }));
+      const res = assessNight(dense, [{ start, end: start + 500 * MIN }], "2026-06-02", "UTC");
+      expect(res.hrMethod).toBe("dense-30min");
+      expect(res.nightValid).toBe(false);
+    });
+
+    it("skips the onset and offset windows when the source flags the main sleep", () => {
+      // Onset 05:00 (outside [18:00, 04:00)), offset 13:20
+      const start = Date.parse("2026-06-02T05:00:00Z");
+      const end = start + 500 * MIN;
+      const samples = grid(start, 16);
+      const flagged = assessNight(
+        samples,
+        [{ start, end, isMainSleep: true }],
+        "2026-06-02",
+        "UTC",
+      );
+      expect(flagged.nightValid).toBe(true);
+      expect(flagged.mainSleep?.onsetOk).toBe(false);
+      const unflagged = assessNight(samples, [{ start, end }], "2026-06-02", "UTC");
+      expect(unflagged.nightValid).toBe(false);
+    });
+
+    it("still needs 180 minutes and heart-rate coverage for a flagged main sleep", () => {
+      const start = Date.parse("2026-06-02T05:00:00Z");
+      const short = assessNight(
+        grid(start, 16),
+        [{ start, end: start + 170 * MIN, isMainSleep: true }],
+        "2026-06-02",
+        "UTC",
+      );
+      expect(short.nightValid).toBe(false);
+      const noHr = assessNight(
+        [],
+        [{ start, end: start + 500 * MIN, isMainSleep: true }],
+        "2026-06-02",
+        "UTC",
+      );
+      expect(noHr.nightValid).toBe(false);
+    });
+
+    it("prefers the flagged session over a longer unflagged one", () => {
+      const nap = Date.parse("2026-06-02T01:00:00Z");
+      const flaggedStart = Date.parse("2026-06-02T05:00:00Z");
+      const res = assessNight(
+        grid(flaggedStart, 16),
+        [
+          { start: nap, end: nap + 600 * MIN },
+          { start: flaggedStart, end: flaggedStart + 300 * MIN, isMainSleep: true },
+        ],
+        "2026-06-02",
+        "UTC",
+      );
+      expect(res.mainSleep?.start).toBe(flaggedStart);
+    });
+  });
 });

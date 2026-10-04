@@ -9,6 +9,12 @@ const watchDaySchema = z.object({
   steps: z.number().nullable(),
   restingHr: z.number().nullable(),
   restingHrSource: z.enum(["night-samples", "watch-daily"]).nullable().optional().catch(undefined),
+  restingHrMethod: z
+    .enum(["dense-30min", "sparse-3-readings"])
+    .nullable()
+    .optional()
+    .catch(undefined),
+  restingHrGapMin: z.number().nullable().optional().catch(undefined),
   sleepMinutes: z.number().nullable(),
   nightComplete: z.boolean(),
   dayComplete: z.boolean(),
@@ -50,6 +56,7 @@ const watchSampleSchema = z.object({
   valueMax: z.number().nullable().optional(),
   valueMin: z.number().nullable().optional(),
   stage: z.string().nullable().optional(),
+  isMainSleep: z.boolean().optional().catch(undefined),
   source: z.string(),
 });
 

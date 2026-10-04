@@ -3,6 +3,9 @@ import type { WatchSample } from "@/lib/wearables/types";
 /** Where a day's resting heart rate came from. */
 export type RestingHrSource = "night-samples" | "watch-daily";
 
+/** How a night's resting heart rate was computed from the night readings. */
+export type RestingHrMethod = "dense-30min" | "sparse-3-readings";
+
 export type WatchDay = {
   /** Local calendar day, YYYY-MM-DD. */
   date: string;
@@ -11,6 +14,10 @@ export type WatchDay = {
   restingHr: number | null;
   /** "night-samples": computed here from night readings. "watch-daily": the value the watch reported. */
   restingHrSource?: RestingHrSource | null;
+  /** "dense-30min": lowest 30-minute mean. "sparse-3-readings": lowest mean of 3 readings in a row. Missing on older saved data. */
+  restingHrMethod?: RestingHrMethod | null;
+  /** Median minutes between the night's heart-rate readings (set with restingHrMethod). */
+  restingHrGapMin?: number | null;
   sleepMinutes: number | null;
   /** Enough night data to trust restingHr and sleepMinutes. */
   nightComplete: boolean;

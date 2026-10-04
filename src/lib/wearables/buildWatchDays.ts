@@ -44,6 +44,8 @@ export function buildWatchDays(
       steps: m.steps,
       restingHr: m.restingHr,
       restingHrSource: m.restingHrSource,
+      restingHrMethod: m.restingHrMethod,
+      restingHrGapMin: m.restingHrGapMin,
       sleepMinutes: m.sleepMinutes,
       nightComplete: m.validSleep,
       dayComplete: m.validActivity,

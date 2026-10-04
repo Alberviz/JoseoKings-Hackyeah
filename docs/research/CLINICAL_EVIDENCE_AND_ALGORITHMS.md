@@ -136,6 +136,8 @@ Hacking ends at 11:00 on 4 October. The critical path is 9.25 h for one engineer
 - **Daytime validity** (gates steps, active minutes, calories, daytime heart rate, cosinor, IS/IV): \(|H_d| \ge 10\). Ten hours is the long-standing wear-time convention in accelerometry; the paediatric IBD study that applied it lost 40 of 71 participants to it [21], which is exactly why the count must be reported.
 - **Night validity** (gates nocturnal heart rate, sleep duration, sleep timing, SRI): a main sleep session exists with onset in \([18{:}00, 04{:}00)\), duration \(\ge 180\) min, offset \(\le 14{:}00\), and at least 20 heart-rate samples inside it covering \(\ge 120\) distinct minutes.
 - **Check-in validity:** at least one of the three items is in {0,1,2}. Each item is independently missing when the child answered "I don't feel like it today".
+- **Main sleep from the source app** [adapted 2026-10-04 for 30-min sampling watches]: sleep points carry `metadata.mainSleep`. When the source app flags a session as the main sleep, the longest flagged session of the night is the main sleep and the onset \([18{:}00, 04{:}00)\) and offset \(\le 14{:}00\) windows are skipped (in the real capture, 9 of 16 main sleeps started at 04:00 or later). Duration \(\ge 180\) min and the heart-rate coverage still apply. Without the flag, the rules above stay as written.
+- **Sparse heart-rate sampling** [adapted 2026-10-04 for 30-min sampling watches]: the mode comes from the data, not the device. If the median gap between consecutive heart-rate readings inside the main sleep is more than 5 minutes, the coverage rule becomes \(\ge 6\) readings spanning \(\ge 150\) minutes (a watch that records about every 30 minutes during sleep gives about 16 readings in 500 minutes). A median gap of 5 minutes or less keeps the \(\ge 20\) samples / \(\ge 120\) minutes rule.
 - **Multi-session nights:** the main sleep session is the longest; shorter sessions on the same night are discarded for duration and kept only for the sleep/wake epoch vector used by the SRI.
 - **DST days** (23 h or 25 h local) stay valid for daily totals, carry a `dstShift` flag, and are **excluded** from cosinor (A4) and IS/IV (A5), where a 24-hour period is assumed.
 
@@ -224,6 +226,8 @@ The factor 0.7413 makes \(s_t\) consistent with the standard deviation under a G
 If the device exposes its own resting-heart-rate field, store it **as a separate variable** with its own source label; never merge the two.
 
 **Minimum data.** \(\ge 120\) covered minutes and \(\ge 4\) qualifying 30-minute windows in the session.
+
+**Sparse mode** [adapted 2026-10-04 for 30-min sampling watches]. If the median gap between consecutive readings in the session (after the per-minute step) is more than 5 minutes, the 30-minute windows cannot be filled, so the figure is the lowest mean of 3 consecutive readings in time order: \(\mathrm{nRHR}_d = \min_i \tfrac{1}{3}(h_i + h_{i+1} + h_{i+2})\), rounded to 0.1. It needs \(\ge 6\) readings spanning \(\ge 150\) minutes. It is less precise than the dense version and the result carries `method: "sparse-3-readings"` (dense: `"dense-30min"`), shown next to the figure and counted per method in the doctor report. A median gap of exactly 5 minutes is dense. This is an adaptation for a watch that records about every 30 minutes during sleep; it is not a published method.
 
 **Output wording.** "Night-time heart rate, lowest 30-minute average: 62 bpm (median over the 38 valid nights in this period: 64 bpm, IQR 61–68). Recorded by the watch; not a clinical measurement."
 

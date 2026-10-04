@@ -150,6 +150,7 @@ export function sleepPointsToRows(points: HealthDataPoint[]): WatchSample[] {
       startAt: new Date(start).toISOString(),
       endAt: new Date(end).toISOString(),
       value: asleep !== null && asleep >= 0 ? asleep : (end - start) / MINUTE,
+      ...(typeof meta?.mainSleep === "boolean" ? { isMainSleep: meta.mainSleep } : {}),
       source: sourceId(point),
     });
   }

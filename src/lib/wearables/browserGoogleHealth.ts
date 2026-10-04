@@ -303,6 +303,8 @@ export function getDemoWearableData(): DailyMetric[] {
       validSleep: true,
       restingHr: restingHr,
       restingHrSource: "night-samples",
+      restingHrMethod: "dense-30min",
+      restingHrGapMin: 1,
       sleepOnsetAt: `${dateStr}T22:30:00.000Z`,
       sleepOffsetAt: `${dateStr}T07:00:00.000Z`,
       algorithmVersion: ALGORITHM_VERSION,

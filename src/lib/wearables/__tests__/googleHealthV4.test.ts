@@ -57,6 +57,15 @@ describe("googleHealthV4 converters", () => {
     expect(sleepPointsToRows([point])).toHaveLength(1);
   });
 
+  it("carries the source app's main-sleep flag, and leaves it out when the app sends none", () => {
+    const flagged = sleepWatch("2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", "450", false);
+    const bare = sleepWatch("2026-09-02T22:00:00Z", "2026-09-03T06:00:00Z", "450", false);
+    bare.sleep!.metadata = undefined;
+    const rows = sleepPointsToRows([flagged, bare]);
+    expect(rows[0].isMainSleep).toBe(true);
+    expect(rows[1]).not.toHaveProperty("isMainSleep");
+  });
+
   it("falls back to the session length when minutesAsleep is missing", () => {
     const point = sleepWatch("2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", "x", false);
     const rows = sleepPointsToRows([point]);

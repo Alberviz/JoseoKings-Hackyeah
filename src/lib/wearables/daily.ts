@@ -16,7 +16,12 @@ export function computeDailyMetrics(
   // Extract samples by metric and day
   const stepsByDay = new Map<string, number>();
   const hrSamplesByDay = new Map<string, Array<{ bpm: number; timestamp: number }>>();
-  const sleepSessions: Array<{ start: number; end: number; source: string }> = [];
+  const sleepSessions: Array<{
+    start: number;
+    end: number;
+    source: string;
+    isMainSleep?: boolean;
+  }> = [];
   // The resting heart rate the watch reports for a local date (startAt holds YYYY-MM-DD).
   const watchRestingHrByDay = new Map<string, number>();
 
@@ -53,6 +58,7 @@ export function computeDailyMetrics(
         start: startMs,
         end: endMs,
         source: sample.source,
+        ...(sample.isMainSleep !== undefined ? { isMainSleep: sample.isMainSleep } : {}),
       });
     } else {
       days.add(day);
@@ -90,6 +96,8 @@ export function computeDailyMetrics(
     let sleepOffsetAt: string | null = null;
     let restingHr: number | null = null;
     let restingHrSource: DailyMetric["restingHrSource"] = null;
+    let restingHrMethod: DailyMetric["restingHrMethod"] = null;
+    let restingHrGapMin: number | null = null;
 
     if (night.mainSleep) {
       sleepMinutes = Math.round(night.mainSleep.durationMin * 10) / 10;
@@ -100,6 +108,8 @@ export function computeDailyMetrics(
       if (rhrResult.kind === "value" && rhrResult.nRhr !== null) {
         restingHr = Math.round(rhrResult.nRhr * 10) / 10;
         restingHrSource = "night-samples";
+        restingHrMethod = rhrResult.method;
+        restingHrGapMin = rhrResult.medianGapMin;
       }
     }
     // Our own night figure comes first; the watch's own daily figure only fills a gap.
@@ -117,6 +127,8 @@ export function computeDailyMetrics(
       hrWakingHoursCovered: hrWakingHours > 0 ? hrWakingHours : null,
       restingHr,
       restingHrSource,
+      restingHrMethod,
+      restingHrGapMin,
       sleepMinutes,
       sleepOnsetAt,
       sleepOffsetAt,

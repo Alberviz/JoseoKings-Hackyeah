@@ -25,6 +25,8 @@ describe("buildWatchDays", () => {
         steps: 150,
         restingHr: null,
         restingHrSource: null,
+        restingHrMethod: null,
+        restingHrGapMin: null,
         sleepMinutes: null,
         nightComplete: false,
         dayComplete: false,
@@ -34,6 +36,8 @@ describe("buildWatchDays", () => {
         steps: 30,
         restingHr: null,
         restingHrSource: null,
+        restingHrMethod: null,
+        restingHrGapMin: null,
         sleepMinutes: null,
         nightComplete: false,
         dayComplete: false,
@@ -160,6 +164,32 @@ describe("buildWatchDays", () => {
     const day = buildWatchDays(samples, { timeZone: "UTC" }).find((d) => d.date === "2026-09-02");
     expect(day?.restingHr).toBeLessThan(70);
     expect(day?.restingHrSource).toBe("night-samples");
+    expect(day?.restingHrMethod).toBe("dense-30min");
+  });
+
+  it("uses the sparse method and the source's main-sleep flag for a 30-minute grid night", () => {
+    const samples: WatchSample[] = [];
+    // Main sleep from 05:00 to 13:20 (starts after 04:00, so only the source flag keeps it).
+    const sleepStart = Date.parse("2026-09-02T05:00:00Z");
+    const sleepEnd = Date.parse("2026-09-02T13:20:00Z");
+    samples.push({
+      ...sample(
+        "sleepSession",
+        new Date(sleepStart).toISOString(),
+        new Date(sleepEnd).toISOString(),
+        480,
+      ),
+      isMainSleep: true,
+    });
+    for (let i = 0; i < 16; i++) {
+      const t = new Date(sleepStart + 60_000 + i * 30 * 60_000).toISOString();
+      samples.push(sample("heartRate", t, t, 58 + (i % 3)));
+    }
+    const day = buildWatchDays(samples, { timeZone: "UTC" }).find((d) => d.date === "2026-09-02");
+    expect(day?.nightComplete).toBe(true);
+    expect(day?.restingHrSource).toBe("night-samples");
+    expect(day?.restingHrMethod).toBe("sparse-3-readings");
+    expect(day?.restingHrGapMin).toBe(30);
   });
 
   it("leaves a metric unfiltered when no device id is given", () => {

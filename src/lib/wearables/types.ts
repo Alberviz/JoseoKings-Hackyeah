@@ -21,6 +21,8 @@ export type WatchSample = {
   valueMax?: number | null;
   valueMin?: number | null;
   stage?: SleepStage | null;
+  /** Sleep sessions only: true when the source app flagged the session as the main sleep. */
+  isMainSleep?: boolean;
   source: string;
 };
 
@@ -32,6 +34,10 @@ export type DailyMetric = {
   restingHr: number | null;
   /** "night-samples": our night computation. "watch-daily": the value the watch reported. */
   restingHrSource: "night-samples" | "watch-daily" | null;
+  /** How the night figure was computed; null when there is no value or it is the watch's own daily figure. */
+  restingHrMethod: "dense-30min" | "sparse-3-readings" | null;
+  /** Median minutes between the night's heart-rate readings when restingHrMethod is set; else null. */
+  restingHrGapMin: number | null;
   sleepMinutes: number | null;
   sleepOnsetAt: string | null;
   sleepOffsetAt: string | null;
@@ -58,6 +64,8 @@ export interface SleepSession {
 export interface SleepSessionInput {
   start: number;
   end: number;
+  /** True when the source app flagged this session as the main sleep. */
+  isMainSleep?: boolean;
 }
 
 export interface CheckInAnswers {
@@ -125,6 +133,9 @@ export type NocturnalRestingHrResult =
       nRhr: null;
       qualifyingWindows?: number;
       coveredMinutes?: number;
+      method?: "dense-30min" | "sparse-3-readings";
+      sampleCount?: number;
+      medianGapMin?: number | null;
     }
   | {
       kind: "value";
@@ -132,6 +143,9 @@ export type NocturnalRestingHrResult =
       nHrMean: number | null;
       coveredMinutes: number;
       qualifyingWindows: number;
+      method: "dense-30min" | "sparse-3-readings";
+      sampleCount: number;
+      medianGapMin: number | null;
     };
 
 export interface ItemCounts {

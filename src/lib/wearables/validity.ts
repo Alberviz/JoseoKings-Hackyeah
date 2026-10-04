@@ -1,6 +1,12 @@
 // A0 — Valid-day / wear-time rule.
 // A missing sample stays missing. This module only counts coverage; it does not fill it.
 
+import {
+  SPARSE_MIN_READINGS,
+  SPARSE_MIN_SPAN_MINUTES,
+  sleepHeartRateProfile,
+  type RestingHrMethod,
+} from "./restingHr";
 import { addDays } from "./stats";
 import type {
   CheckInAnswers,
@@ -131,6 +137,10 @@ export function daytimeHourCount(
 export type NightAssessment = {
   nightValid: boolean;
   mainSleep: MainSleepSummary | null;
+  /** Heart-rate method the readings inside the main sleep allow; null without a main sleep. */
+  hrMethod: RestingHrMethod | null;
+  /** Median minutes between heart-rate readings inside the main sleep; null with fewer than 2. */
+  hrMedianGapMin: number | null;
 };
 
 function sessionDurationMin(session: SleepSessionInput): number {
@@ -138,10 +148,14 @@ function sessionDurationMin(session: SleepSessionInput): number {
 }
 
 /**
- * Main sleep session for the local day it ends: the longest one.
- * Tie goes to earlier onset.
- * Onset in [18:00, 04:00), duration >= 180 min, offset <= 14:00.
- * Heart-rate coverage: >= 20 samples covering >= 120 distinct minutes.
+ * Main sleep session for the local day it ends.
+ * When the source app flags sessions as main sleep (isMainSleep), the longest flagged one is
+ * chosen and the onset and offset windows are skipped. Otherwise the longest session is chosen
+ * (tie goes to earlier onset) and it needs onset in [18:00, 04:00) and offset <= 14:00.
+ * Duration >= 180 min in both cases.
+ * Heart-rate coverage, dense sampling: >= 20 samples covering >= 120 distinct minutes.
+ * Sparse sampling (median gap > 5 min between readings) [adapted 2026-10-04 for 30-min sampling
+ * watches]: >= 6 readings spanning >= 150 minutes.
  */
 export function assessNight(
   heartRateSamples: Array<{ timestamp: number; bpm?: number }> | undefined,
@@ -153,10 +167,15 @@ export function assessNight(
     (session) =>
       session && session.end > session.start && localDateTime(session.end, timeZone).date === day,
   );
-  ending.sort((a, b) => sessionDurationMin(b) - sessionDurationMin(a) || a.start - b.start);
-  const main = ending[0] ?? null;
+  const byLengthThenOnset = (a: SleepSessionInput, b: SleepSessionInput) =>
+    sessionDurationMin(b) - sessionDurationMin(a) || a.start - b.start;
+  const flagged = ending.filter((session) => session.isMainSleep === true);
+  const sourceFlagsMainSleep = flagged.length > 0;
+  const candidates = sourceFlagsMainSleep ? flagged : ending;
+  candidates.sort(byLengthThenOnset);
+  const main = candidates[0] ?? null;
   if (!main) {
-    return { nightValid: false, mainSleep: null };
+    return { nightValid: false, mainSleep: null, hrMethod: null, hrMedianGapMin: null };
   }
 
   const onset = localDateTime(main.start, timeZone);
@@ -177,8 +196,19 @@ export function assessNight(
     minutes.add(Math.floor(sample.timestamp / MINUTE));
   }
   const coveredMinutes = minutes.size;
-  const nightValid =
-    onsetOk && durationMin >= 180 && offsetOk && hrSamples >= 20 && coveredMinutes >= 120;
+  const profile = sleepHeartRateProfile(
+    (heartRateSamples ?? []).filter(
+      (sample): sample is { timestamp: number; bpm: number } => typeof sample.bpm === "number",
+    ),
+    main,
+  );
+  const hrCoverageOk =
+    profile.method === "sparse-3-readings"
+      ? profile.readings.length >= SPARSE_MIN_READINGS && profile.spanMin >= SPARSE_MIN_SPAN_MINUTES
+      : hrSamples >= 20 && coveredMinutes >= 120;
+  // The source app's own main-sleep flag replaces the clock windows.
+  const windowsOk = sourceFlagsMainSleep || (onsetOk && offsetOk);
+  const nightValid = windowsOk && durationMin >= 180 && hrCoverageOk;
 
   const midpointTimestamp = Math.floor((main.start + main.end) / 2);
   const midLocal = localDateTime(midpointTimestamp, timeZone);
@@ -187,6 +217,8 @@ export function assessNight(
 
   return {
     nightValid,
+    hrMethod: profile.method,
+    hrMedianGapMin: profile.medianGapMin,
     mainSleep: {
       start: main.start,
       end: main.end,
