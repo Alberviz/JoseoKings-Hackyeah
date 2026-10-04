@@ -9,14 +9,57 @@ const chestFloat = keyframes`
   }
 `;
 
-const sparkleGlow = keyframes`
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(0.95);
+const chestPopIn = keyframes`
+  0% {
+    transform: scale(0.65) translateY(24px);
+    opacity: 0;
   }
   50% {
+    transform: scale(1.08) translateY(-8px);
+  }
+  75% {
+    transform: scale(0.96) translateY(2px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
     opacity: 1;
-    transform: scale(1.1);
+  }
+`;
+
+const tapBounceReaction = keyframes`
+  0% { transform: scale(1) translateY(0); }
+  25% { transform: scale(1.12, 0.9) translateY(4px); }
+  55% { transform: scale(0.92, 1.12) translateY(-14px); }
+  75% { transform: scale(1.04, 0.98) translateY(2px); }
+  100% { transform: scale(1) translateY(0); }
+`;
+
+const goldRaysSpin = keyframes`
+  0% {
+    transform: rotate(0deg) scale(0.95);
+    opacity: 0.5;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: rotate(360deg) scale(0.95);
+    opacity: 0.5;
+  }
+`;
+
+const coinBadgePop = keyframes`
+  0% {
+    transform: scale(0.4) translateY(20px);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.12) translateY(-4px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
   }
 `;
 
@@ -285,68 +328,56 @@ export const ChestContainer = styled.div`
   width: 100%;
 `;
 
-export const ChestSvg = styled.svg`
-  width: 180px;
-  height: 150px;
-  overflow: visible;
+export const ChestWrapper = styled.div<{ $isTapped?: boolean }>`
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 250px;
+  height: 230px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
 
   @media (prefers-reduced-motion: no-preference) {
-    animation: ${chestFloat} 3s ease-in-out infinite;
+    animation: ${chestFloat} 3.2s ease-in-out infinite;
+    ${({ $isTapped }) =>
+      $isTapped &&
+      `
+        animation: ${tapBounceReaction} 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      `}
   }
 `;
 
-export const ChestGlowPolygon = styled.polygon`
-  fill: ${({ theme }) => theme.colors.highlight};
-  opacity: 0.45;
+export const ChestGlowAura = styled.div`
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 201, 60, 0.7) 0%,
+    rgba(255, 122, 89, 0.3) 45%,
+    transparent 70%
+  );
+  filter: blur(14px);
+  z-index: 0;
 
   @media (prefers-reduced-motion: no-preference) {
-    animation: ${sparkleGlow} 2s ease-in-out infinite;
+    animation: ${goldRaysSpin} 8s linear infinite;
   }
 `;
 
-export const ChestInside = styled.path`
-  fill: ${({ theme }) => theme.colors.textMuted};
-  stroke: ${({ theme }) => theme.colors.ink};
-  stroke-width: ${({ theme }) => theme.borderWidth};
-`;
-
-export const ChestGoldGlowEllipse = styled.ellipse`
-  fill: ${({ theme }) => theme.colors.highlight};
-  stroke: ${({ theme }) => theme.colors.dragonHorn};
-  stroke-width: 1.5px;
-`;
-
-export const ChestLidPath = styled.path`
-  fill: ${({ theme }) => theme.colors.surface};
-  stroke: ${({ theme }) => theme.colors.ink};
-  stroke-width: ${({ theme }) => theme.borderWidth};
-`;
-
-export const ChestBodyPath = styled.path`
-  fill: ${({ theme }) => theme.colors.surface};
-  stroke: ${({ theme }) => theme.colors.ink};
-  stroke-width: ${({ theme }) => theme.borderWidth};
-`;
-
-export const ChestBandPath = styled.path`
-  stroke: ${({ theme }) => theme.colors.accent};
-  stroke-width: 4px;
-  fill: none;
-`;
-
-export const ChestClaspRect = styled.rect`
-  fill: ${({ theme }) => theme.colors.highlight};
-  stroke: ${({ theme }) => theme.colors.ink};
-  stroke-width: 2px;
-`;
-
-export const ChestSparklePolygon = styled.polygon`
-  fill: ${({ theme }) => theme.colors.highlight};
-  stroke: ${({ theme }) => theme.colors.ink};
-  stroke-width: 1px;
+export const ChestRasterImg = styled.img`
+  position: relative;
+  width: 230px;
+  height: 230px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 20px rgba(31, 47, 107, 0.16));
+  z-index: 1;
 
   @media (prefers-reduced-motion: no-preference) {
-    animation: ${sparkleGlow} 2s ease-in-out infinite;
+    animation: ${chestPopIn} 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 `;
 
@@ -360,6 +391,10 @@ export const CoinBadge = styled.div`
   border: ${({ theme }) => `${theme.borderWidth} solid ${theme.colors.ink}`};
   border-radius: ${({ theme }) => theme.radius.pill};
   box-shadow: ${({ theme }) => `${theme.shadowPress} ${theme.colors.ink}`};
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${coinBadgePop} 0.65s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
 `;
 
 export const CoinRewardAmount = styled.span`

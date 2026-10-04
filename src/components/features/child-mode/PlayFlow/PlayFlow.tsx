@@ -22,17 +22,11 @@ import type {
 import { getCoinsForPlay, getMatchingPlayGames, toMoveKey } from "./game-matching";
 import {
   BackButton,
-  ChestBodyPath,
-  ChestBandPath,
-  ChestClaspRect,
   ChestContainer,
-  ChestGlowPolygon,
-  ChestGoldGlowEllipse,
-  ChestInside,
-  ChestLidPath,
-  ChestSparklePolygon,
+  ChestGlowAura,
+  ChestRasterImg,
   ChestSubline,
-  ChestSvg,
+  ChestWrapper,
   ChoiceButton,
   ChoiceDot,
   ChoiceGrid,
@@ -74,27 +68,24 @@ export type PlayFlowProps = {
 };
 
 function OpenChest() {
+  const [isTapped, setIsTapped] = useState(false);
+
+  const handleTap = () => {
+    setIsTapped(true);
+    setTimeout(() => setIsTapped(false), 600);
+  };
+
   return (
-    <ChestSvg viewBox="0 0 200 160" role="img" aria-label="Open treasure chest full of coins">
-      <ChestGlowPolygon points="100,60 40,0 160,0" />
-      <ChestGlowPolygon points="100,60 10,30 50,0" />
-      <ChestGlowPolygon points="100,60 190,30 150,0" />
-
-      <ChestInside d="M 40 70 L 160 70 L 150 92 L 50 92 Z" />
-      <ChestGoldGlowEllipse cx="100" cy="85" rx="45" ry="12" />
-
-      <ChestSparklePolygon points="65,40 68,48 76,50 68,52 65,60 62,52 54,50 62,48" />
-      <ChestSparklePolygon points="135,35 138,43 146,45 138,47 135,55 132,47 124,45 132,43" />
-      <ChestSparklePolygon points="100,20 102,26 108,28 102,30 100,36 98,30 92,28 98,26" />
-
-      <ChestLidPath d="M 35 45 Q 100 16 165 45 L 160 68 Q 100 42 40 68 Z" />
-      <ChestBodyPath d="M 38 82 L 162 82 L 152 144 L 48 144 Z" />
-
-      <ChestBandPath d="M 68 82 L 72 144" />
-      <ChestBandPath d="M 132 82 L 128 144" />
-
-      <ChestClaspRect x="93" y="80" width="14" height="16" rx="3" />
-    </ChestSvg>
+    <ChestWrapper
+      role="img"
+      aria-label="Open treasure chest full of coins"
+      onClick={handleTap}
+      $isTapped={isTapped}
+      data-testid="open-treasure-chest"
+    >
+      <ChestGlowAura aria-hidden="true" />
+      <ChestRasterImg src="/chest_open.png" alt="" aria-hidden="true" />
+    </ChestWrapper>
   );
 }
 
