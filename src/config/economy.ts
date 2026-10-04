@@ -23,8 +23,8 @@ export const FIRE_MAX = 100;
 
 /** Dragon Evolution thresholds within 0-100 fire */
 export const DRAGON_EVOLUTION_THRESHOLDS = {
-  stage2: 40,
-  stage3: 80,
+  stage2: 50,
+  stage3: 100,
 } as const;
 
 export const DRAGON_EVOLUTION_STAGES: Record<DragonStageId, DragonEvolutionConfig> = {

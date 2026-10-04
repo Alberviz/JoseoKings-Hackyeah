@@ -440,6 +440,36 @@ export const HiddenSemanticG = styled.g`
   pointer-events: none;
 `;
 
+export const VisibleHatG = styled.g`
+  opacity: 0;
+  pointer-events: none;
+`;
+
+export const VisibleCapG = styled.g`
+  opacity: 0;
+  pointer-events: none;
+`;
+
+export const VisibleGlassesG = styled.g`
+  opacity: 0;
+  pointer-events: none;
+`;
+
+export const VisibleSunglassesG = styled.g`
+  opacity: 0;
+  pointer-events: none;
+`;
+
+export const VisibleTshirtG = styled.g`
+  opacity: 0;
+  pointer-events: none;
+`;
+
+export const VisibleSportShirtG = styled.g`
+  opacity: 0;
+  pointer-events: none;
+`;
+
 // --- 9. Flame Breath Puff (When feeding in /food) ---
 const flameBreathPuff = keyframes`
   0% {

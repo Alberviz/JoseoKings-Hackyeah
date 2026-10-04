@@ -43,8 +43,11 @@ import {
 const ITEM_NAMES: Record<string, string> = {
   food: "Food",
   glasses: "Glasses",
+  sunglasses: "Sun Glasses",
   "t-shirt": "T-shirt",
+  "sport-shirt": "Sport T-shirt",
   hat: "Hat",
+  cap: "Cap",
 };
 
 function ItemIcon({ id }: { id: string }) {
@@ -116,6 +119,46 @@ function ItemIcon({ id }: { id: string }) {
     );
   }
 
+  if (id === "sunglasses") {
+    return (
+      <SvgItemIcon viewBox="0 0 32 32" aria-hidden="true">
+        <SvgRect
+          x="4"
+          y="11"
+          width="10"
+          height="9"
+          rx="3"
+          fill={theme.colors.ink}
+          stroke={theme.colors.accent}
+          strokeWidth="2"
+        />
+        <SvgRect
+          x="18"
+          y="11"
+          width="10"
+          height="9"
+          rx="3"
+          fill={theme.colors.ink}
+          stroke={theme.colors.accent}
+          strokeWidth="2"
+        />
+        <SvgPath
+          d="M14 15 Q16 13 18 15"
+          stroke={theme.colors.accent}
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+        />
+        <SvgPath
+          d="M6 14 L10 18 M20 14 L24 18"
+          stroke={theme.colors.onPrimary}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </SvgItemIcon>
+    );
+  }
+
   if (id === "t-shirt") {
     return (
       <SvgItemIcon viewBox="0 0 32 32" aria-hidden="true">
@@ -137,7 +180,65 @@ function ItemIcon({ id }: { id: string }) {
     );
   }
 
-  // Hat
+  if (id === "sport-shirt") {
+    return (
+      <SvgItemIcon viewBox="0 0 32 32" aria-hidden="true">
+        <SvgPath
+          d="M10 8 L5 12 L8 16 L11 14 L11 26 L21 26 L21 14 L24 16 L27 12 L22 8 Q16 11 10 8 Z"
+          fill={theme.colors.accent}
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <SvgPath
+          d="M11 18 L21 18"
+          stroke={theme.colors.onPrimary}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <SvgPath
+          d="M12 8 Q16 11 20 8"
+          stroke={theme.colors.ink}
+          strokeWidth="1.5"
+          fill="none"
+          strokeLinecap="round"
+        />
+      </SvgItemIcon>
+    );
+  }
+
+  if (id === "cap") {
+    return (
+      <SvgItemIcon viewBox="0 0 32 32" aria-hidden="true">
+        {/* Cap dome */}
+        <SvgPath
+          d="M7 21 C7 12 12 10 19 10 C24 10 26 13 26 21 Z"
+          fill={theme.colors.accent}
+          stroke={theme.colors.ink}
+          strokeWidth="2"
+        />
+        {/* Visor */}
+        <SvgPath
+          d="M19 21 L30 21 C31 22 30 24 25 24 L14 24"
+          fill={theme.colors.highlight}
+          stroke={theme.colors.ink}
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        {/* Top button */}
+        <SvgCircle
+          cx="18"
+          cy="10"
+          r="2"
+          fill={theme.colors.highlight}
+          stroke={theme.colors.ink}
+          strokeWidth="1"
+        />
+      </SvgItemIcon>
+    );
+  }
+
+  // Hat (Explorer Hat)
   return (
     <SvgItemIcon viewBox="0 0 32 32" aria-hidden="true">
       <SvgPath

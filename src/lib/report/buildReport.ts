@@ -25,6 +25,12 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
 
   const lastConsultation = priorConsultations[0] ?? null;
 
+  const upcomingConsultations = [...(state.consultations ?? [])]
+    .filter((c) => c.date > today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const nextAppointmentDate = upcomingConsultations[0]?.date ?? null;
+
   let startDate: DateKey;
   let previousConsultationDate: DateKey | null = null;
 
@@ -158,6 +164,7 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
       endDate,
       totalDays,
       previousConsultationDate,
+      nextAppointmentDate,
     },
     metrics: {
       checkInDaysCount,

@@ -8,11 +8,19 @@ import { todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
+import { shouldShowInAppReminder } from "@/lib/reminder/reminder";
+import {
+  formatAppointmentCountdown,
+  formatConsultationDaysAgo,
+  getConsultationSummary,
+} from "@/lib/consultation/consultation";
 import { formatMissionTitle } from "../missionLabels";
 import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { SectionCard } from "../SectionCard/SectionCard";
 import {
   AnswerValue,
+  AppointmentDateText,
+  AppointmentRow,
   DegreeFaceCircle,
   DegreeFaceEye,
   DegreeFaceMouth,
@@ -102,8 +110,15 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
   const todayCheckIn = state.checkIns.find((item) => item.date === today);
   const todayMissions = state.missionLogs.filter((item) => item.date === today);
 
+  const todayLog = state.parentLogs.find((item) => item.date === today);
+  const showReminder = shouldShowInAppReminder(state.settings, todayLog?.medicationTaken);
+
   const bellyAnswer = todayCheckIn?.answers[QUESTION_IDS.bellyComfort];
   const hasDiscomfort = typeof bellyAnswer === "number" && bellyAnswer >= DISCOMFORT_THRESHOLD;
+
+  const consultationSummary = getConsultationSummary(state.consultations, today);
+  const nextAppointment = consultationSummary.nextAppointment;
+  const lastConsultation = consultationSummary.lastConsultation;
 
   return (
     <SummaryContainer>
@@ -119,6 +134,19 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
             </Stack>
           }
         />
+
+        {showReminder ? (
+          <SectionCard section="log" title="Daily care reminder">
+            <Stack gap="xs">
+              <Text size="sm">
+                Time for {childName}&apos;s daily routine. Have you logged today&apos;s care?
+              </Text>
+              <LinkButton href={ROUTES.parentLog} variant="success" fullWidth>
+                Go to daily log
+              </LinkButton>
+            </Stack>
+          </SectionCard>
+        ) : null}
 
         <SectionCard section="summary" title="Today's performance">
           <Stack gap="md">
@@ -197,6 +225,47 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
             </Stack>
           </SectionCard>
         ) : null}
+
+        <SectionCard section="more" title="Doctor appointments">
+          <Stack gap="md">
+            <Stack gap="xs">
+              <Text size="sm" tone="muted">
+                Next appointment
+              </Text>
+              {nextAppointment ? (
+                <AppointmentRow>
+                  <AppointmentDateText>{nextAppointment.date}</AppointmentDateText>
+                  <Chip
+                    label={formatAppointmentCountdown(today, nextAppointment.date)}
+                    tone="primary"
+                  />
+                </AppointmentRow>
+              ) : (
+                <Text tone="muted">No upcoming appointment scheduled</Text>
+              )}
+            </Stack>
+
+            <Stack gap="xs">
+              <Text size="sm" tone="muted">
+                Last consultation
+              </Text>
+              {lastConsultation ? (
+                <AppointmentRow>
+                  <AppointmentDateText>{lastConsultation.date}</AppointmentDateText>
+                  <Text size="sm" tone="muted">
+                    {formatConsultationDaysAgo(today, lastConsultation.date)}
+                  </Text>
+                </AppointmentRow>
+              ) : (
+                <Text tone="muted">No past consultations recorded</Text>
+              )}
+            </Stack>
+
+            <LinkButton href={ROUTES.parentLog} variant="highlight" fullWidth>
+              Manage appointments
+            </LinkButton>
+          </Stack>
+        </SectionCard>
 
         <Stack gap="sm">
           <Button variant="secondary" onClick={onLock} fullWidth>

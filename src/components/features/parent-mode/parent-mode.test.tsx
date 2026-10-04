@@ -7,7 +7,7 @@ import { Button, Stack, Text } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { DISCOMFORT_THRESHOLD, MISSION_IDS, QUESTION_IDS } from "@/config/content-ids";
 import { sessionStore, useParentSession } from "@/hooks/useParentSession";
-import { todayKey } from "@/lib/dates";
+import { addDays, todayKey } from "@/lib/dates";
 import { buildDemoState } from "@/lib/demo-data";
 import { createPinRecord } from "@/lib/pin";
 import { saveState, STORAGE_KEY } from "@/lib/storage";
@@ -434,6 +434,12 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(screen.getByText("Done with family")).toBeDefined();
       expect(screen.getByText("Status: Completed")).toBeDefined();
 
+      // Doctor appointments card
+      expect(screen.getByRole("heading", { name: "Doctor appointments" })).toBeDefined();
+      expect(screen.getByText("No upcoming appointment scheduled")).toBeDefined();
+      expect(screen.getByText("30 days ago")).toBeDefined();
+      expect(screen.getByRole("link", { name: "Manage appointments" })).toBeDefined();
+
       // Lock button
       fireEvent.click(screen.getByRole("button", { name: "Lock" }));
       expect(onLock).toHaveBeenCalled();
@@ -466,6 +472,20 @@ describe("Parent Mode Shell (Task T10)", () => {
         </ThemeProvider>,
       );
       expect(screen.getByRole("link", { name: "Back to child mode" })).toBeDefined();
+    });
+
+    it("renders upcoming appointment countdown badge when scheduled", () => {
+      const today = todayKey();
+      const demoState = buildDemoState({ today });
+      demoState.consultations.push({
+        id: "c-future",
+        date: addDays(today, 5),
+      });
+
+      renderWithTheme(<SummaryCard state={demoState} onLock={vi.fn()} />);
+
+      expect(screen.getByText(addDays(today, 5))).toBeDefined();
+      expect(screen.getByText("In 5 days")).toBeDefined();
     });
   });
 
@@ -572,6 +592,7 @@ describe("Parent Mode Shell (Task T10)", () => {
       );
 
       expect(screen.getByRole("heading", { name: "Enabled missions" })).toBeDefined();
+      expect(screen.getByRole("heading", { name: "Daily care reminder" })).toBeDefined();
       expect(screen.getByRole("heading", { name: "Change PIN" })).toBeDefined();
       expect(screen.getByRole("heading", { name: "Backup and restore" })).toBeDefined();
       expect(screen.getByRole("heading", { name: "Clear all data" })).toBeDefined();
@@ -672,6 +693,66 @@ describe("Parent Mode Shell (Task T10)", () => {
 
       expect(mockPush).toHaveBeenCalledWith(ROUTES.home);
       expect(sessionStore.getSnapshot().isUnlocked).toBe(false);
+    });
+
+    it("configures daily care reminder time in SettingsScreen", async () => {
+      const pinRecord = await createPinRecord("1234");
+      const state: AppState = {
+        ...buildDemoState(),
+        child: { nickname: "Lucas" },
+        settings: {
+          ...pinRecord,
+          allowedMissionIds: Object.values(MISSION_IDS),
+        },
+      };
+      saveState(state);
+      sessionStore.setUnlocked(true);
+
+      renderWithTheme(
+        <ProviderWrapper>
+          <SettingsScreen />
+        </ProviderWrapper>,
+      );
+
+      await screen.findByRole("heading", { name: "Daily care reminder" });
+      const enableBtn = screen.getByRole("button", { name: "Enabled" });
+      fireEvent.click(enableBtn);
+
+      const timeInput = await screen.findByLabelText("Reminder time");
+      fireEvent.change(timeInput, { target: { value: "19:45" } });
+
+      await waitFor(() => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const parsed = JSON.parse(raw as string) as AppState;
+        expect(parsed.settings?.reminderEnabled).toBe(true);
+        expect(parsed.settings?.reminderTime).toBe("19:45");
+      });
+    });
+
+    it("displays in-app daily care reminder banner on ParentHomeScreen when due and unrecorded", async () => {
+      const pinRecord = await createPinRecord("1234");
+      const state: AppState = {
+        ...buildDemoState(),
+        child: { nickname: "Lucas" },
+        settings: {
+          ...pinRecord,
+          allowedMissionIds: Object.values(MISSION_IDS),
+          reminderEnabled: true,
+          reminderTime: "00:00", // definitely due today
+        },
+        parentLogs: [], // no medication logged for today
+      };
+      saveState(state);
+      sessionStore.setUnlocked(true);
+
+      renderWithTheme(
+        <ProviderWrapper>
+          <ParentHomeScreen />
+        </ProviderWrapper>,
+      );
+
+      expect(await screen.findByText(/Time for Lucas's daily routine/)).toBeTruthy();
+      expect(screen.getByRole("link", { name: "Go to daily log" })).toBeTruthy();
     });
   });
 });

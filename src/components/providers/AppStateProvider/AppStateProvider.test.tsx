@@ -248,6 +248,24 @@ describe("AppStateProvider and useAppState hook", () => {
     expect(result.current.state.consultations[0]).toEqual(consultation);
   });
 
+  it("removes consultation with removeConsultation", () => {
+    const { result } = renderHook(() => useAppState(), { wrapper });
+    const consultation: Consultation = {
+      id: "c-1",
+      date: "2026-10-03",
+    };
+
+    act(() => {
+      result.current.actions.addConsultation(consultation);
+    });
+    expect(result.current.state.consultations).toHaveLength(1);
+
+    act(() => {
+      result.current.actions.removeConsultation("c-1");
+    });
+    expect(result.current.state.consultations).toHaveLength(0);
+  });
+
   it("enforces equip rules: not owned items cannot be equipped, one item per slot, and unequipItem removes it", () => {
     const { result } = renderHook(() => useAppState(), { wrapper });
 

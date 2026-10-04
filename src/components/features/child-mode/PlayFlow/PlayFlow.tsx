@@ -10,6 +10,7 @@ import { PLAY_GAMES, type PlayGame, type PlayLevel, type PlayMode } from "@/cont
 import { useAppState } from "@/hooks/useAppState";
 import { useCountdown } from "@/hooks/useCountdown";
 import { todayKey } from "@/lib/dates";
+import { getDragonEvolution } from "@/lib/economy";
 import type {
   MissionCompany,
   MissionConfirmation as ConfirmationKind,
@@ -329,8 +330,13 @@ export function PlayFlow({
       <Companion
         pose="cheer"
         size="sm"
-        equippedItemIds={state.companion.equippedItemIds}
+        equippedItemIds={
+          state.economy?.equippedItemIds?.length
+            ? state.economy.equippedItemIds
+            : state.companion.equippedItemIds
+        }
         name={state.child?.nickname || "Your companion"}
+        stage={getDragonEvolution(state.economy ?? { fire: 0 }).stage}
       />
     </CompanionBox>
   );

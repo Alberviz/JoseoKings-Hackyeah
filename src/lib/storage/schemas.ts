@@ -30,6 +30,10 @@ import type {
   SchoolDay,
   RewardClaim,
   SpecialReward,
+  StoolBlood,
+  StoolConsistency,
+  StoolFrequency,
+  StoolNight,
 } from "@/types";
 
 export const childProfileSchema: z.ZodType<ChildProfile> = z.object({
@@ -41,6 +45,11 @@ export const parentSettingsSchema: z.ZodType<ParentSettings> = z.object({
   pinSalt: z.string(),
   allowedMissionIds: z.array(z.string()),
   deviceRole: z.enum(["child", "parent", "both"]).optional(),
+  reminderTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional(),
+  reminderEnabled: z.boolean().optional(),
 });
 
 export const companionStateSchema: z.ZodType<CompanionState> = z.object({
@@ -125,12 +134,34 @@ export const medicationTakenSchema: z.ZodType<MedicationTaken> = z.enum([
   "not-applicable",
 ]);
 
+export const stoolFrequencySchema: z.ZodType<StoolFrequency> = z.enum([
+  "typical",
+  "more",
+  "much-more",
+  "unknown",
+]);
+
+export const stoolNightSchema: z.ZodType<StoolNight> = z.enum(["yes", "no", "unknown"]);
+
+export const stoolConsistencySchema: z.ZodType<StoolConsistency> = z.enum([
+  "formed",
+  "looser",
+  "watery",
+  "unknown",
+]);
+
+export const stoolBloodSchema: z.ZodType<StoolBlood> = z.enum(["none", "visible", "unknown"]);
+
 export const parentLogSchema: z.ZodType<ParentLog> = z.object({
   date: dateKeySchema,
   sleepHours: z.number().min(0).max(24).optional(),
   activity: activityLevelSchema.optional(),
   school: schoolDaySchema.optional(),
   medicationTaken: medicationTakenSchema.optional(),
+  stoolFrequency: stoolFrequencySchema.optional(),
+  stoolNight: stoolNightSchema.optional(),
+  stoolConsistency: stoolConsistencySchema.optional(),
+  stoolBlood: stoolBloodSchema.optional(),
   note: z.string().optional(),
 });
 
@@ -147,7 +178,15 @@ export const consultationSchema: z.ZodType<Consultation> = z.object({
   date: dateKeySchema,
 });
 
-export const shopItemIdSchema = z.enum(["food", "glasses", "t-shirt", "hat"]);
+export const shopItemIdSchema = z.enum([
+  "food",
+  "glasses",
+  "sunglasses",
+  "t-shirt",
+  "sport-shirt",
+  "hat",
+  "cap",
+]);
 
 export const specialRewardSchema: z.ZodType<SpecialReward> = z.object({
   id: z.string(),
