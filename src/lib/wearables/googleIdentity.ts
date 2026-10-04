@@ -55,11 +55,9 @@ export function loadGoogleIdentity(): Promise<void> {
   return loading;
 }
 
-/** Asks the parent to allow read-only access. Must be called from a click. */
-export async function requestGoogleAccessToken(clientId: string): Promise<AccessToken> {
-  await loadGoogleIdentity();
-  const oauth2 = window.google?.accounts?.oauth2;
-  if (!oauth2) throw new Error("Google sign-in is not available.");
+type OAuth2 = GoogleAccounts["accounts"]["oauth2"];
+
+function openTokenPopup(oauth2: OAuth2, clientId: string): Promise<AccessToken> {
   return new Promise<AccessToken>((resolve, reject) => {
     const client = oauth2.initTokenClient({
       client_id: clientId,
@@ -77,5 +75,20 @@ export async function requestGoogleAccessToken(clientId: string): Promise<Access
       error_callback: (error) => reject(new Error(error.message || "Sign-in was closed.")),
     });
     client.requestAccessToken();
+  });
+}
+
+/**
+ * Asks the parent to allow read-only access. Must be called from a click. When the Google script is
+ * already loaded (see loadGoogleIdentity, called when the connect UI mounts) the popup opens
+ * synchronously, still inside the click; otherwise the script is loaded first.
+ */
+export function requestGoogleAccessToken(clientId: string): Promise<AccessToken> {
+  const ready = typeof window === "undefined" ? undefined : window.google?.accounts?.oauth2;
+  if (ready) return openTokenPopup(ready, clientId);
+  return loadGoogleIdentity().then(() => {
+    const oauth2 = window.google?.accounts?.oauth2;
+    if (!oauth2) throw new Error("Google sign-in is not available.");
+    return openTokenPopup(oauth2, clientId);
   });
 }

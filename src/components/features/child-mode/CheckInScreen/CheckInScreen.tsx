@@ -3,10 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Companion } from "@/components/features/companion";
 import { Button, Heading, LinkButton, ProgressBar, Screen, Stack, Text } from "@/components/ui";
-import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { ROUTES } from "@/config/app";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
-import { CHILD_VISIBILITY_NOTE } from "@/content/disclaimers";
 import { useAppState } from "@/hooks/useAppState";
 import { todayKey } from "@/lib/dates";
 import type { CheckIn, CheckInAnswer, CheckInOption, CheckInQuestion } from "@/types";
@@ -23,7 +21,6 @@ import {
   EndCelebrationBox,
   GameActions,
   LoadingBox,
-  ParentReportNotice,
   PetContainer,
   PetNameBadge,
   PetRoom,
@@ -122,10 +119,6 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
     saveCheckIn(skippedAnswers(questions), true);
   };
 
-  const bellyAnswer = answers[QUESTION_IDS.bellyComfort];
-  const hasDiscomfortReported =
-    typeof bellyAnswer === "number" && bellyAnswer >= DISCOMFORT_THRESHOLD;
-
   if (!isReady) {
     return (
       <Screen>
@@ -158,13 +151,6 @@ export function CheckInScreen({ questions = CHECK_IN_QUESTIONS, onComplete }: Ch
                   : "Thanks for checking in. Every answer gives the same reward."}
               </Text>
             </Stack>
-
-            {hasDiscomfortReported && !notToday && (
-              <ParentReportNotice role="status">
-                <Heading level={3}>What your parents can see</Heading>
-                <Text tone="muted">{CHILD_VISIBILITY_NOTE}</Text>
-              </ParentReportNotice>
-            )}
 
             <LinkButton href={ROUTES.home} variant="primary" fullWidth>
               Back home

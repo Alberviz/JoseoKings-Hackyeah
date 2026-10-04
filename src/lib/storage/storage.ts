@@ -7,6 +7,28 @@ import { clearWearableState, wearableStateSchema } from "./wearableStore";
 
 export const STORAGE_KEY = "crohncare_app_state";
 export const BACKUP_STORAGE_KEY = "crohncare_app_state_backup";
+/** The backup that was replaced by the latest one: the last 2 unreadable payloads are kept. */
+export const PREVIOUS_BACKUP_STORAGE_KEY = "crohncare_app_state_backup_prev";
+
+/**
+ * Raw payload that could not be read on the last load. While it is set, the stored value is still
+ * the original, and saving an untouched empty state must not replace it.
+ */
+let unreadableRaw: string | null = null;
+
+/** Keeps the unreadable payload in the backup slot, moving the older backup to the previous slot. */
+function backupUnreadable(raw: string): void {
+  try {
+    const current = window.localStorage.getItem(BACKUP_STORAGE_KEY);
+    if (current === raw) return;
+    if (current !== null) {
+      window.localStorage.setItem(PREVIOUS_BACKUP_STORAGE_KEY, current);
+    }
+    window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
+  } catch {
+    // Ignore errors if storage is full or blocked
+  }
+}
 
 export function createEmptyState(): AppState {
   return {
@@ -71,23 +93,18 @@ export function loadState(): AppState {
     const result = appStateSchema.safeParse(migrated);
 
     if (result.success) {
+      unreadableRaw = null;
       return result.data;
     }
 
-    // Validation failed: save raw to backup and fall back to empty state
-    try {
-      window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
-    } catch {
-      // Ignore errors if storage is full or blocked
-    }
+    // Validation failed: keep raw in the backup and fall back to empty state
+    unreadableRaw = raw;
+    backupUnreadable(raw);
     return createEmptyState();
   } catch {
-    // Malformed JSON: save raw to backup and fall back to empty state
-    try {
-      window.localStorage.setItem(BACKUP_STORAGE_KEY, raw);
-    } catch {
-      // Ignore errors if storage is full or blocked
-    }
+    // Malformed JSON: keep raw in the backup and fall back to empty state
+    unreadableRaw = raw;
+    backupUnreadable(raw);
     return createEmptyState();
   }
 }
@@ -104,7 +121,16 @@ export function saveState(state: AppState): boolean {
 
   try {
     const validated = appStateSchema.parse(state);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+    const serialized = JSON.stringify(validated);
+    if (unreadableRaw !== null) {
+      // The original unreadable value is still stored. Keep it until the user changes something.
+      if (serialized === JSON.stringify(appStateSchema.parse(createEmptyState()))) {
+        return true;
+      }
+      backupUnreadable(unreadableRaw);
+      unreadableRaw = null;
+    }
+    window.localStorage.setItem(STORAGE_KEY, serialized);
     return true;
   } catch {
     return false;
@@ -112,10 +138,11 @@ export function saveState(state: AppState): boolean {
 }
 
 /**
- * Removes the main state key, the backup key and the wearable state from localStorage.
+ * Removes the main state key, the backup keys and the wearable state from localStorage.
  * Never throws.
  */
 export function clearStorage(): void {
+  unreadableRaw = null;
   clearWearableState();
   if (typeof window === "undefined" || !window.localStorage) {
     return;
@@ -124,6 +151,7 @@ export function clearStorage(): void {
   try {
     window.localStorage.removeItem(STORAGE_KEY);
     window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+    window.localStorage.removeItem(PREVIOUS_BACKUP_STORAGE_KEY);
   } catch {
     // Ignore errors if localStorage is blocked
   }
