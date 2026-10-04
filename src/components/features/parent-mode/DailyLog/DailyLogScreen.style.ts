@@ -75,3 +75,11 @@ export const AlertBox = styled.div<{ $variant?: "urgent" | "success" | "info" }>
   font-size: ${({ theme }) => theme.fontSize.sm};
   line-height: 1.4;
 `;
+
+export const FormSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+  padding-top: ${({ theme }) => theme.spacing.md};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+`;

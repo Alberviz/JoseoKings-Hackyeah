@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -105,6 +105,15 @@ describe("DailyLogScreen (T12)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Light" }));
     fireEvent.click(screen.getByRole("button", { name: "Went" }));
     fireEvent.click(screen.getByRole("button", { name: "Yes" }));
+
+    // Bathroom observations
+    expect(screen.getByRole("heading", { name: "Bathroom observations" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "1–2 (Typical)" }));
+    const nightGroup = screen.getByRole("group", { name: "Woke up at night to go?" });
+    fireEvent.click(within(nightGroup).getByRole("button", { name: "No" }));
+    fireEvent.click(screen.getByRole("button", { name: "Formed / Normal" }));
+    fireEvent.click(screen.getByRole("button", { name: "No blood" }));
+
     fireEvent.change(screen.getByLabelText("Note"), {
       target: { value: "Felt okay after school." },
     });
@@ -123,6 +132,10 @@ describe("DailyLogScreen (T12)", () => {
           activity: "light",
           school: "attended",
           medicationTaken: "yes",
+          stoolFrequency: "typical",
+          stoolNight: "no",
+          stoolConsistency: "formed",
+          stoolBlood: "none",
           note: "Felt okay after school.",
         });
       },
@@ -145,5 +158,41 @@ describe("DailyLogScreen (T12)", () => {
       },
       { timeout: 5000 },
     );
-  });
+  }, 15000);
+
+  it("allows selecting 'Don't know' for bathroom observations or omitting them", async () => {
+    await seedReadyState();
+    sessionStore.setUnlocked(true);
+
+    renderWithTheme(
+      <ProviderWrapper>
+        <DailyLogScreen />
+      </ProviderWrapper>,
+    );
+
+    await screen.findByRole("heading", { name: "Daily log" });
+
+    // Click "Don't know" buttons across all bathroom groups
+    const dontKnowButtons = screen.getAllByRole("button", { name: "Don't know" });
+    expect(dontKnowButtons.length).toBe(4);
+    for (const btn of dontKnowButtons) {
+      fireEvent.click(btn);
+    }
+
+    fireEvent.click(screen.getByRole("button", { name: "Save day" }));
+    expect(await screen.findByText("Daily log saved.")).toBeTruthy();
+
+    await waitFor(() => {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      expect(raw).toBeTruthy();
+      const parsed = JSON.parse(raw as string) as AppState;
+      const log = parsed.parentLogs.find((item) => item.date === todayKey());
+      expect(log).toMatchObject({
+        stoolFrequency: "unknown",
+        stoolNight: "unknown",
+        stoolConsistency: "unknown",
+        stoolBlood: "unknown",
+      });
+    });
+  }, 15000);
 });
