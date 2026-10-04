@@ -94,7 +94,7 @@ export function getActiveNotifications(
         body: `${name} requested ${rewardName} with dragon fire. Tap to review.`,
         tag: `reward-claim-${claim.id}`,
         priority: "medium",
-        actionUrl: ROUTES.parent,
+        actionUrl: ROUTES.parentRewards,
         actionLabel: "Review rewards",
       });
     }
