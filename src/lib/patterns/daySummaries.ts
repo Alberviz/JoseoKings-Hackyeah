@@ -7,6 +7,13 @@ import type { CheckInStatus, DateRange, DaySummary, DaySummaryMissions } from ".
  * Returns one DaySummary for every calendar day in the range (inclusive), in order,
  * even for days with no data.
  */
+/** The check-in only has 0, 1 or 2. Anything else counts as missing, like in the report. */
+function validAnswer(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 2
+    ? value
+    : null;
+}
+
 export function getDaySummaries(state: AppState, range: DateRange): DaySummary[] {
   const totalDays = daysBetween(range.from, range.to);
   if (totalDays < 0) {
@@ -60,9 +67,9 @@ export function getDaySummaries(state: AppState, range: DateRange): DaySummary[]
         const rawEnergy = checkIn.answers[QUESTION_IDS.energy];
         const rawPlayPace = checkIn.answers[QUESTION_IDS.playPace];
 
-        bellyComfort = typeof rawBelly === "number" ? rawBelly : null;
-        energy = typeof rawEnergy === "number" ? rawEnergy : null;
-        playPace = typeof rawPlayPace === "number" ? rawPlayPace : null;
+        bellyComfort = validAnswer(rawBelly);
+        energy = validAnswer(rawEnergy);
+        playPace = validAnswer(rawPlayPace);
 
         const answers = [bellyComfort, energy, playPace].filter(
           (value): value is number => value !== null,

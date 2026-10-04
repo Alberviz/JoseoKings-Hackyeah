@@ -112,15 +112,27 @@ export function buildReport(
 
     const rawBelly = checkIn?.answers?.[QUESTION_IDS.bellyComfort];
     const bellyComfort =
-      typeof rawBelly === "number" && rawBelly >= 0 && rawBelly <= 2 ? rawBelly : null;
+      typeof rawBelly === "number" && Number.isInteger(rawBelly) && rawBelly >= 0 && rawBelly <= 2
+        ? rawBelly
+        : null;
 
     const rawEnergy = checkIn?.answers?.[QUESTION_IDS.energy];
     const energy =
-      typeof rawEnergy === "number" && rawEnergy >= 0 && rawEnergy <= 2 ? rawEnergy : null;
+      typeof rawEnergy === "number" &&
+      Number.isInteger(rawEnergy) &&
+      rawEnergy >= 0 &&
+      rawEnergy <= 2
+        ? rawEnergy
+        : null;
 
     const rawPlayPace = checkIn?.answers?.[QUESTION_IDS.playPace];
     const playPace =
-      typeof rawPlayPace === "number" && rawPlayPace >= 0 && rawPlayPace <= 2 ? rawPlayPace : null;
+      typeof rawPlayPace === "number" &&
+      Number.isInteger(rawPlayPace) &&
+      rawPlayPace >= 0 &&
+      rawPlayPace <= 2
+        ? rawPlayPace
+        : null;
 
     const notToday = Boolean(checkIn?.notToday);
     const hadDiscomfort = bellyComfort !== null && bellyComfort >= DISCOMFORT_THRESHOLD;
@@ -255,18 +267,25 @@ export function buildReport(
     dayStrip.filter((d) => d.hadDiscomfort).map((d) => d.date),
   );
 
-  const foodCounts = new Map<string, number>();
+  // Count distinct days per food, ignoring case and spaces; show the first spelling seen.
+  const foodDays = new Map<string, { text: string; dates: Set<DateKey> }>();
   for (const entry of state.foodEntries ?? []) {
     if (discomfortDates.has(entry.date)) {
       const text = entry.text.trim();
       if (text.length > 0) {
-        foodCounts.set(text, (foodCounts.get(text) ?? 0) + 1);
+        const key = text.toLowerCase();
+        const found = foodDays.get(key);
+        if (found) {
+          found.dates.add(entry.date);
+        } else {
+          foodDays.set(key, { text, dates: new Set([entry.date]) });
+        }
       }
     }
   }
 
-  const foodsOnDiscomfortDays: FoodCooccurrence[] = Array.from(foodCounts.entries())
-    .map(([text, count]) => ({ text, count }))
+  const foodsOnDiscomfortDays: FoodCooccurrence[] = Array.from(foodDays.values())
+    .map(({ text, dates }) => ({ text, count: dates.size }))
     .sort((a, b) => a.text.localeCompare(b.text));
 
   const wearableSection = buildWearableSection(wearable, startDate, endDate);
