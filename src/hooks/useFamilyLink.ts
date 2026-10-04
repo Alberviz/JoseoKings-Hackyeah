@@ -73,3 +73,7 @@ export function useFamilyLink() {
 
   return { link: current.link, isReady: current.isReady, setLink, updateLink, forgetLink };
 }
+
+export function resetFamilyLinkForTesting() {
+  set(null);
+}

@@ -42,3 +42,28 @@ export const FactLine = styled.p`
   color: ${({ theme }) => theme.colors.textMuted};
   font-size: ${({ theme }) => theme.fontSize.sm};
 `;
+
+export const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+export const CodeTextarea = styled.textarea`
+  width: 100%;
+  min-height: 80px;
+  font-family: monospace;
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  padding: ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.text};
+  resize: vertical;
+  box-sizing: border-box;
+`;
+
+export const ActionRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+  width: 100%;
+`;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -32,9 +32,15 @@ import {
 import type { CheckIn, DateKey, MissionLog } from "@/types";
 import { CopyCodeButton } from "../CopyCodeButton/CopyCodeButton";
 import { describeLinkError } from "../linkMessages";
-import { QrDisplay } from "../QrDisplay/QrDisplay";
-import { QrScanner, type ScanFeedback } from "../QrScanner/QrScanner";
-import { ActionRow, LinkedBadge, ShareContainer, StepItem, StepList } from "./ShareScreen.style";
+import {
+  ActionRow,
+  CodeTextarea,
+  HiddenFileInput,
+  LinkedBadge,
+  ShareContainer,
+  StepItem,
+  StepList,
+} from "./ShareScreen.style";
 
 type BuildInput = {
   link: FamilyLink;
@@ -51,31 +57,53 @@ type BuildResult = {
   error: string | null;
 };
 
-/** Child side of the family link: scan the pairing code once, then show data codes when asked. */
+type Feedback = {
+  tone: "default" | "urgent" | "success";
+  message: string;
+};
+
+function triggerDownload(filename: string, content: string) {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Child side of the family link: import pairing file or code, export encrypted sync file or code. */
 export function ShareScreen() {
   const { state, actions, isReady } = useAppState();
   const family = useFamilyLink();
 
-  const [feedback, setFeedback] = useState<ScanFeedback | undefined>(undefined);
+  const [feedback, setFeedback] = useState<Feedback | undefined>(undefined);
   const [rangeDays, setRangeDays] = useState<ShareRangeDays>(7);
-  // The built code is stored with the input it was built from: a different input means "building".
   const [build, setBuild] = useState<BuildResult | null>(null);
   const [isForgetOpen, setIsForgetOpen] = useState(false);
+  const [pastedPairing, setPastedPairing] = useState("");
+  const [isCodeVisible, setIsCodeVisible] = useState(false);
+
+  const pairingFileInputRef = useRef<HTMLInputElement>(null);
 
   const link = family.link;
   const cryptoAvailable = isLinkCryptoAvailable();
 
-  const handlePairingCode = useCallback(
+  const handlePairingText = useCallback(
     (text: string) => {
-      if (!isPairingCode(text)) {
+      const trimmed = text.trim();
+      if (!isPairingCode(trimmed)) {
         setFeedback({
           tone: "urgent",
-          message: "That is not a pairing code. Ask your parents to open Family link.",
+          message:
+            "That is not a pairing code. Ask your parents to export the pairing file from Family link.",
         });
         return;
       }
       try {
-        const pairing = decodePairing(text);
+        const pairing = decodePairing(trimmed);
         family.setLink({
           role: "child",
           familyId: pairing.familyId,
@@ -89,13 +117,31 @@ export function ShareScreen() {
         if (!state.child && pairing.nickname.trim().length > 0) {
           actions.setChild({ nickname: pairing.nickname });
         }
-        setFeedback({ tone: "success", message: "Linked. This phone now knows your family." });
+        setFeedback({
+          tone: "success",
+          message: "Linked! This phone is now connected with your family.",
+        });
+        setPastedPairing("");
       } catch (error) {
         setFeedback({ tone: "urgent", message: describeLinkError(error, "child") });
       }
     },
     [actions, family, state.child],
   );
+
+  const handlePairingFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        handlePairingText(content);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   const range = useMemo(() => {
     const to = todayKey();
@@ -151,7 +197,7 @@ export function ShareScreen() {
           setBuild({
             input,
             frames: [],
-            error: "The code could not be prepared. Try a shorter range.",
+            error: "The sync file could not be prepared. Try a shorter range.",
           });
         }
       });
@@ -164,6 +210,38 @@ export function ShareScreen() {
   const frames = isCurrentBuild ? build.frames : [];
   const buildError = isCurrentBuild ? build.error : null;
   const isBuilding = input !== null && !isCurrentBuild;
+
+  const syncFileContent = frames.join("\n");
+
+  const handleDownloadSync = () => {
+    if (frames.length === 0) return;
+    triggerDownload(`mycrohnie-sync-${range.to}.enc`, syncFileContent);
+  };
+
+  const handleShareSync = async () => {
+    if (frames.length === 0) return;
+    const filename = `mycrohnie-sync-${range.to}.enc`;
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        const file = new File([syncFileContent], filename, { type: "text/plain" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: "MyCrohnie Encrypted Sync",
+            files: [file],
+          });
+          return;
+        }
+        await navigator.share({
+          title: "MyCrohnie Encrypted Sync",
+          text: syncFileContent,
+        });
+        return;
+      } catch (err: unknown) {
+        if ((err as Error)?.name === "AbortError") return;
+      }
+    }
+    handleDownloadSync();
+  };
 
   if (!isReady || !family.isReady) {
     return (
@@ -199,22 +277,65 @@ export function ShareScreen() {
           <Stack gap="xs">
             <Heading level={1}>Connect with your parents&apos; phone</Heading>
             <Text tone="muted">
-              One scan, once. After that, your phone can show your parents what you marked, with no
-              internet and no account.
+              Connect your phone to your parents using an offline file or code. No internet, no
+              accounts, and 100% private.
             </Text>
           </Stack>
-          <Card label="How it works">
+
+          <Card label="How to link">
             <StepList>
-              <StepItem>A parent opens Family link on their phone.</StepItem>
-              <StepItem>They tap Show pairing code.</StepItem>
-              <StepItem>You point this phone at their screen.</StepItem>
+              <StepItem>Ask your parents to open Family link on their phone.</StepItem>
+              <StepItem>
+                They tap &quot;Download pairing file&quot; or &quot;Share file&quot;.
+              </StepItem>
+              <StepItem>Select that pairing file below or paste the pairing code.</StepItem>
             </StepList>
           </Card>
-          <QrScanner
-            onCode={handlePairingCode}
-            feedback={feedback}
-            hint="Point the camera at the pairing code on your parents' phone."
+
+          <HiddenFileInput
+            ref={pairingFileInputRef}
+            type="file"
+            accept=".link,.txt,.json"
+            onChange={handlePairingFileUpload}
+            aria-label="Select pairing file"
           />
+
+          <ActionRow>
+            <Button
+              variant="primary"
+              fullWidth
+              onClick={() => pairingFileInputRef.current?.click()}
+            >
+              📁 Select pairing file (.link / .txt)
+            </Button>
+          </ActionRow>
+
+          <Card label="Paste code">
+            <Stack gap="xs">
+              <Text size="sm" tone="muted">
+                Or paste the pairing code (CCP1:...) here:
+              </Text>
+              <CodeTextarea
+                placeholder="Paste pairing code here (CCP1:...)"
+                value={pastedPairing}
+                onChange={(e) => setPastedPairing(e.target.value)}
+                aria-label="Paste pairing code"
+              />
+              <Button
+                variant="secondary"
+                fullWidth
+                disabled={!pastedPairing.trim()}
+                onClick={() => handlePairingText(pastedPairing)}
+              >
+                Link with pasted code
+              </Button>
+            </Stack>
+          </Card>
+
+          {feedback ? (
+            <Text tone={feedback.tone === "urgent" ? "urgent" : "default"}>{feedback.message}</Text>
+          ) : null}
+
           <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
             Back home
           </LinkButton>
@@ -236,7 +357,7 @@ export function ShareScreen() {
             {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
           </Stack>
           <Text tone="muted">
-            Your parents scan this code with their phone. Only your family can read it.
+            Export your records for your parents. Only your family can read the encrypted file.
           </Text>
         </Stack>
 
@@ -253,19 +374,39 @@ export function ShareScreen() {
           ))}
         </OptionGroup>
 
-        <Card label="Data code">
+        <Card label="Export records">
           <Stack gap="md">
             {buildError ? <Text tone="urgent">{buildError}</Text> : null}
             {isBuilding && frames.length === 0 ? (
-              <Text tone="muted">Preparing the code...</Text>
+              <Text tone="muted">Preparing encrypted sync file...</Text>
             ) : null}
-            {frames.length > 0 ? <QrDisplay frames={frames} label="Data code" /> : null}
             <Text size="sm" tone="muted">
               {recordCount === 0
-                ? "Nothing marked in these days yet. The code still works; it just carries no records."
+                ? "Nothing marked in these days yet. The file still works; it just carries no records."
                 : `${recordCount} records from ${range.from} to ${range.to}.`}
             </Text>
-            {frames.length > 0 ? <CopyCodeButton frames={frames} /> : null}
+
+            {frames.length > 0 ? (
+              <ActionRow>
+                <Button variant="primary" fullWidth onClick={handleDownloadSync}>
+                  💾 Download sync file (.enc)
+                </Button>
+                <Button variant="secondary" fullWidth onClick={handleShareSync}>
+                  📤 Share file (AirDrop / WhatsApp / Nearby)
+                </Button>
+                <CopyCodeButton frames={frames} />
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  onClick={() => setIsCodeVisible((prev) => !prev)}
+                >
+                  {isCodeVisible ? "Hide raw code" : "View raw code"}
+                </Button>
+                {isCodeVisible ? (
+                  <CodeTextarea readOnly value={syncFileContent} aria-label="Raw encrypted code" />
+                ) : null}
+              </ActionRow>
+            ) : null}
           </Stack>
         </Card>
 
@@ -285,7 +426,7 @@ export function ShareScreen() {
         >
           <Stack gap="md">
             <Text>
-              Your records stay on this phone. You will need to scan a new pairing code to share
+              Your records stay on this phone. You will need to import a new pairing file to share
               again.
             </Text>
             <Button
