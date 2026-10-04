@@ -109,6 +109,8 @@ const outputs = [
   [join(root, "public", "icons", "icon-maskable-512.png"), maskable512],
   [join(root, "src", "app", "icon.png"), square512],
   [join(root, "src", "app", "apple-icon.png"), square512],
+  [join(root, "src", "app", "opengraph-image.png"), square512],
+  [join(root, "src", "app", "twitter-image.png"), square512],
 ];
 
 for (const [path, buf] of outputs) {
