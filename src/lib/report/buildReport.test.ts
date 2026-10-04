@@ -423,3 +423,33 @@ describe("buildReport", () => {
     expect(report.disclaimer).toBe(REPORT_DISCLAIMER);
   });
 });
+
+describe("buildReport watch and observed sections", () => {
+  it("is empty without watch data and counts parent log days", () => {
+    const state = makeEmptyState();
+    state.parentLogs = [{ date: "2026-10-03", school: "missed", medicationTaken: "yes" }];
+    const report = buildReport(state, "2026-10-04");
+    expect(report.watch.validDays).toBe(0);
+    expect(report.observed.loggedDays).toBe(1);
+    expect(report.observed.school.missed).toBe(1);
+  });
+
+  it("feeds watch days inside the period", () => {
+    const report = buildReport(makeEmptyState(), "2026-10-04", {
+      days: [
+        {
+          date: "2026-10-03",
+          steps: 4000,
+          restingHr: 60,
+          sleepMinutes: 480,
+          nightComplete: true,
+          dayComplete: true,
+        },
+      ],
+      lastSyncAt: null,
+      isDemo: true,
+    });
+    expect(report.watch.steps.median).toBe(4000);
+    expect(report.watch.isDemo).toBe(true);
+  });
+});
