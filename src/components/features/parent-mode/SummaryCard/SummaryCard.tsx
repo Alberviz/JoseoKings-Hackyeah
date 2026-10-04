@@ -7,6 +7,7 @@ import { todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
+import { shouldShowInAppReminder } from "@/lib/reminder/reminder";
 import { formatMissionTitle } from "../missionLabels";
 import {
   AnswerLabel,
@@ -95,6 +96,9 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
   const todayCheckIn = state.checkIns.find((item) => item.date === today);
   const todayMissions = state.missionLogs.filter((item) => item.date === today);
 
+  const todayLog = state.parentLogs.find((item) => item.date === today);
+  const showReminder = shouldShowInAppReminder(state.settings, todayLog?.medicationTaken);
+
   const bellyAnswer = todayCheckIn?.answers[QUESTION_IDS.bellyComfort];
   const hasDiscomfort = typeof bellyAnswer === "number" && bellyAnswer >= DISCOMFORT_THRESHOLD;
 
@@ -108,6 +112,20 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
           </Stack>
           <Text tone="muted">Daily summary for {childName}</Text>
         </Stack>
+
+        {showReminder ? (
+          <PromptCard role="status">
+            <Stack gap="xs">
+              <Heading level={2}>Daily care reminder</Heading>
+              <Text size="sm">
+                Time for {childName}&apos;s daily routine. Have you logged today&apos;s care?
+              </Text>
+              <LinkButton href={ROUTES.parentLog} variant="secondary">
+                Go to daily log
+              </LinkButton>
+            </Stack>
+          </PromptCard>
+        ) : null}
 
         <Card label="Today's performance">
           <Stack gap="md">

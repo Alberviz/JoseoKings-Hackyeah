@@ -101,7 +101,14 @@ describe("DailyLogScreen (T12)", () => {
     await screen.findByRole("heading", { name: "Daily log" });
     expect(screen.getByText("Facts for Lucas. No drug names or doses.")).toBeTruthy();
 
-    fireEvent.change(screen.getByLabelText("Sleep hours"), { target: { value: "9" } });
+    const sleepSlider = screen.getByLabelText("Sleep hours");
+    expect(sleepSlider).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "9h" }));
+    expect(screen.getByText("9 hrs")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Increase sleep by 30 minutes" }));
+    expect(screen.getByText("9.5 hrs")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Decrease sleep by 30 minutes" }));
+    expect(screen.getByText("9 hrs")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Light" }));
     fireEvent.click(screen.getByRole("button", { name: "Went" }));
     fireEvent.click(screen.getByRole("button", { name: "Yes" }));
