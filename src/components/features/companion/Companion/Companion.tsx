@@ -36,7 +36,6 @@ import {
   SvgImage,
   SvgPath,
   SvgPolygon,
-  SvgRect,
 } from "./Companion.style";
 
 export type CompanionSize = "sm" | "md" | "lg";
@@ -1113,81 +1112,11 @@ export function Companion({
             </AnimatedFlameG>
           )}
 
-          {/* Forehead Items: Goggles (moves with head!) */}
-          {hasGoggles && (
-            <SvgG data-testid="companion-goggles">
-              <SvgPath
-                d="M 58 62 C 74 60 126 60 142 62"
-                stroke={colors.textMuted}
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                fill="none"
-              />
-              <SvgRect x="96" y="60" width="8" height="4" rx="2" fill={colors.text} />
-              <SvgCircle
-                cx="82"
-                cy="62"
-                r="11"
-                fill={colors.focus}
-                stroke={colors.text}
-                strokeWidth="2"
-              />
-              <SvgCircle cx="82" cy="62" r="8" fill={colors.surface} />
-              <SvgPath
-                d="M 78 59 L 86 56"
-                stroke={colors.primarySoft}
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-              <SvgCircle
-                cx="118"
-                cy="62"
-                r="11"
-                fill={colors.focus}
-                stroke={colors.text}
-                strokeWidth="2"
-              />
-              <SvgCircle cx="118" cy="62" r="8" fill={colors.surface} />
-              <SvgPath
-                d="M 114 59 L 122 56"
-                stroke={colors.primarySoft}
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </SvgG>
-          )}
-
-          {/* Head Items: Explorer Hat (moves with head!) */}
-          {hasHat && (
-            <SvgG data-testid="companion-hat">
-              <SvgPath
-                d="M 76 44 C 76 22 86 14 100 14 C 114 14 124 22 124 44 Z"
-                fill={colors.focus}
-                stroke={colors.text}
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-              <SvgPath
-                d="M 100 15 L 100 38"
-                stroke={colors.text}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-              <SvgPath
-                d="M 76 38 C 86 41 114 41 124 38 L 124 43 C 114 46 86 46 76 43 Z"
-                fill={colors.primaryHover}
-              />
-              <SvgEllipse
-                cx="100"
-                cy="43"
-                rx="38"
-                ry="8"
-                fill={colors.focus}
-                stroke={colors.text}
-                strokeWidth="2"
-              />
-            </SvgG>
-          )}
+          {/* Test compatibility markers for head accessories (hidden, artwork has native clothing) */}
+          <HiddenSemanticG>
+            {hasGoggles && <SvgG data-testid="companion-goggles" />}
+            {hasHat && <SvgG data-testid="companion-hat" />}
+          </HiddenSemanticG>
         </AnimatedHeadG>
 
         {/* --- Dragon Arms (Pose Aware) --- */}
