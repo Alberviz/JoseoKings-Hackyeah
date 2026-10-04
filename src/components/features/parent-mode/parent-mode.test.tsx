@@ -465,6 +465,41 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(screen.getByText(addDays(today, 5))).toBeDefined();
       expect(screen.getByText("In 5 days")).toBeDefined();
     });
+
+    it("renders appointment reminder banner when consultation is scheduled for tomorrow", () => {
+      const today = todayKey();
+      const demoState = buildDemoState({ today });
+      demoState.consultations.push({
+        id: "c-tomorrow",
+        date: addDays(today, 1),
+      });
+
+      renderWithTheme(<SummaryCard state={demoState} onLock={vi.fn()} />);
+
+      expect(screen.getByRole("heading", { name: "Doctor appointment tomorrow" })).toBeDefined();
+      expect(screen.getByRole("link", { name: "View doctor report" })).toBeDefined();
+    });
+
+    it("renders reward claim notification banner when child requested a home reward", () => {
+      const today = todayKey();
+      const demoState = buildDemoState({ today });
+      demoState.economy.specialRewards = [{ id: "r1", name: "Board game night", fireCost: 20 }];
+      demoState.economy.rewardClaims = [
+        {
+          id: "cl1",
+          rewardId: "r1",
+          date: today,
+          createdAt: "2026-10-04T10:00:00Z",
+          status: "requested",
+        },
+      ];
+
+      renderWithTheme(<SummaryCard state={demoState} onLock={vi.fn()} />);
+
+      expect(screen.getByRole("heading", { name: "Family reward requested" })).toBeDefined();
+      expect(screen.getByText(/Board game night/)).toBeDefined();
+      expect(screen.getByRole("link", { name: "Review rewards" })).toBeDefined();
+    });
   });
 
   describe("SettingsScreen backup import error handling", () => {
