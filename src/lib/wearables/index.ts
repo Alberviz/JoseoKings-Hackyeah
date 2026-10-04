@@ -1,5 +1,5 @@
 export * from "./types";
-export * from "./supabase";
+export * from "./browserGoogleHealth";
 export * from "./googleFit";
 export * from "./normalize";
 export * from "./stats";
