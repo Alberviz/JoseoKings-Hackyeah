@@ -39,6 +39,11 @@ export const theme = {
     dragonHorn: "#E5A825",
     dragonHornHighlight: "#FFE27A",
     dragonCheek: "#F29AA8",
+    // Parent day status (always paired with a text label, never colour alone).
+    statusUsual: "#2E9B5B",
+    statusSlight: "#F2B01E",
+    statusClear: "#E8661F",
+    statusUnknown: "#9AA0B4",
     playButton: "#7054C7",
     childHomeBg: "#BFEAF3",
   },

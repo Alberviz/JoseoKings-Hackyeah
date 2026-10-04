@@ -4,10 +4,12 @@ import { Button, Card, Chip, Heading, LinkButton, Stack, Text } from "@/componen
 import { ROUTES } from "@/config/app";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { todayKey } from "@/lib/dates";
+import { corroborationLabel } from "@/lib/missions/corroboration";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
 import { formatMissionTitle } from "../missionLabels";
+import { WatchSummary } from "../WatchSummary/WatchSummary";
 import {
   AnswerLabel,
   AnswerValue,
@@ -165,6 +167,9 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
                       <MissionHeader>
                         <Text>{formatMissionTitle(log.missionId)}</Text>
                         <Chip label={confidenceLabel(log.company)} tone="default" />
+                        {log.corroboration ? (
+                          <Chip label={corroborationLabel(log.corroboration)} tone="default" />
+                        ) : null}
                       </MissionHeader>
                       <Text size="sm" tone="muted">
                         Status: {log.status === "completed" ? "Completed" : "Rest"}
@@ -176,6 +181,8 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
             </Stack>
           </Stack>
         </Card>
+
+        <WatchSummary state={state} />
 
         {hasDiscomfort ? (
           <PromptCard role="region" aria-label="Food note prompt">

@@ -20,6 +20,7 @@ import type {
   FoodEntry,
   MedicationTaken,
   MissionCompany,
+  MissionCorroboration,
   MissionConfirmation,
   MissionLog,
   MissionMoodAfter,
@@ -92,6 +93,11 @@ export const missionMoodAfterSchema: z.ZodType<MissionMoodAfter> = z.enum([
   "great",
 ]);
 
+export const missionCorroborationSchema: z.ZodType<MissionCorroboration> = z.enum([
+  "watch",
+  "motion",
+]);
+
 export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   id: z.string(),
   date: dateKeySchema,
@@ -102,6 +108,7 @@ export const missionLogSchema: z.ZodType<MissionLog> = z.object({
   createdAt: z.string(),
   moodBefore: missionMoodBeforeSchema.optional(),
   moodAfter: missionMoodAfterSchema.optional(),
+  corroboration: missionCorroborationSchema.optional(),
 });
 
 export const activityLevelSchema: z.ZodType<ActivityLevel> = z.enum([

@@ -81,6 +81,8 @@ export const MissionHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 export const NavGrid = styled.nav`

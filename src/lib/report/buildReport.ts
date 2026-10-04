@@ -2,7 +2,11 @@ import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays, daysBetween, todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
+import { createEmptyWatchState } from "@/lib/storage/watchStore";
 import type { AppState, DateKey, MissionCompany } from "@/types";
+import type { WatchState } from "@/types/watch";
+import { compareChildWithWatch } from "./crossComparison";
+import { buildObservedSection, buildWatchSection } from "./sections";
 import type {
   ActivityConfidenceCount,
   DayStripEntry,
@@ -18,7 +22,11 @@ function isSchoolImpacted(school?: string): boolean {
   );
 }
 
-export function buildReport(state: AppState, today: DateKey = todayKey()): DoctorReportData {
+export function buildReport(
+  state: AppState,
+  today: DateKey = todayKey(),
+  watch: WatchState = createEmptyWatchState(),
+): DoctorReportData {
   const priorConsultations = [...(state.consultations ?? [])]
     .filter((c) => c.date <= today)
     .sort((a, b) => b.date.localeCompare(a.date));
@@ -96,6 +104,7 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
       hadDiscomfort,
       hasParentLog: Boolean(parentLog),
       ...(parentLog?.sleepHours !== undefined ? { sleepHours: parentLog.sleepHours } : {}),
+      ...(parentLog ? { schoolImpacted: isSchoolImpacted(parentLog.school) } : {}),
     });
   }
 
@@ -149,6 +158,8 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
     .map(([text, count]) => ({ text, count }))
     .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
 
+  const watchSection = buildWatchSection(watch, startDate, endDate);
+
   return {
     childNickname: state.child?.nickname ?? "Lucas",
     isDemo: Boolean(state.isDemo),
@@ -173,6 +184,9 @@ export function buildReport(state: AppState, today: DateKey = todayKey()): Docto
       byConfidence,
     },
     foodsOnDiscomfortDays,
+    crossComparison: compareChildWithWatch(dayStrip, watchSection.series),
+    watch: watchSection,
+    observed: buildObservedSection(periodParentLogs),
     dayStrip,
     disclaimer: REPORT_DISCLAIMER,
   };
