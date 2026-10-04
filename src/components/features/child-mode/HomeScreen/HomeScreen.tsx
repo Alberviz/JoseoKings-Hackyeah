@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, ROUTES } from "@/config/app";
 import { FIRE_MAX } from "@/config/economy";
@@ -36,6 +36,14 @@ export function HomeScreen() {
   const router = useRouter();
   const { state, isReady } = useAppState();
   const [companionPose, setCompanionPose] = useState<"idle" | "cheer">("idle");
+  const poseTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const timeoutRef = poseTimeoutRef;
+    return () => {
+      if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   // If no child is configured, redirect to parent setup.
   useEffect(() => {
@@ -103,7 +111,8 @@ export function HomeScreen() {
               stage={evolution.stage}
               onTap={() => {
                 setCompanionPose("cheer");
-                setTimeout(() => setCompanionPose("idle"), 1200);
+                if (poseTimeoutRef.current !== null) clearTimeout(poseTimeoutRef.current);
+                poseTimeoutRef.current = window.setTimeout(() => setCompanionPose("idle"), 1200);
               }}
             />
           </DragonFrame>
