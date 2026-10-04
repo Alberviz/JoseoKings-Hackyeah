@@ -58,3 +58,18 @@ export const MarkerDot = styled.circle`
 export const ChartTitle = styled.span`
   font-weight: ${({ theme }) => theme.fontWeight.medium};
 `;
+
+export const ChartSvgTitle = styled("title")``;
+
+/** Dashed line in the middle of a chart that has no data. */
+export const EmptyBaseline = styled.line`
+  stroke: currentColor;
+  stroke-dasharray: 3 3;
+  opacity: 0.2;
+`;
+
+/** Faint line along the bottom of a chart that has data. */
+export const FloorBaseline = styled.line`
+  stroke: currentColor;
+  opacity: 0.08;
+`;

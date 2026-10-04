@@ -3,7 +3,7 @@ import { REPORT_DISCLAIMER } from "@/content/disclaimers";
 import { addDays, daysBetween, todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
 import { createEmptyWatchState } from "@/lib/storage/watchStore";
-import type { AppState, DateKey, MissionCompany } from "@/types";
+import type { AppState, BathroomEntry, DateKey, MissionCompany } from "@/types";
 import type { WatchState } from "@/types/watch";
 import { compareChildWithWatch } from "./crossComparison";
 import { buildObservedSection, buildWatchSection } from "./sections";
@@ -14,6 +14,8 @@ import type {
   FoodCooccurrence,
   MissionCorroborationCount,
 } from "./types";
+
+type DatedBathroomEntry = BathroomEntry & { date: DateKey };
 
 const COMPANIES: readonly MissionCompany[] = ["alone", "family", "other"];
 
@@ -78,21 +80,19 @@ export function buildReport(
     missionDates.add(m.date);
   }
 
-  const periodDailyLogs = ((state.dailyLogs ?? []) as any[]).filter(
-    (d) => d && d.date >= startDate && d.date <= endDate,
-  );
-  const periodParentObservations = ((state.parentObservations ?? []) as any[]).filter(
-    (o) => o && o.date >= startDate && o.date <= endDate,
-  );
+  const inPeriod = (entry: BathroomEntry | undefined): entry is DatedBathroomEntry =>
+    Boolean(entry && entry.date && entry.date >= startDate && entry.date <= endDate);
+  const periodDailyLogs = (state.dailyLogs ?? []).filter(inPeriod);
+  const periodParentObservations = (state.parentObservations ?? []).filter(inPeriod);
 
-  const dailyLogByDate = new Map<DateKey, any>();
+  const dailyLogByDate = new Map<DateKey, DatedBathroomEntry>();
   for (const d of periodDailyLogs) {
     if (!dailyLogByDate.has(d.date)) {
       dailyLogByDate.set(d.date, d);
     }
   }
 
-  const parentObsByDate = new Map<DateKey, any[]>();
+  const parentObsByDate = new Map<DateKey, DatedBathroomEntry[]>();
   for (const o of periodParentObservations) {
     const list = parentObsByDate.get(o.date) ?? [];
     list.push(o);
@@ -129,7 +129,7 @@ export function buildReport(
       dailyLog?.daytimeVisits ??
       (parentObsList.length > 0
         ? parentObsList.reduce(
-            (max: number, o: any) =>
+            (max: number, o: BathroomEntry) =>
               Math.max(max, o.daytimeBathroomCount ?? o.daytimeVisits ?? o.valueNum ?? 0),
             0,
           )
@@ -143,12 +143,12 @@ export function buildReport(
         ? 1
         : parentObsList.length > 0
           ? parentObsList.reduce(
-              (max: number, o: any) =>
+              (max: number, o: BathroomEntry) =>
                 Math.max(
                   max,
                   o.nighttimeBathroomCount ??
                     o.nighttimeVisits ??
-                    (o.stoolNight === "yes" ? 1 : o.valueNum ?? 0),
+                    (o.stoolNight === "yes" ? 1 : (o.valueNum ?? 0)),
                 ),
               0,
             )
@@ -162,7 +162,7 @@ export function buildReport(
       dailyLog?.stoolConsistency === "looser" ||
       dailyLog?.stoolConsistency === "watery" ||
       parentObsList.some(
-        (o: any) =>
+        (o: BathroomEntry) =>
           Boolean(o.looserStools) ||
           o.stoolConsistency === "looser" ||
           o.stoolConsistency === "watery" ||
@@ -175,10 +175,8 @@ export function buildReport(
       Boolean(dailyLog?.bloodVisible) ||
       dailyLog?.stoolBlood === "visible" ||
       parentObsList.some(
-        (o: any) =>
-          Boolean(o.bloodVisible) ||
-          o.stoolBlood === "visible" ||
-          o.kind === "blood_visible",
+        (o: BathroomEntry) =>
+          Boolean(o.bloodVisible) || o.stoolBlood === "visible" || o.kind === "blood_visible",
       );
 
     dayStrip.push({
@@ -238,9 +236,7 @@ export function buildReport(
   const motionCorroboratedCount = completedMissions.filter(
     (m) => m.corroboration === "motion",
   ).length;
-  const noneCorroboratedCount = completedMissions.filter(
-    (m) => !m.corroboration,
-  ).length;
+  const noneCorroboratedCount = completedMissions.filter((m) => !m.corroboration).length;
 
   const byCorroboration: MissionCorroborationCount[] = [
     { method: "watch", label: "Watch verified", count: watchCorroboratedCount },

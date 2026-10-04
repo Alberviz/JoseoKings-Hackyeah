@@ -1,7 +1,7 @@
 import { addDays, daysBetween } from "@/lib/dates";
 import { resolveDeviceSelection } from "@/lib/wearables/devices";
 import { median, quartiles } from "@/lib/wearables/stats";
-import type { DateKey, ParentLog } from "@/types";
+import type { BathroomEntry, DateKey, ParentLog } from "@/types";
 import type { WatchState } from "@/types/watch";
 import type {
   BathroomObservedSummary,
@@ -79,28 +79,6 @@ export function buildWatchSection(
     series,
   };
 }
-
-/** The loose shape of a daily log or a family observation, as far as the report reads it. */
-type BathroomEntry = {
-  date?: DateKey;
-  kind?: string;
-  valueText?: string;
-  valueNum?: number;
-  daytimeBathroomCount?: number;
-  daytimeVisits?: number;
-  daytimeCount?: number;
-  nighttimeBathroomCount?: number;
-  nighttimeVisits?: number;
-  nighttimeCount?: number;
-  looserStools?: boolean;
-  looserStoolsFlag?: boolean;
-  bloodVisible?: boolean;
-  bloodVisibleFlag?: boolean;
-  stoolFrequency?: unknown;
-  stoolNight?: string;
-  stoolConsistency?: string;
-  stoolBlood?: string;
-};
 
 type DayBathroomRecord = {
   daytime: number;

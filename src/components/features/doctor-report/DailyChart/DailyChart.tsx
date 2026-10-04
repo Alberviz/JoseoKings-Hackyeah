@@ -8,6 +8,9 @@ import {
   ChartRange,
   ChartTitle,
   ChartSvg,
+  ChartSvgTitle,
+  EmptyBaseline,
+  FloorBaseline,
   MarkerDot,
 } from "./DailyChart.style";
 
@@ -67,37 +70,22 @@ export function DailyChart({ title, unit, values, markers }: DailyChartProps) {
         role="img"
         aria-label={label}
       >
-        <title>{label}</title>
+        <ChartSvgTitle>{label}</ChartSvgTitle>
         {present.length === 0 ? (
-          <line
-            x1={PAD}
-            y1={HEIGHT / 2}
-            x2={WIDTH - PAD}
-            y2={HEIGHT / 2}
-            stroke="currentColor"
-            strokeDasharray="3 3"
-            opacity={0.2}
-          />
+          <EmptyBaseline x1={PAD} y1={HEIGHT / 2} x2={WIDTH - PAD} y2={HEIGHT / 2} />
         ) : (
-          <line
-            x1={PAD}
-            y1={HEIGHT - PAD}
-            x2={WIDTH - PAD}
-            y2={HEIGHT - PAD}
-            stroke="currentColor"
-            opacity={0.08}
-          />
+          <FloorBaseline x1={PAD} y1={HEIGHT - PAD} x2={WIDTH - PAD} y2={HEIGHT - PAD} />
         )}
         <ChartLine d={path} />
         {dots.map((d) => (
           <ChartDot key={d.key} cx={d.x} cy={d.y} r={1.8}>
-            <title>{`Day ${d.key + 1}: ${values[d.key]} ${unit}`}</title>
+            <ChartSvgTitle>{`Day ${d.key + 1}: ${values[d.key]} ${unit}`}</ChartSvgTitle>
           </ChartDot>
         ))}
         {markers.map((on, i) =>
           on ? (
             <MarkerDot key={`m${i}`} cx={xAt(i)} cy={MARKER_Y} r={2.2}>
-              <title>{`Day ${i + 1}: discomfort marked`}</title>
+              <ChartSvgTitle>{`Day ${i + 1}: discomfort marked`}</ChartSvgTitle>
             </MarkerDot>
           ) : null,
         )}
