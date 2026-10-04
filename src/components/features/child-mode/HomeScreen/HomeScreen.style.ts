@@ -11,7 +11,7 @@ export const HomeScreenRoot = styled.main`
   min-height: 100dvh;
   margin: 0;
   padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 16px) 16px;
-  background-color: ${({ theme }) => theme.colors.childHomeBg};
+  background: transparent;
   overflow-x: hidden;
   box-sizing: border-box;
   user-select: none;

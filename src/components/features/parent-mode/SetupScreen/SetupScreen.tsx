@@ -2,12 +2,15 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Heading, LinkButton, Screen, Stack, Text, TextField } from "@/components/ui";
+import { Button, LinkButton, Screen, Stack, Text, TextField } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { createPinRecord, hasPin, isValidPin } from "@/lib/pin";
 import { buildDemoState } from "@/lib/demo-data";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
+import { SectionCard } from "../SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "../sections";
 import { AlertBox, SetupContainer, SetupForm } from "./SetupScreen.style";
 
 export function SetupScreen() {
@@ -41,15 +44,20 @@ export function SetupScreen() {
     return (
       <Screen>
         <SetupContainer>
-          <Card label="Already configured">
+          <ParentBanner
+            section="more"
+            icon="lock"
+            title="Parent mode already set up"
+            stickers={0}
+          />
+          <SectionCard section="more" title="Already configured">
             <Stack gap="md">
-              <Heading level={1}>Parent mode already set up</Heading>
               <Text>
                 Parent mode is already set up for {state.child?.nickname}. You can open parent mode
                 or manage settings.
               </Text>
               <Stack gap="sm">
-                <LinkButton href={ROUTES.parent} variant="primary" fullWidth>
+                <LinkButton href={ROUTES.parent} variant={SECTION_BUTTON_VARIANT.more} fullWidth>
                   Go to parent mode
                 </LinkButton>
                 <LinkButton href={ROUTES.parentSettings} variant="secondary" fullWidth>
@@ -57,7 +65,7 @@ export function SetupScreen() {
                 </LinkButton>
               </Stack>
             </Stack>
-          </Card>
+          </SectionCard>
         </SetupContainer>
       </Screen>
     );
@@ -136,10 +144,13 @@ export function SetupScreen() {
     <Screen>
       <SetupContainer>
         <Stack gap="lg">
-          <Stack gap="xs">
-            <Heading level={1}>Parent mode setup</Heading>
-            <Text tone="muted">Set up your child profile and a parent PIN.</Text>
-          </Stack>
+          <ParentBanner
+            section="more"
+            icon="lock"
+            title="Parent mode setup"
+            subtitle="Set up your child profile and a parent PIN."
+            stickers={0}
+          />
 
           {!session.isCryptoAvailable ? (
             <AlertBox $variant="urgent" role="alert">
@@ -155,9 +166,8 @@ export function SetupScreen() {
 
           <SetupForm onSubmit={handleSubmit}>
             <Stack gap="lg">
-              <Card label="Child details">
+              <SectionCard section="more" title="Child profile" label="Child details">
                 <Stack gap="md">
-                  <Heading level={2}>Child profile</Heading>
                   <TextField
                     label="Child's name"
                     value={nickname}
@@ -168,11 +178,10 @@ export function SetupScreen() {
                     autoComplete="off"
                   />
                 </Stack>
-              </Card>
+              </SectionCard>
 
-              <Card label="Parent PIN setup">
+              <SectionCard section="more" title="Create a 4-digit PIN" label="Parent PIN setup">
                 <Stack gap="md">
-                  <Heading level={2}>Create a 4-digit PIN</Heading>
                   <Text size="sm" tone="muted">
                     This PIN separates parent mode from child mode on this device.
                   </Text>
@@ -197,12 +206,12 @@ export function SetupScreen() {
                     autoComplete="off"
                   />
                 </Stack>
-              </Card>
+              </SectionCard>
 
               <Stack gap="sm">
                 <Button
                   type="submit"
-                  variant="primary"
+                  variant={SECTION_BUTTON_VARIANT.more}
                   disabled={isSubmitting || !session.isCryptoAvailable}
                   fullWidth
                 >

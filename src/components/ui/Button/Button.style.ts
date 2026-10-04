@@ -1,6 +1,7 @@
 import styled, { css } from "styled-components";
 
-export type ButtonVariant = "primary" | "secondary" | "urgent" | "accent";
+export type ButtonVariant =
+  "primary" | "secondary" | "urgent" | "accent" | "success" | "lavender" | "highlight";
 
 // Transient props ($variant) are not forwarded to the DOM.
 type StyledButtonProps = {
@@ -48,6 +49,18 @@ const variantStyles = {
   accent: css`
     background: ${({ theme }) => theme.colors.accent};
     color: ${({ theme }) => theme.colors.onAccent};
+  `,
+  success: css`
+    background: ${({ theme }) => theme.sections.log.strong};
+    color: ${({ theme }) => theme.sections.log.onStrong};
+  `,
+  lavender: css`
+    background: ${({ theme }) => theme.sections.patterns.strong};
+    color: ${({ theme }) => theme.sections.patterns.onStrong};
+  `,
+  highlight: css`
+    background: ${({ theme }) => theme.sections.more.strong};
+    color: ${({ theme }) => theme.sections.more.onStrong};
   `,
   urgent: css`
     background: ${({ theme }) => theme.colors.urgent};

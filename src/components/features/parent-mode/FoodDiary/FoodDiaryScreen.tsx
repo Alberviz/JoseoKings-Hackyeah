@@ -1,18 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import {
-  Button,
-  Card,
-  Chip,
-  Heading,
-  LinkButton,
-  Screen,
-  Stack,
-  Text,
-  TextField,
-} from "@/components/ui";
-import { ROUTES } from "@/config/app";
+import { Button, Chip, Heading, Screen, Stack, Text, TextField } from "@/components/ui";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
 import { PATTERNS_DISCLAIMER } from "@/content";
 import { useAppState } from "@/hooks/useAppState";
@@ -20,7 +9,10 @@ import { useParentSession } from "@/hooks/useParentSession";
 import { isDateKey, todayKey } from "@/lib/dates";
 import { hasPin } from "@/lib/pin";
 import type { DateKey, FoodEntry } from "@/types";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { PinGate } from "../PinGate/PinGate";
+import { SectionCard } from "../SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "../sections";
 import {
   AlertBox,
   DiscomfortBadge,
@@ -144,19 +136,17 @@ export function FoodDiaryScreen() {
     <Screen>
       <FoodDiaryContainer>
         <Stack gap="lg">
-          <Stack gap="xs">
-            <Stack gap="sm" direction="row" align="center">
-              <Heading level={1}>Food diary</Heading>
-              {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
-            </Stack>
-            <Text tone="muted">
-              Factual record of foods and snacks to discuss with your healthcare team.
-            </Text>
-          </Stack>
-
-          <LinkButton href={ROUTES.parent} variant="secondary">
-            ← Back to parent summary
-          </LinkButton>
+          <ParentBanner
+            section="food"
+            icon="food"
+            title="Food diary"
+            subtitle={
+              <>
+                Notes to share with the care team
+                {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
+              </>
+            }
+          />
 
           {/* Reactive prompt when today's check-in has discomfort */}
           {todayHasDiscomfort ? (
@@ -170,9 +160,8 @@ export function FoodDiaryScreen() {
           ) : null}
 
           {/* Add food entry card */}
-          <Card label="Log food entry">
+          <SectionCard section="food" title="Add food note" label="Log food entry">
             <FoodForm onSubmit={handleAddEntry} noValidate>
-              <Heading level={2}>Add food note</Heading>
               <Text size="sm" tone="muted">
                 Write meals or drinks as plain text. Food notes show co-occurrence only, never as
                 causes.
@@ -222,16 +211,15 @@ export function FoodDiaryScreen() {
                 required
               />
 
-              <Button type="submit" variant="primary">
+              <Button type="submit" variant={SECTION_BUTTON_VARIANT.food} fullWidth>
                 Save food entry
               </Button>
             </FoodForm>
-          </Card>
+          </SectionCard>
 
           {/* List of food entries */}
-          <Card label="Food history">
+          <SectionCard section="food" title="Recorded foods" label="Food history">
             <Stack gap="md">
-              <Heading level={2}>Recorded foods</Heading>
               {sortedEntries.length === 0 ? (
                 <Text tone="muted">
                   No food entries recorded yet. You can use this diary to note meals and snacks to
@@ -253,22 +241,13 @@ export function FoodDiaryScreen() {
                 </FoodEntryList>
               )}
             </Stack>
-          </Card>
+          </SectionCard>
 
-          <Card label="Notice">
+          <SectionCard section="food" title="Notice">
             <Text tone="muted" size="sm">
               {PATTERNS_DISCLAIMER}
             </Text>
-          </Card>
-
-          <Stack gap="sm">
-            <Button variant="secondary" onClick={session.lock} fullWidth>
-              Lock
-            </Button>
-            <LinkButton href={ROUTES.parent} variant="secondary" fullWidth>
-              Back to parent summary
-            </LinkButton>
-          </Stack>
+          </SectionCard>
         </Stack>
       </FoodDiaryContainer>
     </Screen>

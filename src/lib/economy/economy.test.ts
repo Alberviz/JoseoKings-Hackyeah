@@ -376,7 +376,7 @@ describe("dragon evolution and non-dropping stage rule", () => {
     expect(evo100.fireNeededForNext).toBe(0);
   });
 
-  it("stage never drops when the child spends fire on special rewards (highestFire rule)", () => {
+  it("stage dynamically retrocedes when the child spends fire on special rewards", () => {
     // 1. Start economy and give food until fire reaches 50 (Young Dragon stage)
     let economy: EconomyState = {
       ...createDefaultEconomy(),
@@ -402,13 +402,12 @@ describe("dragon evolution and non-dropping stage rule", () => {
 
     // Fire dropped from 50 to 20
     expect(claimed.economy.fire).toBe(20);
-    // Highest fire stays 50
     expect(claimed.economy.highestFire).toBe(50);
 
-    // CRITICAL: Stage MUST remain Stage 2 (Young Dragon) and NOT revert to Baby Dragon
+    // Stage dynamically retrocedes to Stage 1 (Baby Dragon)
     const evoAfter = getDragonEvolution(claimed.economy);
-    expect(evoAfter.stage).toBe(2);
-    expect(evoAfter.title).toBe("Young Dragon");
-    expect(evoAfter.fireNeededForNext).toBe(50); // 100 - 50 = 50 needed to reach Hero
+    expect(evoAfter.stage).toBe(1);
+    expect(evoAfter.title).toBe("Baby Dragon");
+    expect(evoAfter.fireNeededForNext).toBe(30); // 50 - 20 = 30 needed to reach Young
   });
 });

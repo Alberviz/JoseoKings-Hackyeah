@@ -4,11 +4,8 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "r
 import { useRouter } from "next/navigation";
 import {
   Button,
-  Card,
   Chip,
   Dialog,
-  Heading,
-  LinkButton,
   OptionButton,
   OptionGroup,
   Screen,
@@ -35,8 +32,17 @@ import {
   isBiometricEnrolled,
   registerBiometric,
 } from "@/lib/biometrics";
+import { ParentBanner } from "../ParentBanner/ParentBanner";
+import { SectionCard } from "../SectionCard/SectionCard";
+import { SECTION_BUTTON_VARIANT } from "../sections";
 import { PinGate } from "../PinGate/PinGate";
-import { AlertBox, HiddenFileInput, SettingsContainer, StyledForm } from "./SettingsScreen.style";
+import {
+  AlertBox,
+  HiddenFileInput,
+  SettingsContainer,
+  StyledForm,
+  SubtitleRow,
+} from "./SettingsScreen.style";
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -224,22 +230,22 @@ export function SettingsScreen() {
     <Screen>
       <SettingsContainer>
         <Stack gap="lg">
-          <Stack gap="xs">
-            <Stack gap="sm" direction="row" align="center">
-              <Heading level={1}>Parent settings</Heading>
-              {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
-            </Stack>
-            <Text tone="muted">Manage security, reminders, and app data.</Text>
-          </Stack>
-
-          <LinkButton href={ROUTES.parent} variant="secondary">
-            ← Back to parent summary
-          </LinkButton>
+          <ParentBanner
+            section="more"
+            icon="settings"
+            title="Parent settings"
+            stickers={1}
+            subtitle={
+              <SubtitleRow>
+                Security, reminders and app data
+                {state.isDemo ? <Chip label="Demo data" tone="primary" /> : null}
+              </SubtitleRow>
+            }
+          />
 
           {/* Daily care reminder */}
-          <Card label="Daily care reminder">
+          <SectionCard section="more" title="Daily care reminder">
             <Stack gap="md">
-              <Heading level={2}>Daily care reminder</Heading>
               <Text size="sm" tone="muted">
                 A local device reminder to record or follow today&apos;s routine. No drug names or
                 doses are ever stored or shown.
@@ -339,12 +345,11 @@ export function SettingsScreen() {
                 </Stack>
               ) : null}
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 2. Change PIN */}
-          <Card label="Change PIN">
+          <SectionCard section="more" title="Change PIN">
             <StyledForm onSubmit={handleChangePinSubmit}>
-              <Heading level={2}>Change PIN</Heading>
               <Text size="sm" tone="muted">
                 Enter your current 4-digit PIN, then choose a new one.
               </Text>
@@ -402,7 +407,7 @@ export function SettingsScreen() {
 
               <Button
                 type="submit"
-                variant="primary"
+                variant={SECTION_BUTTON_VARIANT.more}
                 disabled={
                   currentPin.length !== 4 ||
                   newPin.length !== 4 ||
@@ -413,12 +418,11 @@ export function SettingsScreen() {
                 Update PIN
               </Button>
             </StyledForm>
-          </Card>
+          </SectionCard>
 
           {/* Biometric unlock (Face ID / Fingerprint) */}
-          <Card label="Biometric unlock">
+          <SectionCard section="more" title="Face ID & Fingerprint" label="Biometric unlock">
             <Stack gap="md">
-              <Heading level={2}>Face ID & Fingerprint</Heading>
               <Text size="sm" tone="muted">
                 Unlock parent mode faster using your device&apos;s Face ID, Touch ID, or fingerprint
                 sensor.
@@ -483,12 +487,11 @@ export function SettingsScreen() {
                 </Text>
               )}
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 3. Backup and restore */}
-          <Card label="Backup and restore">
+          <SectionCard section="more" title="Backup and restore">
             <Stack gap="md">
-              <Heading level={2}>Backup and restore</Heading>
               <Text size="sm" tone="muted">
                 All data is stored only on this device. You can download a backup file or restore a
                 previously saved backup.
@@ -529,33 +532,31 @@ export function SettingsScreen() {
                 </Button>
               </Stack>
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 4. Demo data */}
-          <Card label="Demo data">
+          <SectionCard section="more" title="Demo data">
             <Stack gap="md">
-              <Heading level={2}>Demo data</Heading>
               <Text size="sm" tone="muted">
                 Load 90 days of fictional sample data to test and preview the app features.
               </Text>
               {state.isDemo ? (
-                <Card label="Demo PIN information">
+                <AlertBox $variant="info" aria-label="Demo PIN information">
                   <Stack gap="xs" direction="row" align="center">
                     <Chip label="Demo data" tone="primary" />
                     <Text size="sm">Demo PIN: 1234</Text>
                   </Stack>
-                </Card>
+                </AlertBox>
               ) : null}
               <Button variant="secondary" onClick={handleLoadDemo}>
                 Load demo data
               </Button>
             </Stack>
-          </Card>
+          </SectionCard>
 
           {/* 5. Clear all data */}
-          <Card label="Clear data">
+          <SectionCard section="more" title="Clear all data" label="Clear data">
             <Stack gap="md">
-              <Heading level={2}>Clear all data</Heading>
               <Text size="sm" tone="muted">
                 Permanently delete all child profile, check-ins, mission logs, and settings from
                 this device.
@@ -564,7 +565,7 @@ export function SettingsScreen() {
                 Clear all data
               </Button>
             </Stack>
-          </Card>
+          </SectionCard>
 
           <Dialog
             open={isClearDialogOpen}
@@ -582,15 +583,6 @@ export function SettingsScreen() {
               </Button>
             </Stack>
           </Dialog>
-
-          <Stack gap="sm">
-            <Button variant="secondary" onClick={session.lock} fullWidth>
-              Lock
-            </Button>
-            <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-              Back to child mode
-            </LinkButton>
-          </Stack>
         </Stack>
       </SettingsContainer>
     </Screen>
