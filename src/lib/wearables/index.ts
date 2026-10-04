@@ -25,3 +25,6 @@ export {
   assessDay,
 } from "./validity";
 export * from "./parentStatus";
+export * from "./googleHealthV4";
+export * from "./buildWatchDays";
+export * from "./demoWatchDays";

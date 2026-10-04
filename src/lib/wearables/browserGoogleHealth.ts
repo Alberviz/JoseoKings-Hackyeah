@@ -1,21 +1,22 @@
 /**
- * Browser-only client for Google Health / Google Fit API.
+ * Browser-only client for the Google Health API (v4).
  *
  * Runs 100% in the user's browser without requiring a backend server.
  * Follows the privacy guardrails established in docs/DECISIONS.md & docs/PRODUCT.md:
  * - Read-only scopes.
- * - Health metrics stay entirely on the client device (localStorage / IndexedDB / in-memory).
+ * - Health metrics stay entirely on the client device (localStorage / in-memory).
  * - Zero transmission to any server or third-party analytics.
  */
 
 import {
-  MINUTE_METRICS,
-  SLEEP_ACTIVITY_TYPE,
-  type GoogleFitBucket,
-  type GoogleFitSession,
-  type SleepSessionResult,
-} from "./googleFit";
-import { minuteBucketsToRows, sleepToRows } from "./normalize";
+  GOOGLE_HEALTH_BASE,
+  HEART_RATE_MAX_RANGE_DAYS,
+  heartRatePointsToRows,
+  sleepPointsToRows,
+  stepPointsToRows,
+  type HealthDataPoint,
+  type HealthListResponse,
+} from "./googleHealthV4";
 import { ALGORITHM_VERSION, computeDailyMetrics, DEFAULT_TIMEZONE } from "./daily";
 import type { DailyMetric, WatchSample, WearableMetric } from "./types";
 
@@ -60,110 +61,138 @@ export class GoogleHealthError extends Error {
   }
 }
 
-const DEFAULT_FITNESS_BASE = "https://www.googleapis.com/fitness/v1/users/me";
+const DAY_MS = 86_400_000;
+const PAGE_SIZE = 10_000;
+const SLEEP_PAGE_SIZE = 25;
+const MAX_PAGES = 20;
+
+type ListSpec = {
+  dataType: string;
+  filter: string;
+  pageSize: number;
+};
+
+class MetricFailure extends Error {
+  constructor(readonly outcome: MetricFetchStatus) {
+    super("metric failed");
+  }
+}
+
+async function listAll(
+  baseUrl: string,
+  headers: Record<string, string>,
+  spec: ListSpec,
+): Promise<HealthDataPoint[]> {
+  const points: HealthDataPoint[] = [];
+  let pageToken: string | undefined;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const url = new URL(`${baseUrl}/dataTypes/${spec.dataType}/dataPoints`);
+    url.searchParams.set("filter", spec.filter);
+    url.searchParams.set("pageSize", String(spec.pageSize));
+    if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+    let res: Response;
+    try {
+      res = await fetch(url.toString(), { method: "GET", headers });
+    } catch (err) {
+      throw new MetricFailure({
+        status: "network-error",
+        message: err instanceof Error ? err.message : "Request failed",
+      });
+    }
+    if (res.status === 401 || res.status === 403) {
+      throw new GoogleHealthError(res.status, "Authentication failed or permissions denied");
+    }
+    if (!res.ok) throw new MetricFailure({ status: "http-error", httpStatus: res.status });
+
+    const data = (await res.json().catch(() => null)) as HealthListResponse | null;
+    if (!data || typeof data !== "object") throw new MetricFailure({ status: "invalid-response" });
+    points.push(...(data.dataPoints ?? []));
+    pageToken = data.nextPageToken || undefined;
+    if (!pageToken) break;
+  }
+  return points;
+}
+
+function timeFilter(field: string, startMillis: number, endMillis: number): string {
+  const start = new Date(startMillis).toISOString();
+  const end = new Date(endMillis).toISOString();
+  return `${field} >= "${start}" AND ${field} < "${end}"`;
+}
 
 /**
- * Reads aggregated minute buckets and sleep sessions directly from the browser
+ * Reads steps, heart rate and sleep sessions directly from the browser
  * using the parent's OAuth access token.
  */
 export async function fetchBrowserGoogleHealth(
   options: GoogleHealthReadOptions,
 ): Promise<GoogleHealthResult> {
   const { accessToken, startTimeMillis, endTimeMillis, timeZone = DEFAULT_TIMEZONE } = options;
-  const baseUrl = options.baseUrl ?? DEFAULT_FITNESS_BASE;
+  const baseUrl = options.baseUrl ?? GOOGLE_HEALTH_BASE;
 
   if (!accessToken) {
     throw new GoogleHealthError(401, "No access token provided");
   }
 
-  const headers = {
-    Authorization: `Bearer ${accessToken}`,
-    "Content-Type": "application/json",
-  };
-
+  const headers = { Authorization: `Bearer ${accessToken}` };
   const rows: WatchSample[] = [];
   const metricStatus: Partial<Record<FetchedMetricKey, MetricFetchStatus>> = {};
 
-  // 1. Fetch each minute metric (steps, heart rate, active minutes, calories, distance, SpO2)
-  for (const [metric, type] of Object.entries(MINUTE_METRICS) as Array<[WearableMetric, string]>) {
-    const aggregateBody = {
-      aggregateBy: [{ dataTypeName: type }],
-      bucketByTime: { durationMillis: 60_000 },
-      startTimeMillis,
-      endTimeMillis,
-    };
-
+  async function run(key: FetchedMetricKey, load: () => Promise<WatchSample[]>): Promise<void> {
     try {
-      const res = await fetch(`${baseUrl}/dataset:aggregate`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(aggregateBody),
-      });
-
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          throw new GoogleHealthError(res.status, "Authentication failed or permissions denied");
-        }
-        metricStatus[metric] = { status: "http-error", httpStatus: res.status };
-        continue;
-      }
-
-      const data = (await res.json()) as { bucket?: GoogleFitBucket[] } | null;
-      if (!data || typeof data !== "object") {
-        metricStatus[metric] = { status: "invalid-response" };
-        continue;
-      }
-      rows.push(...minuteBucketsToRows(metric, data.bucket ?? []));
-      metricStatus[metric] = { status: "ok" };
+      rows.push(...(await load()));
+      metricStatus[key] = { status: "ok" };
     } catch (err) {
-      if (err instanceof GoogleHealthError) throw err;
-      metricStatus[metric] = {
-        status: "network-error",
-        message: err instanceof Error ? err.message : "Request failed",
-      };
-    }
-  }
-
-  // 2. Fetch sleep sessions
-  const sessionUrl = new URL(`${baseUrl}/sessions`);
-  sessionUrl.searchParams.set("startTime", new Date(startTimeMillis).toISOString());
-  sessionUrl.searchParams.set("endTime", new Date(endTimeMillis).toISOString());
-  sessionUrl.searchParams.set("activityType", String(SLEEP_ACTIVITY_TYPE));
-
-  try {
-    const sessionRes = await fetch(sessionUrl.toString(), {
-      method: "GET",
-      headers,
-    });
-
-    if (sessionRes.status === 401 || sessionRes.status === 403) {
-      throw new GoogleHealthError(sessionRes.status, "Authentication failed or permissions denied");
-    }
-
-    if (!sessionRes.ok) {
-      metricStatus.sleep = { status: "http-error", httpStatus: sessionRes.status };
-    } else {
-      const sessionData = (await sessionRes.json()) as { session?: GoogleFitSession[] } | null;
-      if (!sessionData || typeof sessionData !== "object") {
-        metricStatus.sleep = { status: "invalid-response" };
-      } else {
-        const sleepResults: SleepSessionResult[] = (sessionData.session ?? []).map((session) => ({
-          session,
-          points: [],
-        }));
-        rows.push(...sleepToRows(sleepResults));
-        metricStatus.sleep = { status: "ok" };
+      if (err instanceof MetricFailure) {
+        metricStatus[key] = err.outcome;
+        return;
       }
+      throw err;
     }
-  } catch (err) {
-    if (err instanceof GoogleHealthError) throw err;
-    metricStatus.sleep = {
-      status: "network-error",
-      message: err instanceof Error ? err.message : "Request failed",
-    };
   }
 
-  // 3. Compute local daily metrics directly in the browser
+  await run("steps", async () =>
+    stepPointsToRows(
+      await listAll(baseUrl, headers, {
+        dataType: "steps",
+        filter: timeFilter("steps.interval.start_time", startTimeMillis, endTimeMillis),
+        pageSize: PAGE_SIZE,
+      }),
+    ),
+  );
+
+  // Heart rate: the API accepts at most 14 days per request.
+  await run("heartRate", async () => {
+    const out: WatchSample[] = [];
+    const chunk = HEART_RATE_MAX_RANGE_DAYS * DAY_MS;
+    for (let from = startTimeMillis; from < endTimeMillis; from += chunk) {
+      const to = Math.min(from + chunk, endTimeMillis);
+      out.push(
+        ...heartRatePointsToRows(
+          await listAll(baseUrl, headers, {
+            dataType: "heart-rate",
+            filter: timeFilter("heart_rate.sample_time.physical_time", from, to),
+            pageSize: PAGE_SIZE,
+          }),
+        ),
+      );
+    }
+    return out;
+  });
+
+  await run("sleep", async () => {
+    // Sleep is filtered by the civil day it ends; start one day early to keep a session that ends on day one.
+    const fromDate = new Date(startTimeMillis - DAY_MS).toISOString().slice(0, 10);
+    return sleepPointsToRows(
+      await listAll(baseUrl, headers, {
+        dataType: "sleep",
+        filter: `sleep.interval.civil_end_time >= "${fromDate}"`,
+        pageSize: SLEEP_PAGE_SIZE,
+      }),
+    );
+  });
+
+  // Compute local daily metrics directly in the browser
   const dailyMetrics = computeDailyMetrics(rows, timeZone);
 
   return {

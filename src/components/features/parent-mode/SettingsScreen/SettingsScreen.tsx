@@ -32,6 +32,7 @@ import {
 import type { DeviceRole } from "@/types";
 import { formatMissionTitle } from "../missionLabels";
 import { PinGate } from "../PinGate/PinGate";
+import { WatchConnectCard } from "../WatchConnectCard/WatchConnectCard";
 import {
   AlertBox,
   ChipWrap,
@@ -280,6 +281,8 @@ export function SettingsScreen() {
               </OptionGroup>
             </Stack>
           </Card>
+
+          <WatchConnectCard />
 
           {/* 1. Enabled missions */}
           <Card label="Enabled missions">
