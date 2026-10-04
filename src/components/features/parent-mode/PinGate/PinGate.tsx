@@ -64,10 +64,10 @@ export function PinGate({
       <Stack gap="lg">
         <ParentBanner
           section="more"
-          icon="more"
+          icon="lock"
           title={title}
           subtitle={description}
-          hasGear={false}
+          stickers={0}
         />
 
         {state.isDemo ? (

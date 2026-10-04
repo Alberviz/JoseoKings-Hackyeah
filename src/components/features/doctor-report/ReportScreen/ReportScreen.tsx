@@ -54,7 +54,7 @@ export function ReportScreen() {
       <BannerWrapper>
         <ParentBanner
           section="more"
-          icon="log"
+          icon="report"
           title="Doctor report"
           subtitle="Since the last visit"
         />

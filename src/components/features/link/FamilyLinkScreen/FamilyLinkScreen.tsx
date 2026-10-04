@@ -197,7 +197,7 @@ export function FamilyLinkScreen() {
       <FamilyLinkContainer>
         <ParentBanner
           section="more"
-          icon="more"
+          icon="link"
           title="Family link"
           subtitle={
             <SubtitleRow>
@@ -288,12 +288,6 @@ export function FamilyLinkScreen() {
             </Button>
           </>
         ) : null}
-
-        <Stack gap="sm">
-          <Button variant="secondary" onClick={session.lock} fullWidth>
-            Lock
-          </Button>
-        </Stack>
 
         <Dialog
           open={lastSummary !== null}

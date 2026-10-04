@@ -252,7 +252,7 @@ export function SettingsScreen() {
             section="more"
             icon="settings"
             title="Parent settings"
-            hasGear={false}
+            stickers={1}
             subtitle={
               <SubtitleRow>
                 This phone
@@ -413,6 +413,18 @@ export function SettingsScreen() {
                   ) : null}
                 </Stack>
               ) : null}
+            </Stack>
+          </SectionCard>
+
+          {/* Family link: pair the two phones */}
+          <SectionCard section="more" title="Family link">
+            <Stack gap="md">
+              <Text size="sm" tone="muted">
+                Pair this phone with your child&apos;s phone to receive what they choose to share.
+              </Text>
+              <LinkButton href={ROUTES.parentLink} variant="secondary" fullWidth>
+                Open family link
+              </LinkButton>
             </Stack>
           </SectionCard>
 
@@ -583,17 +595,6 @@ export function SettingsScreen() {
               </Button>
             </Stack>
           </Dialog>
-
-          <Stack gap="sm">
-            <Button variant="secondary" onClick={session.lock} fullWidth>
-              Lock
-            </Button>
-            {state.settings?.deviceRole !== "parent" ? (
-              <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-                Back to child mode
-              </LinkButton>
-            ) : null}
-          </Stack>
         </Stack>
       </SettingsContainer>
     </Screen>

@@ -84,12 +84,8 @@ export const TabLink = styled(Link)<TabProps>`
   ${tabStyles}
 `;
 
-export const TabButton = styled.button<TabProps>`
-  ${tabStyles}
-`;
-
-// The More sheet floats just above the tray, with the same sticker look.
-export const MorePanel = styled.div`
+// The Exit sheet floats just above the tray, with the same sticker look.
+export const ExitPanel = styled.div`
   position: fixed;
   inset: auto 0 calc(${TRAY_HEIGHT} + ${FLOAT_GAP} * 2 + env(safe-area-inset-bottom)) 0;
   z-index: 19;
@@ -103,9 +99,10 @@ export const MorePanel = styled.div`
   }
 `;
 
-export const MoreInner = styled.div`
+export const ExitInner = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.sm};
   width: 100%;
   max-width: ${({ theme }) => theme.maxContentWidth};
@@ -126,7 +123,7 @@ const tileStyles = css<{ $fill: TileFill }>`
   align-items: center;
   justify-content: center;
   gap: ${({ theme }) => theme.spacing.xs};
-  min-height: 84px;
+  min-height: 96px;
   padding: ${({ theme }) => theme.spacing.sm};
   background: ${({ theme, $fill }) =>
     $fill === "surface" ? theme.colors.surface : theme.sections[$fill].fill};
@@ -140,26 +137,21 @@ const tileStyles = css<{ $fill: TileFill }>`
   cursor: pointer;
 `;
 
-// Sticker tiles in the More sheet: a drawn icon over a short label.
-export const MoreTileLink = styled(Link)<{ $fill: TileFill }>`
+// Sticker tiles in the Exit sheet: a drawn icon over a short label.
+export const ExitTileLink = styled(Link)<{ $fill: TileFill }>`
   ${tileStyles}
 `;
 
-export const MoreTileButton = styled.button<{ $fill: TileFill }>`
+export const ExitTileButton = styled.button<{ $fill: TileFill }>`
   ${tileStyles}
 `;
 
-// Round sticker at the top right of every parent screen, scrolling with the page.
-export const SettingsLink = styled(Link)`
+// Round stickers at the top right of every parent screen, scrolling with the page.
+const stickerBase = css`
   ${pressable}
   position: absolute;
   top: calc(${({ theme }) => theme.spacing.lg} + 4px);
-  right: max(
-    ${({ theme }) => theme.spacing.md},
-    calc((100vw - ${({ theme }) => theme.maxContentWidth}) / 2 + ${({ theme }) => theme.spacing.md})
-  );
   z-index: 15;
-  -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
   display: flex;
@@ -167,10 +159,33 @@ export const SettingsLink = styled(Link)`
   justify-content: center;
   width: ${({ theme }) => theme.touchTarget};
   height: ${({ theme }) => theme.touchTarget};
+  padding: 0;
   border-radius: ${({ theme }) => theme.radius.pill};
   background: ${({ theme }) => theme.colors.surface};
+  cursor: pointer;
 
   @media print {
     display: none;
   }
+`;
+
+// Distance of the right-most sticker from the screen edge, following the centred column.
+const stickerEdge = (extra: string) => css`
+  right: max(
+    calc(${({ theme }) => theme.spacing.md} + ${extra}),
+    calc(
+      (100vw - ${({ theme }) => theme.maxContentWidth}) / 2 + ${({ theme }) => theme.spacing.md} +
+        ${extra}
+    )
+  );
+`;
+
+export const ExitButton = styled.button`
+  ${stickerBase}
+  ${stickerEdge("0px")}
+`;
+
+export const SettingsLink = styled(Link)`
+  ${stickerBase}
+  ${({ theme }) => stickerEdge(`${theme.touchTarget} + ${theme.spacing.sm}`)}
 `;

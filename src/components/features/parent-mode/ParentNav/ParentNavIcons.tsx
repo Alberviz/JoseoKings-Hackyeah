@@ -18,7 +18,8 @@ export type ParentNavIconKey =
   | "report"
   | "link"
   | "lock"
-  | "child";
+  | "child"
+  | "exit";
 
 type ParentNavIconProps = {
   iconKey: ParentNavIconKey;
@@ -112,6 +113,13 @@ const DRAWINGS: Record<ParentNavIconKey, ReactNode> = {
       <InkCircle cx="17" cy="21" r="2.4" $solid />
       <InkCircle cx="31" cy="21" r="2.4" $solid />
       <InkPath d="M15 29 Q24 38 33 29" />
+    </>
+  ),
+  exit: (
+    <>
+      <InkRect x="7" y="6" width="23" height="36" rx="3" $fill="lavender" />
+      <InkCircle cx="24" cy="25" r="1.9" $solid />
+      <InkPath d="M31 24 H44 M38 16 L45 24 L38 32" />
     </>
   ),
   settings: (

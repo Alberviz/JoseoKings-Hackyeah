@@ -645,12 +645,6 @@ export function DailyLogScreen() {
               )}
             </Stack>
           </SectionCard>
-
-          <Stack gap="sm">
-            <Button type="button" variant="secondary" onClick={session.lock} fullWidth>
-              Lock
-            </Button>
-          </Stack>
         </Stack>
       </DailyLogContainer>
     </Screen>

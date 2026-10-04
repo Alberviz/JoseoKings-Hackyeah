@@ -18,19 +18,28 @@ vi.mock("@/hooks/useAppState", () => ({
   useAppState: () => ({ state: { settings: { deviceRole: mocks.deviceRole } } }),
 }));
 
+function mockReducedMotion(reduced: boolean) {
+  window.matchMedia = vi.fn().mockReturnValue({ matches: reduced }) as typeof window.matchMedia;
+}
+
 describe("ParentNav", () => {
   beforeEach(() => {
     mocks.pathname = "/parent";
     mocks.isUnlocked = true;
     mocks.deviceRole = "both";
+    mocks.lock.mockClear();
+    mockReducedMotion(true);
   });
 
-  it("shows the tabs and marks the current one", () => {
+  it("shows the five tabs and marks the current one", () => {
     renderWithTheme(<ParentNav />);
     expect(screen.getByRole("link", { name: /Summary/ }).getAttribute("aria-current")).toBe("page");
     expect(screen.getByRole("link", { name: /Log/ }).getAttribute("aria-current")).toBeNull();
     expect(screen.getByRole("link", { name: /Food/ })).toBeDefined();
     expect(screen.getByRole("link", { name: /Patterns/ })).toBeDefined();
+    expect(screen.getByRole("link", { name: /Report/ }).getAttribute("href")).toBe(
+      "/parent/report",
+    );
   });
 
   it("shows the settings gear except on the settings screen", () => {
@@ -43,12 +52,14 @@ describe("ParentNav", () => {
     mocks.pathname = "/parent/settings";
     renderWithTheme(<ParentNav />);
     expect(screen.queryByRole("link", { name: "Settings" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Exit parent mode" })).toBeDefined();
   });
 
   it("is hidden while locked and on the setup screen", () => {
     mocks.isUnlocked = false;
     const { unmount } = renderWithTheme(<ParentNav />);
     expect(screen.queryByRole("navigation")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Exit parent mode" })).toBeNull();
     unmount();
 
     mocks.isUnlocked = true;
@@ -57,20 +68,32 @@ describe("ParentNav", () => {
     expect(screen.queryByRole("navigation")).toBeNull();
   });
 
-  it("opens More with the other sections and locks", () => {
+  it("opens the Exit sheet with Lock and Back to child mode", () => {
     renderWithTheme(<ParentNav />);
-    fireEvent.click(screen.getByRole("button", { name: /More/ }));
-    expect(screen.getByRole("link", { name: "Doctor report" })).toBeDefined();
-    expect(screen.getByRole("link", { name: "Family link" })).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Exit parent mode" }));
     expect(screen.getByRole("link", { name: "Back to child mode" })).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Lock" }));
     expect(mocks.lock).toHaveBeenCalled();
   });
 
+  it("plays the padlock animation before locking when motion is allowed", () => {
+    vi.useFakeTimers();
+    mockReducedMotion(false);
+    renderWithTheme(<ParentNav />);
+    fireEvent.click(screen.getByRole("button", { name: "Exit parent mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Lock" }));
+    expect(mocks.lock).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Locked" })).toBeDefined();
+    vi.advanceTimersByTime(700);
+    expect(mocks.lock).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
   it("does not offer Back to child mode on a parent-only device", () => {
     mocks.deviceRole = "parent";
     renderWithTheme(<ParentNav />);
-    fireEvent.click(screen.getByRole("button", { name: /More/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Exit parent mode" }));
     expect(screen.queryByRole("link", { name: "Back to child mode" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Lock" })).toBeDefined();
   });
 });

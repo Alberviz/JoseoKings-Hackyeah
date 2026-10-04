@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Chip, LinkButton, Stack, Text } from "@/components/ui";
+import { Chip, LinkButton, Stack, Text } from "@/components/ui";
 import type { ChipTone } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
@@ -100,10 +100,9 @@ function AnswerRow({ label, questionId, value }: AnswerRowProps) {
 
 type SummaryCardProps = {
   state: AppState;
-  onLock: () => void;
 };
 
-export function SummaryCard({ state, onLock }: SummaryCardProps) {
+export function SummaryCard({ state }: SummaryCardProps) {
   const today = todayKey();
   const childName = state.child?.nickname ?? "your child";
 
@@ -266,17 +265,6 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
             </LinkButton>
           </Stack>
         </SectionCard>
-
-        <Stack gap="sm">
-          <Button variant="secondary" onClick={onLock} fullWidth>
-            Lock
-          </Button>
-          {state.settings?.deviceRole !== "parent" ? (
-            <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-              Back to child mode
-            </LinkButton>
-          ) : null}
-        </Stack>
       </Stack>
     </SummaryContainer>
   );

@@ -382,7 +382,7 @@ describe("Parent Mode Shell (Task T10)", () => {
   });
 
   describe("SummaryCard with demo data", () => {
-    it("renders plain facts, confidence labels, discomfort prompt, and lock button", () => {
+    it("renders plain facts, confidence labels, and discomfort prompt", () => {
       const today = todayKey();
       const demoState = buildDemoState({ today });
       // Ensure today has a check-in with discomfort to test gentle food prompt
@@ -411,8 +411,7 @@ describe("Parent Mode Shell (Task T10)", () => {
         },
       ];
 
-      const onLock = vi.fn();
-      renderWithTheme(<SummaryCard state={demoState} onLock={onLock} />);
+      renderWithTheme(<SummaryCard state={demoState} />);
 
       // Demo data indicator
       expect(screen.getByText("Demo data")).toBeDefined();
@@ -439,39 +438,6 @@ describe("Parent Mode Shell (Task T10)", () => {
       expect(screen.getByText("No upcoming appointment scheduled")).toBeDefined();
       expect(screen.getByText("30 days ago")).toBeDefined();
       expect(screen.getByRole("link", { name: "Manage appointments" })).toBeDefined();
-
-      // Lock button
-      fireEvent.click(screen.getByRole("button", { name: "Lock" }));
-      expect(onLock).toHaveBeenCalled();
-    });
-
-    it("does not render 'Back to child mode' when deviceRole is 'parent' and renders it otherwise", () => {
-      const demoState = buildDemoState();
-      const onLock = vi.fn();
-
-      const parentState: AppState = {
-        ...demoState,
-        settings: {
-          ...demoState.settings!,
-          deviceRole: "parent",
-        },
-      };
-      const { rerender } = renderWithTheme(<SummaryCard state={parentState} onLock={onLock} />);
-      expect(screen.queryByRole("link", { name: "Back to child mode" })).toBeNull();
-
-      const defaultState: AppState = {
-        ...demoState,
-        settings: {
-          ...demoState.settings!,
-          deviceRole: "both",
-        },
-      };
-      rerender(
-        <ThemeProvider theme={theme}>
-          <SummaryCard state={defaultState} onLock={onLock} />
-        </ThemeProvider>,
-      );
-      expect(screen.getByRole("link", { name: "Back to child mode" })).toBeDefined();
     });
 
     it("renders upcoming appointment countdown badge when scheduled", () => {
@@ -482,7 +448,7 @@ describe("Parent Mode Shell (Task T10)", () => {
         date: addDays(today, 5),
       });
 
-      renderWithTheme(<SummaryCard state={demoState} onLock={vi.fn()} />);
+      renderWithTheme(<SummaryCard state={demoState} />);
 
       expect(screen.getByText(addDays(today, 5))).toBeDefined();
       expect(screen.getByText("In 5 days")).toBeDefined();

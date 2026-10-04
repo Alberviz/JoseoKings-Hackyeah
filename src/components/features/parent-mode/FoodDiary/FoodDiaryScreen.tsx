@@ -248,12 +248,6 @@ export function FoodDiaryScreen() {
               {PATTERNS_DISCLAIMER}
             </Text>
           </SectionCard>
-
-          <Stack gap="sm">
-            <Button variant="secondary" onClick={session.lock} fullWidth>
-              Lock
-            </Button>
-          </Stack>
         </Stack>
       </FoodDiaryContainer>
     </Screen>

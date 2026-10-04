@@ -61,7 +61,7 @@ export function ParentHomeScreen() {
   return (
     <Screen>
       <ParentHomeContainer>
-        <SummaryCard state={state} onLock={session.lock} />
+        <SummaryCard state={state} />
       </ParentHomeContainer>
     </Screen>
   );

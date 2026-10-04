@@ -65,9 +65,9 @@ export function SetupScreen() {
           <Stack gap="lg">
             <ParentBanner
               section="more"
-              icon="more"
+              icon="lock"
               title="Parent mode already set up"
-              hasGear={false}
+              stickers={0}
             />
             <SectionCard section="more" title="Already configured">
               <Stack gap="md">
@@ -190,9 +190,9 @@ export function SetupScreen() {
         <Stack gap="lg">
           <ParentBanner
             section="more"
-            icon="more"
+            icon="lock"
             title="Parent mode setup"
-            hasGear={false}
+            stickers={0}
             subtitle="Set up your child profile, parent PIN, and choose which movement missions are available."
           />
 

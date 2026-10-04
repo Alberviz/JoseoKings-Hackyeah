@@ -11,20 +11,14 @@ type ParentBannerProps = {
   icon: ParentNavIconKey;
   title: string;
   subtitle?: ReactNode;
-  /** False on screens without the settings gear (Settings, PIN gate). */
-  hasGear?: boolean;
+  /** Round stickers at the top right that the banner leaves room for: gear and exit (2), only exit (1, Settings), none (0, PIN gate). */
+  stickers?: 0 | 1 | 2;
 };
 
 // First element of every parent screen: the section colour, its drawn icon and the title.
-export function ParentBanner({
-  section,
-  icon,
-  title,
-  subtitle,
-  hasGear = true,
-}: ParentBannerProps) {
+export function ParentBanner({ section, icon, title, subtitle, stickers = 2 }: ParentBannerProps) {
   return (
-    <BannerContainer $section={section} $hasGear={hasGear}>
+    <BannerContainer $section={section} $stickers={stickers}>
       <ParentNavIcon iconKey={icon} size={34} />
       <BannerText>
         <Heading level={1}>{title}</Heading>

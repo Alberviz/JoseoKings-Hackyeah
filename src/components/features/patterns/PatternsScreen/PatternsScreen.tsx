@@ -68,7 +68,7 @@ export function PatternsScreen() {
             icon="patterns"
             title="Patterns & Trends"
             subtitle="Loading patterns data..."
-            hasGear={false}
+            stickers={0}
           />
         </PatternsLayout>
       </Screen>
