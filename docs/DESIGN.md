@@ -19,13 +19,13 @@ Hand-made notebook: cream grid paper, navy ink outlines, flat marker fills, a so
 
 Defined once in `theme.sections` (`src/theme/theme.ts`). Never write these hex values in a component.
 
-| Section  | `fill` (banner, card headers, active tab) | `strong` (main button) | Text on `strong` | Button variant | Routes                                         |
-| :------- | :---------------------------------------- | :--------------------- | :--------------- | :------------- | :--------------------------------------------- |
-| summary  | `#D5F1F0` primarySoft                     | `#127782` primary      | white            | `primary`      | `/parent`                                      |
-| log      | `#BFE8CC` green                           | `#1E7A46` success      | white            | `success`      | `/parent/log`                                  |
-| food     | `#FFD9CC` coralSoft                       | `#FF7A59` accent       | ink              | `accent`       | `/parent/foods`                                |
-| patterns | `#E6DDF5` lavenderSoft                    | `#C6B5E8` lavender     | ink              | `lavender`     | `/parent/patterns`                             |
-| more     | `#FFF0B8` highlightSoft                   | `#FFC93C` highlight    | ink              | `highlight`    | Report, Family link, Settings; PIN gate, setup |
+| Section  | `fill` (banner, card headers, active tab) | `strong` (main button) | Text on `strong` | Button variant | Routes                            |
+| :------- | :---------------------------------------- | :--------------------- | :--------------- | :------------- | :-------------------------------- |
+| summary  | `#D5F1F0` primarySoft                     | `#127782` primary      | white            | `primary`      | `/parent`                         |
+| log      | `#BFE8CC` green                           | `#1E7A46` success      | white            | `success`      | `/parent/log`                     |
+| food     | `#FFD9CC` coralSoft                       | `#FF7A59` accent       | ink              | `accent`       | `/parent/foods`                   |
+| patterns | `#E6DDF5` lavenderSoft                    | `#C6B5E8` lavender     | ink              | `lavender`     | `/parent/patterns`                |
+| more     | `#FFF0B8` highlightSoft                   | `#FFC93C` highlight    | ink              | `highlight`    | Report, Settings; PIN gate, setup |
 
 Text on every `fill` is ink. Destructive actions always use `urgent` (red, white text), whatever the section.
 
@@ -38,7 +38,7 @@ Build screens only from these parts (all in `src/components/features/parent-mode
 3. **`SectionCard`**: surface body with ink outline, shadow and `radius.lg`, and a header strip in the section `fill` with an ink bottom border holding the card title (`Heading` level 2). Body padding `spacing.md`. Replaces `Card` on parent screens.
 4. **`Chip`** (`src/components/ui`): the answer pill. Tones: `success` (good day, mint), `mixed` (yellow), `harder` (coral), `primary` (teal), `default` (surface). Always ink text.
 5. **`Button` / `LinkButton`**: one main action per screen, in the section `Button` variant (table above), full width. Secondary actions use `secondary`. Lock and destructive actions never use a section colour.
-6. **`ParentNav`** (floating tab bar), built on the Material 3 navigation bar and the iOS 26 floating tab bar rules: a rectangle with four equal rounded corners (`radius.lg`, no tight corner and not a round capsule), `surface` fill, ink outline and shadow; 16px above the bottom edge and `spacing.lg` (24px) from the sides, so it is narrower than the cards and reads as floating (never the same width as the cards, never a flat bar to the edges); content has a spacer so nothing hides behind it. Five tabs with a drawn icon and a label under it: Summary, Log, Food, Patterns, Report. The whole active tab (icon and label) is filled with that section's `fill`, outlined in ink, with a bold label and equal rounded corners (14px); inactive tabs have no background. Tabs are at least 56px tall. **Exit sheet:** the Exit sticker opens a floating sheet with two sticker tiles: Lock (lavender, animated padlock: the shackle drops, the body bounces, then the session locks after 650ms; instant with reduced motion) and Back to child mode (teal; never on a parent-only phone). The bar and stickers appear only after the PIN and never on setup; hidden when printing.
+6. **`ParentNav`** (floating tab bar), built on the Material 3 navigation bar and the iOS 26 floating tab bar rules: a rectangle with four equal rounded corners (`radius.lg`, no tight corner and not a round capsule), `surface` fill, ink outline and shadow; 16px above the bottom edge and `spacing.lg` (24px) from the sides, so it is narrower than the cards and reads as floating (never the same width as the cards, never a flat bar to the edges); content has a spacer so nothing hides behind it. Five tabs with a drawn icon and a label under it: Summary, Log, Food, Patterns, Report. The whole active tab (icon and label) is filled with that section's `fill`, outlined in ink, with a bold label and equal rounded corners (14px); inactive tabs have no background. Tabs are at least 56px tall. **Exit sheet:** the Exit sticker opens a floating sheet with two sticker tiles: Lock (lavender, animated padlock: the shackle drops, the body bounces, then the session locks after 650ms; instant with reduced motion) and Back to child mode (teal). The bar and stickers appear only after the PIN and never on setup; hidden when printing.
 7. **Option buttons** (`OptionButton`, the big choices such as Physical activity): pass `section` so the selected option takes the section's `strong` colour and its text colour; unselected stay on surface.
 8. **Icons**: `ParentNavIcon` only (drawn, 2.4px navy stroke, flat theme fills). Decorative (`aria-hidden`). New icons are added to that file in the same style, never emoji or images.
 
@@ -59,15 +59,13 @@ one main Button        (section variant, full width, last)
 | Food diary     | food     | `food`     | Food diary      | Notes to share with the care team |
 | Patterns       | patterns | `patterns` | Patterns        | Last 7 days                       |
 | Doctor report  | more     | `report`   | Doctor report   | Since the last visit              |
-| Family link    | more     | `link`     | Family link     | Pair the two phones               |
 | Settings       | more     | `settings` | Parent settings | This phone                        |
 | PIN gate/setup | more     | `lock`     | (its own title) | (its own text)                    |
 
 ## 5. Rules
 
 - Keep every heading, label and button text that exists today, so tests and screen readers keep working. Style changes only, except the removals below.
-- Navigation lives in the tab bar: no "Back to parent summary" links. Lock and "Back to child mode" live only in the Exit sheet (the PIN gate keeps its own "Back to child mode", since the bar is hidden there). Family link is reached from a card in Settings.
-- On a parent-only phone (`deviceRole === "parent"`) never show "Back to child mode".
+- Navigation lives in the tab bar: no "Back to parent summary" links. Lock and "Back to child mode" live only in the Exit sheet (the PIN gate keeps its own "Back to child mode", since the bar is hidden there).
 - Wording follows `docs/PRODUCT.md` section 6: no medical claims, no scores, no alarming colours for the child's answers. Harder days use coral, not red.
 - The doctor report is printed: print CSS removes the banner colours, the tab bar and the gear.
 - Styles follow `AGENTS.md` section 3.2 (`.tsx` composes, `.style.ts` styles, theme tokens, `$` props). New colours go into `theme.ts` and `contrast.test.ts`.

@@ -54,7 +54,7 @@ Source: the two PDFs published by the organisers (kept in the private vault, `05
 
 - `main`: the protected branch.
 - `docs/session-handoff` (PR #2): this reorganisation.
-- `debate/family-mode`: closed debate about a parent and child app connected by QR. Its main points are absorbed in `PRODUCT.md`. Not merged.
+- `debate/family-mode`: closed debate about a parent and child app connected by QR. Its main points are absorbed in `PRODUCT.md`. Not merged. The family link (QR between two phones) was later built and then discarded on 2026-10-04: the app runs on one shared device.
 - `feature/product-innovation-crohn`: earlier research and product drafts. Not merged. Clinical claims need verification, and the acoustic, vagal and "Belly Battery" ideas are outside our rules.
 - `feature/sport-pediatric-crohn`: Juan's concept (`IDEA.md`, `docs/PRODUCT_CONCEPT.md`, `docs/PRODUCT_PROFILE.md`). Not merged. The personas, the story and the family duel are used; the exercise "prescription" levels, the bone index, the app-assigned level, notifications to the parent's phone and accelerometer verification are **not** in the product. Where it disagrees with `PRODUCT.md`, `PRODUCT.md` wins.
 

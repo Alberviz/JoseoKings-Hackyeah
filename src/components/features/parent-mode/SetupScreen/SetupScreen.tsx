@@ -2,31 +2,16 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  Chip,
-  LinkButton,
-  OptionButton,
-  OptionGroup,
-  Screen,
-  Stack,
-  Text,
-  TextField,
-} from "@/components/ui";
+import { Button, LinkButton, Screen, Stack, Text, TextField } from "@/components/ui";
 import { ROUTES } from "@/config/app";
-import { MISSION_IDS } from "@/config/content-ids";
 import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import { createPinRecord, hasPin, isValidPin } from "@/lib/pin";
 import { buildDemoState } from "@/lib/demo-data";
-import type { DeviceRole } from "@/types";
-import { formatMissionTitle } from "../missionLabels";
 import { ParentBanner } from "../ParentBanner/ParentBanner";
 import { SectionCard } from "../SectionCard/SectionCard";
 import { SECTION_BUTTON_VARIANT } from "../sections";
-import { AlertBox, ChipWrap, ErrorText, SetupContainer, SetupForm } from "./SetupScreen.style";
-
-const ALL_MISSIONS = Object.values(MISSION_IDS);
+import { AlertBox, SetupContainer, SetupForm } from "./SetupScreen.style";
 
 export function SetupScreen() {
   const router = useRouter();
@@ -34,15 +19,12 @@ export function SetupScreen() {
   const session = useParentSession();
 
   const [nickname, setNickname] = useState("");
-  const [deviceRole, setDeviceRole] = useState<DeviceRole>("both");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
-  const [enabledMissions, setEnabledMissions] = useState<string[]>(ALL_MISSIONS);
 
   const [nicknameError, setNicknameError] = useState<string | undefined>(undefined);
   const [pinError, setPinError] = useState<string | undefined>(undefined);
   const [confirmPinError, setConfirmPinError] = useState<string | undefined>(undefined);
-  const [missionsError, setMissionsError] = useState<string | undefined>(undefined);
   const [generalError, setGeneralError] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,30 +44,28 @@ export function SetupScreen() {
     return (
       <Screen>
         <SetupContainer>
-          <Stack gap="lg">
-            <ParentBanner
-              section="more"
-              icon="lock"
-              title="Parent mode already set up"
-              stickers={0}
-            />
-            <SectionCard section="more" title="Already configured">
-              <Stack gap="md">
-                <Text>
-                  Parent mode is already set up for {state.child?.nickname}. You can open parent
-                  mode or manage settings.
-                </Text>
-                <Stack gap="sm">
-                  <LinkButton href={ROUTES.parent} variant={SECTION_BUTTON_VARIANT.more} fullWidth>
-                    Go to parent mode
-                  </LinkButton>
-                  <LinkButton href={ROUTES.parentSettings} variant="secondary" fullWidth>
-                    Manage settings
-                  </LinkButton>
-                </Stack>
+          <ParentBanner
+            section="more"
+            icon="lock"
+            title="Parent mode already set up"
+            stickers={0}
+          />
+          <SectionCard section="more" title="Already configured">
+            <Stack gap="md">
+              <Text>
+                Parent mode is already set up for {state.child?.nickname}. You can open parent mode
+                or manage settings.
+              </Text>
+              <Stack gap="sm">
+                <LinkButton href={ROUTES.parent} variant={SECTION_BUTTON_VARIANT.more} fullWidth>
+                  Go to parent mode
+                </LinkButton>
+                <LinkButton href={ROUTES.parentSettings} variant="secondary" fullWidth>
+                  Manage settings
+                </LinkButton>
               </Stack>
-            </SectionCard>
-          </Stack>
+            </Stack>
+          </SectionCard>
         </SetupContainer>
       </Screen>
     );
@@ -106,17 +86,6 @@ export function SetupScreen() {
     const digitsOnly = val.replace(/\D/g, "").slice(0, 4);
     setConfirmPin(digitsOnly);
     if (confirmPinError) setConfirmPinError(undefined);
-  };
-
-  const toggleMission = (id: string) => {
-    setEnabledMissions((prev) => {
-      const exists = prev.includes(id);
-      const next = exists ? prev.filter((item) => item !== id) : [...prev, id];
-      if (next.length > 0 && missionsError) {
-        setMissionsError(undefined);
-      }
-      return next;
-    });
   };
 
   const handleLoadDemo = () => {
@@ -144,11 +113,6 @@ export function SetupScreen() {
       hasValidationError = true;
     }
 
-    if (enabledMissions.length === 0) {
-      setMissionsError("Choose at least one mission.");
-      hasValidationError = true;
-    }
-
     if (hasValidationError) {
       return;
     }
@@ -166,18 +130,10 @@ export function SetupScreen() {
     try {
       const pinRecord = await createPinRecord(pin);
       actions.setChild({ nickname: nickname.trim() });
-      actions.setSettings({
-        ...pinRecord,
-        allowedMissionIds: enabledMissions,
-        deviceRole,
-      });
+      actions.setSettings(pinRecord);
 
       session.setUnlocked(true);
-      if (deviceRole === "child") {
-        router.push(ROUTES.home);
-      } else {
-        router.push(ROUTES.parent);
-      }
+      router.push(ROUTES.parent);
     } catch (err) {
       setGeneralError(err instanceof Error ? err.message : "Failed to create PIN.");
       setIsSubmitting(false);
@@ -192,8 +148,8 @@ export function SetupScreen() {
             section="more"
             icon="lock"
             title="Parent mode setup"
+            subtitle="Set up your child profile and a parent PIN."
             stickers={0}
-            subtitle="Set up your child profile, parent PIN, and choose which movement missions are available."
           />
 
           {!session.isCryptoAvailable ? (
@@ -224,31 +180,6 @@ export function SetupScreen() {
                 </Stack>
               </SectionCard>
 
-              <SectionCard section="more" title="This phone is for:" label="Device role">
-                <Stack gap="md">
-                  <Text size="sm" tone="muted">
-                    Choose how this phone will be used. You can change this anytime in settings.
-                  </Text>
-                  <OptionGroup legend="This phone is for:" hideLegend columns={3}>
-                    <OptionButton
-                      label="My child"
-                      selected={deviceRole === "child"}
-                      onSelect={() => setDeviceRole("child")}
-                    />
-                    <OptionButton
-                      label="Me (parent)"
-                      selected={deviceRole === "parent"}
-                      onSelect={() => setDeviceRole("parent")}
-                    />
-                    <OptionButton
-                      label="Both"
-                      selected={deviceRole === "both"}
-                      onSelect={() => setDeviceRole("both")}
-                    />
-                  </OptionGroup>
-                </Stack>
-              </SectionCard>
-
               <SectionCard section="more" title="Create a 4-digit PIN" label="Parent PIN setup">
                 <Stack gap="md">
                   <Text size="sm" tone="muted">
@@ -274,26 +205,6 @@ export function SetupScreen() {
                     error={confirmPinError}
                     autoComplete="off"
                   />
-                </Stack>
-              </SectionCard>
-
-              <SectionCard section="more" title="Enabled missions">
-                <Stack gap="md">
-                  <Text size="sm" tone="muted">
-                    Choose which gentle movement missions your child can pick from. You can change
-                    this anytime in settings.
-                  </Text>
-                  <ChipWrap>
-                    {ALL_MISSIONS.map((missionId) => (
-                      <Chip
-                        key={missionId}
-                        label={formatMissionTitle(missionId)}
-                        selected={enabledMissions.includes(missionId)}
-                        onToggle={() => toggleMission(missionId)}
-                      />
-                    ))}
-                  </ChipWrap>
-                  {missionsError ? <ErrorText role="alert">{missionsError}</ErrorText> : null}
                 </Stack>
               </SectionCard>
 

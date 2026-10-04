@@ -9,17 +9,7 @@ import {
 } from "../../child-mode/CheckInIcons/CheckInIcons.style";
 
 export type ParentNavIconKey =
-  | "summary"
-  | "log"
-  | "food"
-  | "patterns"
-  | "more"
-  | "settings"
-  | "report"
-  | "link"
-  | "lock"
-  | "child"
-  | "exit";
+  "summary" | "log" | "food" | "patterns" | "settings" | "report" | "lock" | "child" | "exit";
 
 type ParentNavIconProps = {
   iconKey: ParentNavIconKey;
@@ -62,41 +52,11 @@ const DRAWINGS: Record<ParentNavIconKey, ReactNode> = {
       <InkRect x="35" y="9" width="7" height="32" rx="1.5" $fill="highlight" />
     </>
   ),
-  more: (
-    <>
-      <InkRect x="5" y="9" width="38" height="30" rx="10" $fill="lavender" />
-      <InkCircle cx="15" cy="24" r="3.2" $solid />
-      <InkCircle cx="24" cy="24" r="3.2" $solid />
-      <InkCircle cx="33" cy="24" r="3.2" $solid />
-    </>
-  ),
   report: (
     <>
       <InkRect x="10" y="8" width="28" height="35" rx="4" $fill="surface" />
       <InkRect x="17" y="4" width="14" height="9" rx="3" $fill="highlight" />
       <InkPath d="M16 22 H32 M16 29 H32 M16 36 H26" />
-    </>
-  ),
-  link: (
-    <>
-      <InkRect
-        x="3"
-        y="17"
-        width="27"
-        height="14"
-        rx="7"
-        $fill="mint"
-        transform="rotate(-35 24 24)"
-      />
-      <InkRect
-        x="18"
-        y="17"
-        width="27"
-        height="14"
-        rx="7"
-        $fill="lavender"
-        transform="rotate(-35 24 24)"
-      />
     </>
   ),
   lock: (

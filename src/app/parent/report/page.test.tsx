@@ -18,7 +18,6 @@ function DemoLoader({ children }: { children: React.ReactNode }) {
         const demo = buildDemoState({
           settings: {
             ...pinRecord,
-            allowedMissionIds: ["move-1", "move-2"],
           },
         });
         actions.loadDemo(demo);

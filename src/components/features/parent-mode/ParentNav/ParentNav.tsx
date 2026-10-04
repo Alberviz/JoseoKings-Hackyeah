@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ROUTES } from "@/config/app";
-import { useAppState } from "@/hooks/useAppState";
 import { useParentSession } from "@/hooks/useParentSession";
 import type { ParentSection } from "../sections";
 import { AnimatedLock } from "./AnimatedLock";
@@ -36,7 +35,6 @@ const LOCK_ANIMATION_MS = 650;
 export function ParentNav() {
   const pathname = usePathname();
   const session = useParentSession();
-  const { state } = useAppState();
   // The sheet belongs to the route it was opened on, so navigating closes it.
   const [exitOpenPath, setExitOpenPath] = useState<string | null>(null);
   const [isLocking, setIsLocking] = useState(false);
@@ -44,7 +42,6 @@ export function ParentNav() {
 
   useEffect(() => () => window.clearTimeout(lockTimer.current), []);
 
-  const isParentOnly = state.settings?.deviceRole === "parent";
   const isHidden = !session.isUnlocked || pathname === ROUTES.parentSetup;
   const isExitOpen = exitOpenPath === pathname;
 
@@ -89,12 +86,10 @@ export function ParentNav() {
               <AnimatedLock locking={isLocking} size={44} />
               {isLocking ? "Locked" : "Lock"}
             </ExitTileButton>
-            {isParentOnly ? null : (
-              <ExitTileLink href={ROUTES.home} $fill="summary">
-                <ParentNavIcon iconKey="child" size={44} />
-                Back to child mode
-              </ExitTileLink>
-            )}
+            <ExitTileLink href={ROUTES.home} $fill="summary">
+              <ParentNavIcon iconKey="child" size={44} />
+              Back to child mode
+            </ExitTileLink>
           </ExitInner>
         </ExitPanel>
       ) : null}

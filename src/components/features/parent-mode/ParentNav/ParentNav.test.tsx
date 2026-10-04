@@ -6,16 +6,12 @@ import { ParentNav } from "./ParentNav";
 const mocks = vi.hoisted(() => ({
   pathname: "/parent",
   isUnlocked: true,
-  deviceRole: "both",
   lock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ usePathname: () => mocks.pathname }));
 vi.mock("@/hooks/useParentSession", () => ({
   useParentSession: () => ({ isUnlocked: mocks.isUnlocked, lock: mocks.lock }),
-}));
-vi.mock("@/hooks/useAppState", () => ({
-  useAppState: () => ({ state: { settings: { deviceRole: mocks.deviceRole } } }),
 }));
 
 function mockReducedMotion(reduced: boolean) {
@@ -26,7 +22,6 @@ describe("ParentNav", () => {
   beforeEach(() => {
     mocks.pathname = "/parent";
     mocks.isUnlocked = true;
-    mocks.deviceRole = "both";
     mocks.lock.mockClear();
     mockReducedMotion(true);
   });
@@ -87,13 +82,5 @@ describe("ParentNav", () => {
     vi.advanceTimersByTime(700);
     expect(mocks.lock).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
-  });
-
-  it("does not offer Back to child mode on a parent-only device", () => {
-    mocks.deviceRole = "parent";
-    renderWithTheme(<ParentNav />);
-    fireEvent.click(screen.getByRole("button", { name: "Exit parent mode" }));
-    expect(screen.queryByRole("link", { name: "Back to child mode" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Lock" })).toBeDefined();
   });
 });

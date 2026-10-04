@@ -40,7 +40,7 @@ Every AI tool reads `AGENTS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md` and t
 | T5  | Companion drawing and animations                     | Baitiare          | `src/components/features/companion/`                                                                                                                                                             | -                     | 3 h     |
 | T6  | Child home screen                                    | Baitiare          | `src/components/features/child-mode/HomeScreen/`, `src/app/page.tsx`                                                                                                                             | T1, T5 (mock)         | 2 h     |
 | T7  | Check-in flow                                        | Álvaro            | `src/components/features/child-mode/CheckInScreen/`, `src/app/check-in/`                                                                                                                         | T1, T4 (mock)         | 3 h     |
-| T8  | Missions: list, guided run, company, confirmation    | Baitiare          | `src/components/features/missions/`, `src/app/missions/`                                                                                                                                         | T1, T3, T4, T5 (mock) | 5 h     |
+| T8  | Missions: guided run, company, confirmation          | Baitiare          | `src/components/features/missions/`                                                                                                                                                              | T1, T3, T4, T5 (mock) | 5 h     |
 | T9  | Patterns logic                                       | Juan              | `src/lib/patterns/`                                                                                                                                                                              | T1 (types ok)         | 3 h     |
 | T10 | Parent mode: setup, PIN gate, summary card, settings | Álvaro            | `src/components/features/parent-mode/`, `src/app/parent/` (except sub-routes owned elsewhere)                                                                                                    | T1, T3 (mock)         | 4 h     |
 | T11 | Doctor report: logic and print view                  | Juan              | `src/lib/report/`, `src/components/features/doctor-report/`, `src/app/parent/report/`                                                                                                            | T1, T9                | 4 h     |
@@ -60,11 +60,11 @@ New dependencies: `zod` for T1 only. Nothing else without approval. W1 may need 
 
 The dragon gets motion by parts; the exercises are shown by an ink stick figure, not by the dragon. Everything is SVG with CSS keyframes: no Rive, no Lottie, no AI-generated video, **no new dependency**. Why: see `docs/DECISIONS.md`. These tasks feed V5 (exercise screen) and V8 (dragon art) of `docs/V2-CHILD-PLAN.md`.
 
-| ID  | Task                                         | Owner           | Folders                                                                                         | Depends on | Time  | Cut if not started by |
-| :-- | :------------------------------------------- | :-------------- | :---------------------------------------------------------------------------------------------- | :--------- | :---- | :-------------------- |
-| M1  | Dragon motion by parts                       | Baitiare        | `src/components/features/companion/Companion/`                                                  | -          | 2 h   | Sun 03:00             |
-| M2  | `ExerciseFigure`: ink stick figure and moves | Claude          | `src/components/features/missions/ExerciseFigure/`, `MissionActiveRun/` (one import and render) | -          | 3 h   | Sun 03:00             |
-| M3  | New mission list in the app                  | Farouk + Álvaro | `src/content/games.ts`, `src/types/mission.ts`, `src/config/content-ids.ts`                     | M2 keys    | 1.5 h | Sun 03:00             |
+| ID  | Task                                         | Owner           | Folders                                                                                 | Depends on | Time  | Cut if not started by |
+| :-- | :------------------------------------------- | :-------------- | :-------------------------------------------------------------------------------------- | :--------- | :---- | :-------------------- |
+| M1  | Dragon motion by parts                       | Baitiare        | `src/components/features/companion/Companion/`                                          | -          | 2 h   | Sun 03:00             |
+| M2  | `ExerciseFigure`: ink stick figure and moves | Claude          | `src/components/features/missions/ExerciseFigure/`, `PlayFlow/` (one import and render) | -          | 3 h   | Sun 03:00             |
+| M3  | New mission list in the app                  | Farouk + Álvaro | `src/content/games.ts`, `src/types/mission.ts`, `src/config/content-ids.ts`             | M2 keys    | 1.5 h | Sun 03:00             |
 
 M2 and M3 share one contract, so they can run in parallel: a step's `poseKey` is a **move key** from this list. Any other value shows the dragon as today.
 
@@ -83,7 +83,7 @@ M2 and M3 share one contract, so they can run in parallel: a step's `poseKey` is
 - One SVG figure in the notebook style (ink-navy stroke from the theme, round head, thick rounded limbs). Joints: neck, shoulders, elbows, hips, knees. A move is 2 to 4 key poses (joint angles) looped with CSS keyframes.
 - Props: `move` (a move key), `withAdult` (draws a second, taller figure doing the same move), `size`. Accessible name from the move, for example "Stick figure marching in place".
 - Unknown move: render nothing, the screen shows the dragon. Reduced motion: the first key pose, still.
-- In `MissionActiveRun`, show the figure for the current step and keep the dragon small beside it, cheering.
+- In the play flow (`PlayFlow`), show the figure for the current step and keep the dragon small beside it, cheering.
 
 **Done when:** all 13 moves render and loop; unit test for the unknown key and reduced motion; readable at 360 px.
 
@@ -190,7 +190,7 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 ### T8 · Missions (Baitiare)
 
-- `/missions` lists enabled missions. `/missions/[id]` runs the flow in `ARCHITECTURE.md` section 8: choose company, guided steps with timer and the companion pose, always-visible **Stop**, confirmation by child, other person or PIN.
+- The play flow (`/play`) runs the flow in `ARCHITECTURE.md` section 8, with all missions available: choose company, guided steps with timer and the companion pose, always-visible **Stop**, confirmation by child, other person or PIN.
 - Write a `MissionLog`, apply the reward from T3, and show the confidence label wording from `PRODUCT.md` 5.3 (never "declared" or "unverified").
 - Cooperative copy only ("you both did it"), never "win" or "lose" against a person.
 
@@ -205,7 +205,7 @@ Build the persistence layer described in `ARCHITECTURE.md` section 5.
 
 ### T10 · Parent mode shell (Álvaro)
 
-- `/parent/setup` (nickname, create PIN, enable missions), PIN gate on `/parent`, the summary card (today's check-in and missions as plain facts), `/parent/settings` (enabled missions, change PIN, backup export and import, consultations list, "Load demo" and "Clear data").
+- `/parent/setup` (nickname, create PIN), PIN gate on `/parent`, the summary card (today's check-in and missions as plain facts), `/parent/settings` (change PIN, backup export and import, consultations list, "Load demo" and "Clear data").
 - Unlock state in memory only, with the 90 second auto-lock.
 
 **Done when:** wrong PIN, lock after 5 tries, auto-lock, export and import round trip, and demo load all work; no PIN is stored anywhere in plain text.
@@ -286,12 +286,12 @@ Issue #85. Decided by Alberto on 2026-10-04 (`docs/DECISIONS.md`). Product rules
 
 ---
 
-## V-tasks and L-tasks (child interface v2 and family link)
+## V-tasks and L-tasks (child interface v2)
 
-Decided on 2026-10-03 (see `docs/DECISIONS.md`). The V-tasks (V1 to V9: economy lib, theme, timer, home, play flow, shop, parent v2, dragon art, QA) are in `docs/V2-CHILD-PLAN.md` section 5. The L-tasks, owned by Álvaro's AI, are: **L1** link lib (`src/lib/link/`, with tests), **L3** link UI (`src/components/features/link/`, routes `/share` and `/parent/link`), **L5** parent v2 (parent home sections, diet, rewards from home, resume range). The old tasks above are not rewritten.
+Decided on 2026-10-03 (see `docs/DECISIONS.md`). The V-tasks (V1 to V9: economy lib, theme, timer, home, play flow, shop, parent v2, dragon art, QA) are in `docs/V2-CHILD-PLAN.md` section 5. The only L-task left, owned by Álvaro's AI, is **L5** parent v2 (parent home sections, diet, rewards from home, resume range). L1 and L3 (the family QR link) were discarded on 2026-10-04 (`docs/DECISIONS.md`). The old tasks above are not rewritten.
 
 ---
 
 ## Out of scope (roadmap slide only)
 
-Restroom map, menu reader, motion detection and camera pose estimation, push notifications, family accounts and cloud sync of check-ins, parent log or food diary, family QR link (now in scope, see L-tasks), smartwatch data (now in scope, see W1; Google Fit stays out), online play, impact exercise, predictions and invented indexes, adolescent privacy, other languages. See [`PRODUCT.md`](PRODUCT.md) section 8.
+Restroom map, menu reader, motion detection and camera pose estimation, push notifications, family accounts and cloud sync of check-ins, parent log or food diary, family QR link (discarded on 2026-10-04: one shared device), smartwatch data (now in scope, see W1; Google Fit stays out), online play, impact exercise, predictions and invented indexes, adolescent privacy, other languages. See [`PRODUCT.md`](PRODUCT.md) section 8.

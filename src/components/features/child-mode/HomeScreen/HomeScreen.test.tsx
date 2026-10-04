@@ -207,56 +207,6 @@ describe("Child Mode HomeScreen (Task V4 Redesign)", () => {
     expect(screen.queryByTestId("nav-check-in")).toBeNull();
   });
 
-  it("redirects to ROUTES.parent when deviceRole is parent", async () => {
-    const today = todayKey();
-    const demo = buildDemoState({ today });
-    const parentState: AppState = {
-      ...demo,
-      child: { nickname: "Lucas" },
-      settings: {
-        ...demo.settings!,
-        deviceRole: "parent",
-      },
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(parentState));
-
-    renderWithTheme(
-      <ProviderWrapper>
-        <HomeScreen />
-      </ProviderWrapper>,
-    );
-
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith(ROUTES.parent);
-    });
-  });
-
-  it("renders small parent link and hides door link when deviceRole is child", async () => {
-    const today = todayKey();
-    const demo = buildDemoState({ today });
-    const childOnlyState: AppState = {
-      ...demo,
-      child: { nickname: "Lucas" },
-      settings: {
-        ...demo.settings!,
-        deviceRole: "child",
-      },
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(childOnlyState));
-
-    renderWithTheme(
-      <ProviderWrapper>
-        <HomeScreen />
-      </ProviderWrapper>,
-    );
-
-    await screen.findByTestId("home-play-button");
-    expect(screen.queryByText("Parents")).toBeNull();
-    const smallLink = screen.getByRole("link", { name: "Parent mode" });
-    expect(smallLink).toBeDefined();
-    expect(smallLink.getAttribute("href")).toBe(ROUTES.parent);
-  });
-
   it("renders dragon evolution stage badge with English copy and updates with fire level", async () => {
     const today = todayKey();
     const demo = buildDemoState({ today });
