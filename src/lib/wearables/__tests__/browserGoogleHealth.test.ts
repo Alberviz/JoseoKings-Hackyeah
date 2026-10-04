@@ -232,7 +232,7 @@ describe("browserGoogleHealth", () => {
     expect(result.metricStatus.sleep).toEqual({ status: "network-error", message: "offline" });
   });
 
-  it("still throws on 403 from the sleep endpoint", async () => {
+  it("keeps the other metrics when only sleep answers 403", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockImplementation((url: string) => {
@@ -240,6 +240,18 @@ describe("browserGoogleHealth", () => {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
       }),
     );
+
+    const result = await fetchBrowserGoogleHealth({
+      accessToken: "limited-token",
+      startTimeMillis: 1000,
+      endTimeMillis: 2000,
+    });
+    expect(result.metricStatus.sleep).toEqual({ status: "http-error", httpStatus: 403 });
+    expect(result.metricStatus.steps).toEqual({ status: "ok", count: 0 });
+  });
+
+  it("throws when every data type answers 403", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 403 }));
 
     await expect(
       fetchBrowserGoogleHealth({

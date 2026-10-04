@@ -131,7 +131,7 @@ async function listAll(
         message: err instanceof Error ? err.message : "Request failed",
       });
     }
-    if (res.status === 401 || res.status === 403) {
+    if (res.status === 401) {
       throw new GoogleHealthError(res.status, "Authentication failed or permissions denied");
     }
     if (!res.ok) {
@@ -247,6 +247,15 @@ export async function fetchBrowserGoogleHealth(
 
   // Daily figures with the automatic device per metric, so steps are never summed across devices.
   // The caller rebuilds them when the parent picks other devices.
+  // A 403 on one data type (for example a box left unticked) only loses that metric; on every type it means no access.
+  const statuses = Object.values(metricStatus);
+  if (
+    statuses.length > 0 &&
+    statuses.every((m) => m?.status === "http-error" && m.httpStatus === 403)
+  ) {
+    throw new GoogleHealthError(403, "Authentication failed or permissions denied");
+  }
+
   const devices = buildDeviceList(devicePoints);
   const dailyMetrics = computeDailyMetrics(
     filterSamplesByDeviceSelection(rows, resolveDeviceSelection(devices)),
