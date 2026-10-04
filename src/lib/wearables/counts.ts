@@ -5,7 +5,6 @@ import {
   addDays,
   enumerateDates,
   median,
-  movingBlockSample,
   mulberry32,
   quantileType7,
   quartiles,
@@ -13,7 +12,6 @@ import {
 } from "./stats";
 
 const BOOTSTRAP = 2000;
-const BLOCK = 7;
 
 import type { CheckInScore } from "./types";
 
@@ -215,90 +213,11 @@ export function foodCooccurrence(days: DayForCounts[]): FoodCooccurrenceResult {
   return { discomfortDays, discomfortDaysWithFood, tags };
 }
 
-function missionCount(day: DayForCounts): number {
-  if (Array.isArray(day?.missionRecords)) return day.missionRecords.length;
-  if (typeof day?.missions === "number" && day.missions >= 0) return day.missions;
-  return 0;
-}
-
-function energyTally(values: number[]) {
-  const counts: Record<number, number> = { 0: 0, 1: 0, 2: 0 };
-  for (const value of values) counts[value] = (counts[value] ?? 0) + 1;
-  return {
-    n: values.length,
-    counts,
-    median: values.length > 0 ? median(values) : null,
-  };
-}
-
 function percentileInterval(samples: number[]) {
   const sorted = [...samples].sort((a, b) => a - b);
   return {
     low: quantileType7(sorted, 0.025),
     high: quantileType7(sorted, 0.975),
-  };
-}
-
-export interface MissionsVsEnergyResult {
-  kind: "value" | "insufficient-data";
-  have: number;
-  need: number;
-  difference: number | null;
-  ci: { low: number | null; high: number | null } | null;
-  mission: ReturnType<typeof energyTally>;
-  none: ReturnType<typeof energyTally>;
-  seed: number | null;
-}
-
-/**
- * Counts of next-day energy after a day with at least one mission record
- * versus a day with none. Difference of medians: median(after mission) − median(after none).
- * Moving-block bootstrap, block length 7.
- */
-export function missionsVsEnergy(
-  days: DayForCounts[],
-  seed?: number,
-  { resamples = BOOTSTRAP }: { resamples?: number } = {},
-): MissionsVsEnergyResult {
-  const afterMission: number[] = [];
-  const afterNone: number[] = [];
-  for (let t = 0; t < days.length - 1; t += 1) {
-    const energy = asScore(days[t + 1]?.energy);
-    if (energy !== 0 && energy !== 1 && energy !== 2) continue;
-    if (missionCount(days[t]) >= 1) afterMission.push(energy as number);
-    else afterNone.push(energy as number);
-  }
-  const mission = energyTally(afterMission);
-  const none = energyTally(afterNone);
-  const base = { mission, none, seed: seed ?? null };
-  if (mission.n < 15 || none.n < 15) {
-    const have = Math.min(mission.n, none.n);
-    return {
-      kind: "insufficient-data",
-      have,
-      need: 15,
-      difference: null,
-      ci: null,
-      ...base,
-    };
-  }
-  if (typeof seed !== "number") {
-    throw new Error("missionsVsEnergy requires an integer seed");
-  }
-  const rng = mulberry32(seed);
-  const diffs = new Array<number>(resamples);
-  for (let i = 0; i < resamples; i += 1) {
-    const a = movingBlockSample(afterMission, BLOCK, rng);
-    const b = movingBlockSample(afterNone, BLOCK, rng);
-    diffs[i] = (median(a) ?? 0) - (median(b) ?? 0);
-  }
-  return {
-    kind: "value",
-    have: mission.n,
-    need: 15,
-    difference: (mission.median ?? 0) - (none.median ?? 0),
-    ci: percentileInterval(diffs),
-    ...base,
   };
 }
 

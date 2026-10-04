@@ -118,6 +118,8 @@ export function useCountdown({
   const isDone = totalMs === 0 || remainingMs === 0;
 
   const start = useCallback(() => {
+    // Already running: restarting the clock would drop the time counted so far.
+    if (startTimeRef.current !== null) return;
     if (accumulatedMsRef.current < totalMs) {
       startTimeRef.current = getNow();
       setIsRunningState(true);

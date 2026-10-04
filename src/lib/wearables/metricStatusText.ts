@@ -37,7 +37,8 @@ export function describeMetricStatus(key: FetchedMetricKey, status: MetricFetchS
   if (count === undefined) return `${label}: read`;
   if (count === 0) return `${label}: No wearable data yet`;
   const [one, many] = UNITS[key];
-  return `${label}: ${count} ${count === 1 ? one : many}`;
+  const text = `${label}: ${count} ${count === 1 ? one : many}`;
+  return status.partial ? `${text} (only part of the data could be read)` : text;
 }
 
 /**

@@ -4,10 +4,12 @@ import { useEffect, useSyncExternalStore } from "react";
 import {
   AUTO_LOCK_MS,
   isLocked,
+  loadAttempts,
   NO_ATTEMPTS,
   registerFailure,
   registerSuccess,
   remainingLockMs,
+  saveAttempts,
   verifyPin,
   type PinAttempts,
 } from "@/lib/pin";
@@ -36,9 +38,14 @@ class ParentSessionStore {
   private lockoutIntervalId: ReturnType<typeof setInterval> | null = null;
   private listeners = new Set<() => void>();
   private snapshot: SessionSnapshot;
+  /** True while a PIN check is running, so two checks cannot race each other. */
+  private isVerifying = false;
 
   constructor() {
+    // Failed attempts and the lockout survive a reload, so reloading cannot be used to guess a PIN.
+    this.attempts = loadAttempts();
     this.snapshot = this.computeSnapshot();
+    this.checkLockoutStatus();
   }
 
   private isCryptoSubtleAvailable(): boolean {
@@ -133,6 +140,7 @@ class ParentSessionStore {
     this.isUnlocked = unlocked;
     if (unlocked) {
       this.attempts = registerSuccess();
+      saveAttempts(this.attempts);
       if (this.lockoutIntervalId) {
         clearInterval(this.lockoutIntervalId);
         this.lockoutIntervalId = null;
@@ -176,7 +184,17 @@ class ParentSessionStore {
       };
     }
 
-    const isValid = await verifyPin(pin, settings);
+    if (this.isVerifying) {
+      return { success: false, error: "Checking the PIN. Please wait a moment." };
+    }
+    this.isVerifying = true;
+
+    let isValid: boolean;
+    try {
+      isValid = await verifyPin(pin, settings);
+    } finally {
+      this.isVerifying = false;
+    }
     const afterNow = Date.now();
 
     if (isValid) {
@@ -185,6 +203,7 @@ class ParentSessionStore {
     }
 
     this.attempts = registerFailure(this.attempts, afterNow);
+    saveAttempts(this.attempts);
     this.checkLockoutStatus();
     this.updateSnapshot();
 
@@ -205,6 +224,8 @@ class ParentSessionStore {
   resetForTesting = () => {
     this.isUnlocked = false;
     this.attempts = NO_ATTEMPTS;
+    this.isVerifying = false;
+    saveAttempts(this.attempts);
     this.clearAutoLockTimer();
     if (this.lockoutIntervalId) {
       clearInterval(this.lockoutIntervalId);

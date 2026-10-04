@@ -19,6 +19,8 @@ export type UseMotionSampleResult = {
 export function useMotionSample(): UseMotionSampleResult {
   const accRef = useRef(createVarianceAccumulator());
   const listenerRef = useRef<((event: DeviceMotionEvent) => void) | null>(null);
+  /** Bumped by every start() and stop(); a permission answer for an older run is ignored. */
+  const runRef = useRef(0);
 
   const detach = useCallback(() => {
     if (listenerRef.current) {
@@ -39,6 +41,7 @@ export function useMotionSample(): UseMotionSampleResult {
   }, [detach]);
 
   const start = useCallback(() => {
+    const run = ++runRef.current;
     accRef.current = createVarianceAccumulator();
     if (typeof window === "undefined" || typeof DeviceMotionEvent === "undefined") return;
     const request = (DeviceMotionEvent as unknown as DeviceMotionPermission).requestPermission;
@@ -46,7 +49,7 @@ export function useMotionSample(): UseMotionSampleResult {
       request
         .call(DeviceMotionEvent)
         .then((result) => {
-          if (result === "granted") attach();
+          if (result === "granted" && runRef.current === run) attach();
         })
         .catch(() => undefined);
       return;
@@ -55,11 +58,18 @@ export function useMotionSample(): UseMotionSampleResult {
   }, [attach]);
 
   const stop = useCallback(() => {
+    runRef.current += 1;
     detach();
     return accRef.current.result();
   }, [detach]);
 
-  useEffect(() => detach, [detach]);
+  useEffect(
+    () => () => {
+      runRef.current += 1;
+      detach();
+    },
+    [detach],
+  );
 
   return { start, stop };
 }

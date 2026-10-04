@@ -305,18 +305,18 @@ describe("Local Notifications System (on-device)", () => {
 
       const mockNotif: LocalNotification = {
         id: "test-granted",
-        type: "care_reminder",
+        type: "reward_claim",
         audience: "parent",
-        title: "Care reminder",
-        body: "Time for daily care.",
+        title: "Family reward requested",
+        body: 'Lucas requested "Movie night" with dragon fire.',
         tag: "care-tag",
         priority: "high",
       };
 
       const result = triggerSystemNotification(mockNotif);
       expect(result).toBe(true);
-      expect(notificationSpy).toHaveBeenCalledWith("Care reminder", {
-        body: "Time for daily care.",
+      expect(notificationSpy).toHaveBeenCalledWith("MyCrohnie", {
+        body: "Something is waiting in the app.",
         icon: "/apple-icon.png",
         tag: "care-tag",
       });
