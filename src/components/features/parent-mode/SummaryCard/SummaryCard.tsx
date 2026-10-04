@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button, Card, Chip, Heading, LinkButton, Stack, Text } from "@/components/ui";
 import { ROUTES } from "@/config/app";
 import { DISCOMFORT_THRESHOLD, QUESTION_IDS } from "@/config/content-ids";
@@ -7,7 +8,7 @@ import { todayKey } from "@/lib/dates";
 import { confidenceLabel } from "@/lib/rewards";
 import type { AppState } from "@/types";
 import { CHECK_IN_QUESTIONS } from "@/content/check-in-questions";
-import { shouldShowInAppReminder } from "@/lib/reminder/reminder";
+import { getActiveNotifications, triggerSystemNotification } from "@/lib/notifications";
 import {
   formatAppointmentCountdown,
   formatConsultationDaysAgo,
@@ -104,7 +105,22 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
   const todayMissions = state.missionLogs.filter((item) => item.date === today);
 
   const todayLog = state.parentLogs.find((item) => item.date === today);
-  const showReminder = shouldShowInAppReminder(state.settings, todayLog?.medicationTaken);
+  const activeNotifications = getActiveNotifications({
+    settings: state.settings,
+    todayLog,
+    consultations: state.consultations,
+    economy: state.economy,
+    hasChildCheckedInToday: !!todayCheckIn,
+    childNickname: childName,
+  }).filter((n) => n.audience === "parent");
+
+  useEffect(() => {
+    for (const notif of activeNotifications) {
+      if (notif.priority === "high") {
+        triggerSystemNotification(notif);
+      }
+    }
+  }, [activeNotifications]);
 
   const bellyAnswer = todayCheckIn?.answers[QUESTION_IDS.bellyComfort];
   const hasDiscomfort = typeof bellyAnswer === "number" && bellyAnswer >= DISCOMFORT_THRESHOLD;
@@ -124,19 +140,19 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
           <Text tone="muted">Daily summary for {childName}</Text>
         </Stack>
 
-        {showReminder ? (
-          <PromptCard role="status">
+        {activeNotifications.map((notif) => (
+          <PromptCard key={notif.id} role="status">
             <Stack gap="xs">
-              <Heading level={2}>Daily care reminder</Heading>
-              <Text size="sm">
-                Time for {childName}&apos;s daily routine. Have you logged today&apos;s care?
-              </Text>
-              <LinkButton href={ROUTES.parentLog} variant="secondary">
-                Go to daily log
-              </LinkButton>
+              <Heading level={2}>{notif.title}</Heading>
+              <Text size="sm">{notif.body}</Text>
+              {notif.actionUrl && notif.actionLabel ? (
+                <LinkButton href={notif.actionUrl} variant="secondary">
+                  {notif.actionLabel}
+                </LinkButton>
+              ) : null}
             </Stack>
           </PromptCard>
-        ) : null}
+        ))}
 
         <Card label="Today's performance">
           <Stack gap="md">
