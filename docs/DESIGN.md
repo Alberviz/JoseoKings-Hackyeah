@@ -68,7 +68,7 @@ one main Button        (section variant, full width, last)
 - Navigation lives in the tab bar: no "Back to parent summary" links. Lock and "Back to child mode" live only in the Exit sheet (the PIN gate keeps its own "Back to child mode", since the bar is hidden there).
 - Wording follows `docs/PRODUCT.md` section 6: no medical claims, no scores, no alarming colours for the child's answers. Harder days use coral, not red.
 - The doctor report is printed: print CSS removes the banner colours, the tab bar and the gear.
-- Styles follow `AGENTS.md` section 3.2 (`.tsx` composes, `.style.ts` styles, theme tokens, `$` props). New colours go into `theme.ts` and `contrast.test.ts`.
+- Styles follow the component rule (`.tsx` composes, `.style.ts` styles, theme tokens, `$` props). New colours go into `theme.ts` and `contrast.test.ts`.
 - Tapping must never show a coloured box: the global style sets `-webkit-tap-highlight-color: transparent` on every element, `touch-action: manipulation` and no text selection on buttons, links and labels. Keep `:focus-visible` outlines for keyboard users.
 
 ## 6. Done when

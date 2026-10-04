@@ -67,7 +67,7 @@ You can also create your own profile and PIN with **Complete setup** instead of 
 | Package manager | pnpm                                                                    |
 | Hosting         | Vercel                                                                  |
 
-AI tools (Claude Code, Gemini CLI, Antigravity) were used to build this project, under the rules in [`AGENTS.md`](AGENTS.md).
+AI coding tools (Claude Code, Gemini CLI, Antigravity) were used to build this project, under shared code rules and human review of every pull request.
 
 ## Quick start
 
@@ -100,9 +100,7 @@ Every component is a `.tsx` file made only of components, plus a sibling `.style
 
 ## Docs
 
-- Rules and workflow (humans and AI agents): [`AGENTS.md`](AGENTS.md)
 - Product definition: [`docs/PRODUCT.md`](docs/PRODUCT.md)
 - Architecture and data model: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - Wearable integration: [`docs/WEARABLES_INTEGRATION.md`](docs/WEARABLES_INTEGRATION.md)
-- Decisions: [`docs/DECISIONS.md`](docs/DECISIONS.md) · Tasks: [`docs/TASKS.md`](docs/TASKS.md) · Team: [`docs/TEAM.md`](docs/TEAM.md)
-- Known errors and fixes: [`ERRORS.md`](ERRORS.md)
+- Decisions: [`docs/DECISIONS.md`](docs/DECISIONS.md)

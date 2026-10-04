@@ -1,6 +1,6 @@
 # Wearables integration (task W1, Google Health API v4)
 
-How the wearable data gets into the app, in English. Rules and privacy guardrails are in `AGENTS.md` and `docs/DECISIONS.md`.
+How the wearable data gets into the app, in English. Rules and privacy guardrails are in `docs/PRODUCT.md` and `docs/DECISIONS.md`.
 
 ## 1. How it works
 
