@@ -1,6 +1,6 @@
 # Design: parent area
 
-**Status: decided by Alberto (2026-10-04).** Drawn icons, colour by section, floating tab bar. This file is the spec: follow it literally and do not invent variants. Questions go to Claude. Mockups (Tailscale `:8443`): `colorful.html`, `parent-style.html` (option 1, icon mode "Drawn").
+**Status: decided by Alberto (2026-10-04).** Drawn icons, colour by section, floating tab bar. This file is the spec: follow it literally and do not invent variants. Questions go to Claude. Chosen mockup: option 1, icon mode "Drawn".
 
 Scope: every screen under `/parent` and the parent PIN gate. The child screens keep their own look.
 

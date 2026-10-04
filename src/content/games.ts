@@ -1,7 +1,7 @@
 import { GAME_IDS } from "@/config/content-ids";
 import type { Mission, MoveKey, PlayLevel, PlayMode } from "@/types";
 
-// The play games from the team's games table (Farouk), for the v2 Play flow in Juan's sketch:
+// The play games from the team's games table, for the v2 Play flow:
 // "Game mode: Alone / Family" is `mode`, and the feeling chip (1, 2 or 3 dots) is `level`.
 // The level only chooses which gentle game is shown; it never changes a reward (docs/PRODUCT.md section 5.2).
 // Left out from the table: the console game (no screen-time games). No jumping, no running, no counting as a score.

@@ -38,6 +38,6 @@ Check, in this order:
 
 Give Alberto a short list of concrete findings with `file:line`. Do not rewrite their PR. Post comments with `gh pr review` only when Alberto asks. Never merge; Alberto merges.
 
-## Obsidian vault (Alberto only, local)
+## Private notes (Alberto only, local)
 
-`/home/alberviz/hackathon` holds hackathon context, idea analysis, pitch material, and the dev log in `06 - Desarrollo/`. It is in Spanish and is not shared with teammates. When something non-obvious happens (a decision, a discarded idea, an error and its fix), add a note there when Alberto asks or at the end of a work block.
+Alberto keeps hackathon context, pitch material and a dev log in a private notes vault outside this repo (its location is in his local Claude memory). It is in Spanish and is not shared with teammates. When something non-obvious happens (a decision, a discarded idea, an error and its fix), add a note there when Alberto asks or at the end of a work block.

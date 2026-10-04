@@ -12,11 +12,11 @@ Scope: what the peer-reviewed literature supports, what it does not, and the exa
 
 ### Literature search method and its limit
 
-Searches were run through Consensus (peer-reviewed corpus, ~220 M papers). **42 queries were planned; 19 returned results before the account's monthly search quota was exhausted.** Every paper cited below was returned by one of those 19 queries, or was carried over from the team's earlier Consensus pass recorded in `docs/proposals/WEARABLE_GOOGLE_FIT.md`. Nothing is cited from memory.
+Searches were run through Consensus (peer-reviewed corpus, ~220 M papers). **42 queries were planned; 19 were run within the time and search budget of the project.** Every paper cited below was returned by one of those 19 queries, or was carried over from the team's earlier Consensus pass recorded in `docs/proposals/WEARABLE_GOOGLE_FIT.md`. Nothing is cited from memory.
 
-Topics that could **not** be searched before the quota ran out: change-point detection and statistical process control in health self-monitoring, permutation testing under autocorrelation, weighted kappa, wear-time validity thresholds, minimal detectable change for resting heart rate and steps, missing-data handling in momentary assessment, SpO2 accuracy in consumer devices, food diaries in IBD, school absence in paediatric IBD, and software-as-a-medical-device regulation. Where an algorithm below depends on one of those topics, it is marked **`[method only — no paper retrieved]`** and is justified as a standard statistical construction, not as an empirical finding. Those searches must be re-run when the quota resets; nothing in section 3 should be presented to a jury or a clinician as literature-backed if it carries that mark.
+Topics that were **not** searched: change-point detection and statistical process control in health self-monitoring, permutation testing under autocorrelation, weighted kappa, wear-time validity thresholds, minimal detectable change for resting heart rate and steps, missing-data handling in momentary assessment, SpO2 accuracy in consumer devices, food diaries in IBD, school absence in paediatric IBD, and software-as-a-medical-device regulation. Where an algorithm below depends on one of those topics, it is marked **`[method only — no paper retrieved]`** and is justified as a standard statistical construction, not as an empirical finding. Those searches are future work; nothing in section 3 that carries that mark is presented as literature-backed.
 
-Three citations in Juan's `docs/BIOMEDICAL_ALGORITHMS.md` — "Kolovos et al. 2022", "Geva et al. 2020", "Ward et al. 2020" — were not found in Consensus in the earlier pass and are not used here.
+Three citations in `docs/BIOMEDICAL_ALGORITHMS.md` — "Kolovos et al. 2022", "Geva et al. 2020", "Ward et al. 2020" — were not found in Consensus in the earlier pass and are not used here.
 
 ---
 
