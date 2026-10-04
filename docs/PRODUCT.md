@@ -37,7 +37,7 @@ Scope of disease: **inflammatory bowel disease** (Crohn's and ulcerative colitis
 
 One installable PWA. One device, **two modes**: child mode (default) and parent mode (protected by a PIN). Everything is stored on the device by default. The same device is used by the child and the parent; the PIN separates the two modes.
 
-Optionally, a parent can connect the child's **smartwatch** (section 5.6, task W1). That is the only data source that does not come from the family typing or tapping.
+Optionally, a parent can connect the child's **wearable** (section 5.6, task W1). That is the only data source that does not come from the family typing or tapping.
 
 ### 4.1 Child mode
 
@@ -57,7 +57,7 @@ Optionally, a parent can connect the child's **smartwatch** (section 5.6, task W
 - **Daily log:** sleep hours, physical activity, school (went, left early, missed), medication taken (yes / partly / no, **never drug names or doses**).
 - **Reactive food diary:** only when the child marked discomfort, the parents are prompted to write what the child ate. It goes into the doctor report.
 - **Patterns:** a colour calendar, weekly charts, and a list of foods that appeared on days with discomfort (counts only, never causes).
-- **Watch card (only when a watch is connected):** steps, heart rate and sleep stages read from the child's smartwatch, shown as plain totals, averages and ranges and always labelled "From the watch (Google Health)". Days without data show "No watch data yet". No interpretation, no advice, no alerts. Rules in section 5.6.
+- **Wearable card (only when a wearable is connected):** steps, heart rate and sleep stages read from the child's wearable, shown as plain totals, averages and ranges and always labelled "From the wearable (Google Health)". Days without data show "No wearable data yet". No interpretation, no advice, no alerts. Rules in section 5.6.
 - **Consultations:** parents mark the date of each visit; the report covers the time since the previous one.
 - **Settings:** change the PIN, export or import a backup file.
 
@@ -66,18 +66,18 @@ Optionally, a parent can connect the child's **smartwatch** (section 5.6, task W
 - One page, built on the device, covering **the time since the last consultation** by default; parents can choose From and To dates.
 - Shown on screen in a clean view, or saved as PDF through the browser print dialog (`window.print()` with print CSS). No PDF library.
 - English only in v1.
-- Contains: the period, a day-by-day colour strip, pain and energy as the child marked them, days with discomfort, food entries on those days, sleep and school summary, medication-taken yes/no, active days, and, when a watch is connected, a **watch section** (steps, heart rate and sleep as totals, averages and ranges for the period, labelled as measured by the watch, with gaps shown as "No watch data yet").
-- Every mission record carries its **confidence label** (section 5.3). Watch figures carry the watch label instead (section 5.6).
+- Contains: the period, a day-by-day colour strip, pain and energy as the child marked them, days with discomfort, food entries on those days, sleep and school summary, medication-taken yes/no, active days, and, when a wearable is connected, a **wearable section** (steps, heart rate and sleep as totals, averages and ranges for the period, labelled as measured by the wearable, with gaps shown as "No wearable data yet").
+- Every mission record carries its **confidence label** (section 5.3). Wearable figures carry the wearable label instead (section 5.6).
 - Always ends with the disclaimer in section 6.3.
 
 ## 5. Product rules (never break these)
 
 ### 5.1 Privacy
 
-- **Health data stays on the device by default.** Check-ins, mission records, the parent log, the food diary and watch data are kept on the device, with no analytics and no third parties. Rules in [`AGENTS.md`](../AGENTS.md).
-- **No accounts or login for the family.** The only sign-in is the parent's Google consent when connecting a watch (section 5.6).
+- **Health data stays on the device by default.** Check-ins, mission records, the parent log, the food diary and wearable data are kept on the device, with no analytics and no third parties. Rules in [`AGENTS.md`](../AGENTS.md).
+- **No accounts or login for the family.** The only sign-in is the parent's Google consent when connecting a wearable (section 5.6).
 - **Check-ins, the parent log and the food diary are never sent to a server** unless Alberto approves it separately.
-- A server copy of **watch data** exists only if the W1 design needs it (Álvaro decides), and then only under the guardrails in section 5.6.
+- A server copy of **wearable data** exists only if the W1 design needs it (Álvaro decides), and then only under the guardrails in section 5.6.
 - The report leaves the device only when a parent saves, prints or shares it.
 - Demo data is fictional and always shows a visible **"Demo data"** label.
 
@@ -86,7 +86,7 @@ Optionally, a parent can connect the child's **smartwatch** (section 5.6, task W
 - **Reward the act of checking in, never the answer.** "Pain 4" and "pain 0" give exactly the same reward, and the child is told so.
 - **"I don't feel like it today" is valid.** It gives a slightly smaller reward than a full check-in and shows in the report as a day without answers.
 - **No punishment.** No streaks that break, no sad or sick companion, no countdown pressure. Progress only goes up. Use "care days" (a running total) and a streak that pauses instead of resetting.
-- **Rewards never depend on watch data.** Steps, heart rate and sleep never change coins, fire, badges or any reward. No step goals, no streaks and no targets for the child, and the child is not shown these numbers. Reward the act, never the numbers.
+- **Rewards never depend on wearable data.** Steps, heart rate and sleep never change coins, fire, badges or any reward. No step goals, no streaks and no targets for the child, and the child is not shown these numbers. Reward the act, never the numbers.
 - **All mission kinds give the same main reward.** A bed stretch is worth the same as a wall sit. The only extra is a separate **team track** (stars, a team badge) for missions done with someone. It never speeds up main progress, so a child with nobody around is not penalised.
 - **Stop early is rest, not failure.** It is logged as a rest session and gives the smaller reward.
 - **Fixed, predictable rewards.** No random loot boxes.
@@ -104,7 +104,7 @@ The app does not measure mission movement, and it does not try to. Every mission
 | With someone else      | That person taps "Confirm" on the same device | "Done with someone"                      |
 | With a parent or carer | The parent enters the parent PIN              | "Done with family"                       |
 
-Labels are about how the record was made, not about trust. Never write "declared", "unverified" or "cheated" in the UI. A mission is **never presented as measured**, even when a watch is connected: watch data is shown separately and labelled as such (section 5.6).
+Labels are about how the record was made, not about trust. Never write "declared", "unverified" or "cheated" in the UI. A mission is **never presented as measured**, even when a wearable is connected: wearable data is shown separately and labelled as such (section 5.6).
 
 ### 5.4 No medical advice
 
@@ -112,7 +112,7 @@ Labels are about how the record was made, not about trust. Never write "declared
 - The app **never answers a health question** and never assigns exercise by symptom. All missions are available to the child.
 - The app records, shows and summarises what the family entered. It describes ("on 4 of the 6 days with discomfort, a dairy entry was logged") and never explains why.
 - Food entries show **co-occurrence only**, as a count, never ranked as causes.
-- Watch data gets **no risk scores, no alerts, no predictions and no clinical thresholds** (no "normal range", no "too high"). Summaries are descriptive: totals, averages and ranges. The app never claims that the watch detects flares or any condition.
+- Wearable data gets **no risk scores, no alerts, no predictions and no clinical thresholds** (no "normal range", no "too high"). Summaries are descriptive: totals, averages and ranges. The app never claims that the wearable detects flares or any condition.
 - Every parent screen with patterns and the doctor report carry the disclaimer in section 6.3.
 
 ### 5.5 Accessibility and design
@@ -122,26 +122,26 @@ Labels are about how the record was made, not about trust. Never write "declared
 - The companion must look right for 8 to 12: more "hero or creature" than "plush toy". It must never look disappointed.
 - No streak counters in red, no timers that shame.
 
-### 5.6 Watch data (wearables)
+### 5.6 Wearable data (wearables)
 
 Decided by Alberto on 2026-10-04 (`DECISIONS.md`). A test with an Amazfit GTS 2 proved the path: Zepp app, Health Connect (Android), Google Health app, then the Google Health API v4 (`health.googleapis.com`) returned steps, heart rate and sleep stages. Implementation is task W1 in [`TASKS.md`](TASKS.md).
 
-1. **Allowed, with consent.** Data from the child's smartwatch can be read through the Google Health API with **read-only scopes** (`googlehealth.activity_and_fitness`, `googlehealth.health_metrics_and_measurements`, `googlehealth.sleep`), only after the parent connects their Google account and consents. Google Fit is not used (closed). Other sources (Health Connect on the device, CSV import) are allowed later under the same rules.
+1. **Allowed, with consent.** Data from the child's wearable can be read through the Google Health API with **read-only scopes** (`googlehealth.activity_and_fitness`, `googlehealth.health_metrics_and_measurements`, `googlehealth.sleep`), only after the parent connects their Google account and consents. Google Fit is not used (closed). Other sources (Health Connect on the device, CSV import) are allowed later under the same rules.
 2. **Privacy.** By default the parent's device reads the API and keeps the data on that device, like all other data. A server copy is allowed only if the W1 design needs it (Álvaro decides) and then: EU region, pseudonymous ids (no names, emails or drug names), service-role access only, no analytics or third parties, deletable on request. Check-ins, the parent log and the food diary are **not** sent to the server unless Alberto approves it separately. Secrets (client secret, refresh tokens) live only in `.env.local` or the server environment, never in the repo, in issues or in client code.
-3. **Honest data.** Watch data is labelled as measured by the watch, for example **"From the watch (Google Health)"**. Mission records stay socially confirmed with their neutral labels (section 5.3) and are never presented as measured. A day or period without data shows **"No watch data yet"**: never fill, estimate or guess a gap.
-4. **No medical use.** No diagnosis, predictions, risk scores, alerts or clinical thresholds from watch data. Summaries are descriptive (totals, averages, ranges) for the family and the doctor. No claim that the watch detects flares.
-5. **Rewards unchanged.** Rewards never depend on watch data (section 5.2). No step goals or streaks for the child.
-6. **Child view.** The child is not shown heart rate or sleep scores. Watch data lives in parent mode and in the doctor report.
+3. **Honest data.** Wearable data is labelled as measured by the wearable, for example **"From the wearable (Google Health)"**. Mission records stay socially confirmed with their neutral labels (section 5.3) and are never presented as measured. A day or period without data shows **"No wearable data yet"**: never fill, estimate or guess a gap.
+4. **No medical use.** No diagnosis, predictions, risk scores, alerts or clinical thresholds from wearable data. Summaries are descriptive (totals, averages, ranges) for the family and the doctor. No claim that the wearable detects flares.
+5. **Rewards unchanged.** Rewards never depend on wearable data (section 5.2). No step goals or streaks for the child.
+6. **Child view.** The child is not shown heart rate or sleep scores. Wearable data lives in parent mode and in the doctor report.
 
 ## 6. Words we use
 
 ### 6.1 Use
 
-"The family logged", "the child marked", "on days with discomfort", "co-occurs", "done with family", "summary for the consultation", "talking points", "self-reported", "From the watch (Google Health)", "recorded by the watch", "No watch data yet", "average", "range", "total".
+"The family logged", "the child marked", "on days with discomfort", "co-occurs", "done with family", "summary for the consultation", "talking points", "self-reported", "From the wearable (Google Health)", "recorded by the wearable", "No wearable data yet", "average", "range", "total".
 
 ### 6.2 Do not use
 
-"Treats", "prevents", "protects bones", "clinical objective", "therapy", "prescription", "diagnosis", "risk score", "energy level optimal", "trigger" (as a conclusion), "verified", "unverified", "proves", "detects" or "predicts" (about the watch), "flare warning", "alert", "normal range", "abnormal", "healthy heart rate", "sleep score", "first-ever", "fully functional" (unless it is true and tested).
+"Treats", "prevents", "protects bones", "clinical objective", "therapy", "prescription", "diagnosis", "risk score", "energy level optimal", "trigger" (as a conclusion), "verified", "unverified", "proves", "detects" or "predicts" (about the wearable), "flare warning", "alert", "normal range", "abnormal", "healthy heart rate", "sleep score", "first-ever", "fully functional" (unless it is true and tested).
 
 ### 6.3 Disclaimer for the report and the patterns screens
 
@@ -163,12 +163,12 @@ Priority if time runs out. Everything above a line must work before anything bel
 
 Without a working item 1 to 3 there is no demo. Item 7 is cut first.
 
-Task W1 (watch data, section 5.6) runs in parallel on its own folders. It is built behind a parent opt-in, so the rest of the app works the same with no watch connected. If it blocks the core loop, W1 is cut before anything above.
+Task W1 (wearable data, section 5.6) runs in parallel on its own folders. It is built behind a parent opt-in, so the rest of the app works the same with no wearable connected. If it blocks the core loop, W1 is cut before anything above.
 
 ## 8. Out of scope
 
 - The restroom map and the menu reader (paused, see [`DECISIONS.md`](DECISIONS.md)).
-- Watch data is **in scope** through the Google Health API (section 5.6, task W1). Still out of scope: Google Fit (closed), live or real-time streaming, notifications from watch data, and any watch-based reward, score or alert. Motion detection from the phone and camera pose estimation: roadmap.
+- Wearable data is **in scope** through the Google Health API (section 5.6, task W1). Still out of scope: Google Fit (closed), live or real-time streaming, notifications from wearable data, and any wearable-based reward, score or alert. Motion detection from the phone and camera pose estimation: roadmap.
 - Push notifications, family accounts or login, cloud sync of check-ins, the parent log or the food diary, online play. The family QR link, a second app and the web home are out of scope (one shared device).
 - Impact exercise (jumping) and anything that assigns exercise by symptom.
 - Predictions, "energy percentage" or any invented index.
@@ -179,15 +179,15 @@ Task W1 (watch data, section 5.6) runs in parallel on its own folders. It is bui
 
 The team builds with these defaults. If Alberto changes one, it is a small edit, not a rewrite.
 
-| Topic                                             | Default for now                                                                                                                    |
-| :------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------- |
-| Pitch story                                       | Lead with movement and communication, with the daily record as the base. Final wording is Claudia's draft, approved by Alberto.    |
-| When parents see what the child marked            | When they open parent mode (a card), never as a notification. The child is told what parents can see.                              |
-| Energy indicator                                  | **Not built.** Show only the energy answer the child marked.                                                                       |
-| Wording of the confidence labels                  | The three neutral labels in section 5.3.                                                                                           |
-| PIN                                               | 4 digits, hashed with a salt, locks after 5 wrong tries, auto-locks after 90 seconds idle. It separates modes; it is not security. |
-| Solo missions every day, or some "team only" days | Solo missions always available.                                                                                                    |
-| Watch data: parent device only, or a server copy  | Parent device only. A server copy only if W1 needs it (Álvaro decides), under the guardrails in section 5.6.                       |
+| Topic                                               | Default for now                                                                                                                    |
+| :-------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
+| Pitch story                                         | Lead with movement and communication, with the daily record as the base. Final wording is Claudia's draft, approved by Alberto.    |
+| When parents see what the child marked              | When they open parent mode (a card), never as a notification. The child is told what parents can see.                              |
+| Energy indicator                                    | **Not built.** Show only the energy answer the child marked.                                                                       |
+| Wording of the confidence labels                    | The three neutral labels in section 5.3.                                                                                           |
+| PIN                                                 | 4 digits, hashed with a salt, locks after 5 wrong tries, auto-locks after 90 seconds idle. It separates modes; it is not security. |
+| Solo missions every day, or some "team only" days   | Solo missions always available.                                                                                                    |
+| Wearable data: parent device only, or a server copy | Parent device only. A server copy only if W1 needs it (Álvaro decides), under the guardrails in section 5.6.                       |
 
 ## 10. People in the story (for the pitch)
 

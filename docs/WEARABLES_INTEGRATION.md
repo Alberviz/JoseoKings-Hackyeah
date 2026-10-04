@@ -1,6 +1,6 @@
 # Wearables integration (task W1, Google Health API v4)
 
-How the watch data gets into the app, in English. Rules and privacy guardrails are in `AGENTS.md` and `docs/DECISIONS.md`.
+How the wearable data gets into the app, in English. Rules and privacy guardrails are in `AGENTS.md` and `docs/DECISIONS.md`.
 
 ## 1. How it works
 
@@ -10,11 +10,11 @@ How the watch data gets into the app, in English. Rules and privacy guardrails a
   - `https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly` (heart rate, daily resting heart rate)
   - `https://www.googleapis.com/auth/googlehealth.sleep.readonly` (sleep)
   - The old `health.fitness.*` scopes are wrong; do not use them.
-- Everything stays on the device (`localStorage`, key `crohncare_watch_daily`): the days, the device list, the per-metric choice and the raw samples (dropped when storage is full).
-- Watch numbers are descriptive only: no scores, alerts, thresholds or rewards. The child never sees them. They are labelled "From the watch (Google Health)".
-- Caveat: the API is officially documented for Fitbit devices and the Pixel Watch. In practice, data from apps that write to Health Connect also appears, and `platform` is then `"HEALTH_CONNECT"` (for example a Zepp/Amazfit watch through its app on an Android phone). Watches that never reach Google Health or Health Connect do not appear. "No watch data yet" is shown for a gap and is never filled.
+- Everything stays on the device (`localStorage`, key `crohncare_wearable_daily`): the days, the device list, the per-metric choice and the raw samples (dropped when storage is full). Data saved before the rename is moved once from the old key `crohncare_watch_daily` (and old backups with a `watch` field are still read).
+- Wearable numbers are descriptive only: no scores, alerts, thresholds or rewards. The child never sees them. They are labelled "From the wearable (Google Health)".
+- Caveat: the API is officially documented for Fitbit devices and the Pixel Watch. In practice, data from apps that write to Health Connect also appears, and `platform` is then `"HEALTH_CONNECT"` (for example a Zepp/Amazfit wearable through its app on an Android phone). Wearables that never reach Google Health or Health Connect do not appear. "No wearable data yet" is shown for a gap and is never filled.
 
-Code: `src/lib/wearables/googleHealthV4.ts` (shapes, converters), `browserGoogleHealth.ts` (requests), `devices.ts` (device list and choice), `daily.ts` and `buildWatchDays.ts` (per-day figures), `src/hooks/useWatchSync.ts`, `src/components/features/parent-mode/WatchConnectCard/`.
+Code: `src/lib/wearables/googleHealthV4.ts` (shapes, converters), `browserGoogleHealth.ts` (requests), `devices.ts` (device list and choice), `daily.ts` and `buildWearableDays.ts` (per-day figures), `src/hooks/useWearableSync.ts`, `src/components/features/parent-mode/WearableConnectCard/`.
 
 ## 2. API reference (verified)
 
@@ -42,24 +42,24 @@ Errors: `{ error: { code, message, status, details: [{ reason }] } }`. 401 and 4
 ## 3. Devices and the per-metric selector
 
 - Real data comes through Health Connect, and the `device` fields are often empty (`{}`), with no `uid` and no `model`; only the source app is reliable. So a device is identified by its **source app**: the id is `application.packageName`, plus `|uid` only when `device.uid` exists. Without a package name the id is `uid`, else the non-empty parts of `manufacturer|model|formFactor`, else the application name, else `unknown`. Ids never have empty segments.
-- All points with the same id are one device, even when they carry different form factors. One Zepp watch can send points with `device: {}` and points with `formFactor: "FITNESS_BAND"`; both are the same device, so its heart rate readings stay together.
-- Kind of a merged device: `watch` if any point has a wrist, band, ring or watch form factor; else `phone` if any point is PHONE/TABLET or the package starts with `com.android.healthconnect.phone`; else it comes from a small known-apps map (Zepp, Fitbit, Garmin Connect, Mi Fitness, Huawei Health, Samsung Health, Pixel Watch, Oura, Withings, Google Fit); else `other`.
-- Label: "Watch · Zepp (Amazfit)", "Phone · Xiaomi" (manufacturer or model when known, else the app name, else "This phone"). A raw package name is shown only as its last segment, capitalised, when nothing nicer is known.
+- All points with the same id are one device, even when they carry different form factors. One Zepp wearable can send points with `device: {}` and points with `formFactor: "FITNESS_BAND"`; both are the same device, so its heart rate readings stay together.
+- Kind of a merged device: `wearable` if any point has a wrist, band, ring or `WATCH` form factor; else `phone` if any point is PHONE/TABLET or the package starts with `com.android.healthconnect.phone`; else it comes from a small known-apps map (Zepp, Fitbit, Garmin Connect, Mi Fitness, Huawei Health, Samsung Health, Pixel Watch, Oura, Withings, Google Fit); else `other`.
+- Label: "Wearable · Zepp (Amazfit)", "Phone · Xiaomi" (manufacturer or model when known, else the app name, else "This phone"). A raw package name is shown only as its last segment, capitalised, when nothing nicer is known.
 - Steps, heart rate and sleep each have their own choice: `deviceSelection = { steps, heartRate, sleep }`, where `null` is automatic. Resting heart rate follows the heart-rate choice.
-- Automatic: among the devices that have that metric, a watch first, then a phone, then others; the device with the most records wins a tie. Devices are never combined, so steps from a phone and a watch are never added together.
+- Automatic: among the devices that have that metric, a wearable first, then a phone, then others; the device with the most records wins a tie. Devices are never combined, so steps from a phone and a wearable are never added together.
 - A saved choice for a device that is gone, including an id saved with the older id format, falls back to automatic.
 - The parent settings card shows "Data from": one device gives a plain line, several give "Automatic (...)" plus one chip per device. After a sync it lists what each metric returned (for example "Heart rate: 812 readings" or "Heart rate: could not be read (Google said: ...)").
 - Changing a choice rebuilds the days from the saved raw samples. If they were not kept, the card says "Sync again to apply the new device."
 
 ## 4. Resting heart rate
 
-Our own night figure (needs at least 20 night readings) is the first choice and is recorded as `restingHrSource: "night-samples"`. When it is not available, the watch's own daily value is used and recorded as `"watch-daily"`. The doctor report says which one was used ("resting heart rate as reported by the watch").
+Our own night figure (needs at least 20 night readings) is the first choice and is recorded as `restingHrSource: "night-samples"`. When it is not available, the wearable's own daily value is used and recorded as `"wearable-daily"`. The doctor report says which one was used ("resting heart rate as reported by the wearable").
 
 ## 5. Try it locally
 
 1. Set `NEXT_PUBLIC_GOOGLE_CLIENT_ID` in `.env.local` (OAuth client of type Web, with `http://localhost:3000` as an authorised origin).
-2. `pnpm dev`, open `/parent/settings`, press "Connect watch" and tick every box.
-3. In the console: `console.table(JSON.parse(localStorage.getItem("crohncare_watch_daily")).days)`.
+2. `pnpm dev`, open `/parent/settings`, press "Connect wearable" and tick every box.
+3. In the console: `console.table(JSON.parse(localStorage.getItem("crohncare_wearable_daily")).days)`.
 4. The service worker only runs in production builds; after `pnpm build && pnpm start`, hard-reload to get the new bundle.
 
-Unit tests (fetch mocked, realistic string-number payloads): `src/lib/wearables/__tests__/`, `src/lib/storage/watchStore.test.ts`, `src/hooks/useWatchSync.test.ts`.
+Unit tests (fetch mocked, realistic string-number payloads): `src/lib/wearables/__tests__/`, `src/lib/storage/wearableStore.test.ts`, `src/hooks/useWearableSync.test.ts`.

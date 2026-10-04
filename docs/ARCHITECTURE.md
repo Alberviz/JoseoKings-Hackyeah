@@ -6,7 +6,7 @@ How the product in [`PRODUCT.md`](PRODUCT.md) is built. Rules for code style are
 
 ## 1. Shape of the app
 
-- One Next.js 16 PWA. **No backend for check-ins, the parent log or the food diary.** Route handlers exist only if task W1 (watch data, section 8c) needs them, under `src/app/api/watch/`.
+- One Next.js 16 PWA. **No backend for check-ins, the parent log or the food diary.** Route handlers exist only if task W1 (wearable data, section 8c) needs them, under `src/app/api/wearable/`.
 - One `AppState` object, stored in `localStorage` under one key, validated on every read.
 - Two modes on the same device: **child mode** (default) and **parent mode** (PIN). One shared device serves both the child and the parent; the PIN separates parent mode from child mode.
 - Pure logic lives in `src/lib/<topic>/` (no React, unit-tested). UI lives in `src/components/features/<feature>/`. Static content (questions, missions, disclaimers) lives in `src/content/`.
@@ -31,25 +31,25 @@ How the product in [`PRODUCT.md`](PRODUCT.md) is built. Rules for code style are
 
 The types are in `src/types/` and are the contract. Summary:
 
-| Type             | What it is                                                                                                                                                                                |
-| :--------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AppState`       | Everything. Has `schemaVersion`, `isDemo`, `child`, `settings`, `companion` and the lists.                                                                                                |
-| `CheckIn`        | One per day. `answers` keyed by question id, `notToday`, optional `childNote`.                                                                                                            |
-| `MissionLog`     | One per mission run. `status` (`completed` or `rest`), `company`, `confirmedBy`.                                                                                                          |
-| `ParentLog`      | One per day. Sleep, activity, school, medication taken (yes/no only), note.                                                                                                               |
-| `FoodEntry`      | Free text from a parent, optionally linked to a check-in.                                                                                                                                 |
-| `Consultation`   | A date. The report covers the time since the previous consultation.                                                                                                                       |
-| `CompanionState` | Points, team stars, badges. Only ever goes up.                                                                                                                                            |
-| `EconomyState`   | Fire (0-100), coins, inventory, equipped wearables, rewards from home (`src/types/economy.ts`).                                                                                           |
-| `WatchDay`       | One per day with watch data: steps, heart rate (min, average, max), sleep minutes by stage, `source`, `syncedAt` (task W1, `src/types/watch.ts`). Descriptive values only, never a score. |
+| Type             | What it is                                                                                                                                                                                      |
+| :--------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AppState`       | Everything. Has `schemaVersion`, `isDemo`, `child`, `settings`, `companion` and the lists.                                                                                                      |
+| `CheckIn`        | One per day. `answers` keyed by question id, `notToday`, optional `childNote`.                                                                                                                  |
+| `MissionLog`     | One per mission run. `status` (`completed` or `rest`), `company`, `confirmedBy`.                                                                                                                |
+| `ParentLog`      | One per day. Sleep, activity, school, medication taken (yes/no only), note.                                                                                                                     |
+| `FoodEntry`      | Free text from a parent, optionally linked to a check-in.                                                                                                                                       |
+| `Consultation`   | A date. The report covers the time since the previous consultation.                                                                                                                             |
+| `CompanionState` | Points, team stars, badges. Only ever goes up.                                                                                                                                                  |
+| `EconomyState`   | Fire (0-100), coins, inventory, equipped wearables, rewards from home (`src/types/economy.ts`).                                                                                                 |
+| `WearableDay`    | One per day with wearable data: steps, heart rate (min, average, max), sleep minutes by stage, `source`, `syncedAt` (task W1, `src/types/wearable.ts`). Descriptive values only, never a score. |
 
-Note on names: "wearables" in `EconomyState` are the dragon's accessories (glasses, t-shirt, hat). Data from a smartwatch is a different thing and is always called "watch data" (`WatchDay`).
+Note on names: the dragon's accessories (glasses, t-shirt, hat) are shop items of kind `"wearable"` in `EconomyState`. They are unrelated to the child's wearable device. Data from the child's wearable is always called "wearable data" and lives in `WearableState` and `WearableDay`, never in `EconomyState`.
 
 Rules for the data:
 
-- `WatchDay` data is **measured by the watch** and labelled so. Mission records (`MissionLog`) stay socially confirmed and are never presented as measured. Never merge the two into one number.
-- Watch data is never an input of `src/lib/rewards/` or `src/lib/economy/`. A test proves it.
-- A day without watch data has no `WatchDay`; it is shown as "No watch data yet". Never fill or interpolate.
+- `WearableDay` data is **measured by the wearable** and labelled so. Mission records (`MissionLog`) stay socially confirmed and are never presented as measured. Never merge the two into one number.
+- Wearable data is never an input of `src/lib/rewards/` or `src/lib/economy/`. A test proves it.
+- A day without wearable data has no `WearableDay`; it is shown as "No wearable data yet". Never fill or interpolate.
 - Dates are **local calendar days** as `"YYYY-MM-DD"` (`DateKey`). Never compare UTC timestamps for "the same day".
 - IDs are `crypto.randomUUID()` (demo data uses fixed readable ids).
 - Day arithmetic uses `src/lib/dates` (`todayKey`, `addDays`, `daysBetween`, `weekdayIndex`). Do not write your own date maths.
@@ -59,27 +59,27 @@ Rules for the data:
 
 ## 3. Folders and owners
 
-| Folder                                            | Owner                                 | Notes                                                                                                       |
-| :------------------------------------------------ | :------------------------------------ | :---------------------------------------------------------------------------------------------------------- |
-| `src/types/`, `src/config/`, `src/theme/`         | Alberto + Claude                      | Shared. Changes by request only.                                                                            |
-| `src/components/ui/`, `src/components/providers/` | Alberto + Claude                      | Shared. Ask for a new primitive instead of building one.                                                    |
-| `src/lib/storage/`, `src/hooks/useAppState.ts`    | Juan                                  | T1                                                                                                          |
-| `src/lib/demo-data/`                              | Alberto                               | T2                                                                                                          |
-| `src/lib/rewards/`, `src/lib/pin/`                | Alberto                               | T3                                                                                                          |
-| `src/lib/patterns/`                               | Juan                                  | T9                                                                                                          |
-| `src/lib/economy/`                                | Claude                                | V1. Coins, fire, shop, rewards from home                                                                    |
-| `src/lib/report/`                                 | Juan                                  | T11                                                                                                         |
-| `src/lib/wearables/`, `src/app/api/watch/`        | Álvaro                                | W1. Google Health API client, mapping to `WatchDay`, sync. Route handlers only if the design needs a server |
-| `src/components/features/parent-mode/WatchCard/`  | Álvaro                                | W1. Parent watch card (connect, consent, summary)                                                           |
-| `src/content/`                                    | Farouk (with Álvaro)                  | T4. Typed data files, with sources in comments.                                                             |
-| `src/components/features/companion/`              | Baitiare                              | T5                                                                                                          |
-| `src/components/features/child-mode/`             | Baitiare (home) and Álvaro (check-in) | T6, T7                                                                                                      |
-| `src/components/features/missions/`               | Baitiare                              | T8                                                                                                          |
-| `src/components/features/parent-mode/`            | Álvaro                                | T10, T12, T13                                                                                               |
-| `src/components/features/patterns/`               | Farouk                                | T14                                                                                                         |
-| `src/components/features/doctor-report/`          | Juan                                  | T11                                                                                                         |
-| `src/app/` (routes)                               | Whoever owns the feature screen       | `page.tsx` renders **one** screen. Routes are predefined below.                                             |
-| `docs/`, `README.md`                              | Claudia (docs), Claude (rules)        | `AGENTS.md`, `PRODUCT.md`, `ARCHITECTURE.md` need Alberto's OK.                                             |
+| Folder                                            | Owner                                 | Notes                                                                                                          |
+| :------------------------------------------------ | :------------------------------------ | :------------------------------------------------------------------------------------------------------------- |
+| `src/types/`, `src/config/`, `src/theme/`         | Alberto + Claude                      | Shared. Changes by request only.                                                                               |
+| `src/components/ui/`, `src/components/providers/` | Alberto + Claude                      | Shared. Ask for a new primitive instead of building one.                                                       |
+| `src/lib/storage/`, `src/hooks/useAppState.ts`    | Juan                                  | T1                                                                                                             |
+| `src/lib/demo-data/`                              | Alberto                               | T2                                                                                                             |
+| `src/lib/rewards/`, `src/lib/pin/`                | Alberto                               | T3                                                                                                             |
+| `src/lib/patterns/`                               | Juan                                  | T9                                                                                                             |
+| `src/lib/economy/`                                | Claude                                | V1. Coins, fire, shop, rewards from home                                                                       |
+| `src/lib/report/`                                 | Juan                                  | T11                                                                                                            |
+| `src/lib/wearables/`, `src/app/api/wearable/`     | Álvaro                                | W1. Google Health API client, mapping to `WearableDay`, sync. Route handlers only if the design needs a server |
+| `src/components/features/parent-mode/Wearable*/`  | Álvaro                                | W1. Parent wearable card (connect, consent, summary)                                                           |
+| `src/content/`                                    | Farouk (with Álvaro)                  | T4. Typed data files, with sources in comments.                                                                |
+| `src/components/features/companion/`              | Baitiare                              | T5                                                                                                             |
+| `src/components/features/child-mode/`             | Baitiare (home) and Álvaro (check-in) | T6, T7                                                                                                         |
+| `src/components/features/missions/`               | Baitiare                              | T8                                                                                                             |
+| `src/components/features/parent-mode/`            | Álvaro                                | T10, T12, T13                                                                                                  |
+| `src/components/features/patterns/`               | Farouk                                | T14                                                                                                            |
+| `src/components/features/doctor-report/`          | Juan                                  | T11                                                                                                            |
+| `src/app/` (routes)                               | Whoever owns the feature screen       | `page.tsx` renders **one** screen. Routes are predefined below.                                                |
+| `docs/`, `README.md`                              | Claudia (docs), Claude (rules)        | `AGENTS.md`, `PRODUCT.md`, `ARCHITECTURE.md` need Alberto's OK.                                                |
 
 The restroom map and the menu reader were removed from the tree on 2026-10-03 (paused product). They are in git history if the team ever returns to them.
 
@@ -153,11 +153,11 @@ Pure functions in `src/lib/economy/`, constants in `src/config/economy.ts`, type
 5. Stopping early saves a `rest` log. The completion button is not shown before the timer ends.
 6. The reward and the confidence label come from `src/lib/rewards/` and the label mapping in `PRODUCT.md` section 5.3.
 
-## 8c. Watch data (W1)
+## 8c. Wearable data (W1)
 
 Decided on 2026-10-04 (`docs/DECISIONS.md`); product rules in `PRODUCT.md` section 5.6.
 
-**Source path** (proved with an Amazfit GTS 2): watch, Zepp app, Health Connect (Android), Google Health app, Google Health API v4 (`health.googleapis.com`, read-only scopes `googlehealth.activity_and_fitness`, `googlehealth.health_metrics_and_measurements`, `googlehealth.sleep`). Google Fit is not used. Health Connect on the device and CSV import may be added later under the same rules.
+**Source path** (proved with an Amazfit GTS 2): wearable, Zepp app, Health Connect (Android), Google Health app, Google Health API v4 (`health.googleapis.com`, read-only scopes `googlehealth.activity_and_fitness`, `googlehealth.health_metrics_and_measurements`, `googlehealth.sleep`). Google Fit is not used. Health Connect on the device and CSV import may be added later under the same rules.
 
 **Data flow, by design option.** Álvaro chooses between them in W1; the rules below hold for both.
 
@@ -166,22 +166,22 @@ Option A (default)                          Option B (only if needed)
 parent phone --OAuth, read-only--> Google   Google --> server pipeline (EU) --> store
 parent phone <-- JSON ------------ Health   parent phone <-- pseudonymous data -- store
        |                                            |
- src/lib/wearables  (map to WatchDay)         src/lib/wearables (same mapping)
+ src/lib/wearables  (map to WearableDay)         src/lib/wearables (same mapping)
        |                                            |
  localStorage (on the device)                 localStorage (on the device) + server copy
 ```
 
-- **Option A:** the parent's device talks to the Google Health API and keeps `WatchDay` records on the device. No server.
-- **Option B:** a server pipeline stores the data. It must use an EU region, pseudonymous ids (no names, emails or drug names), service-role access only, no analytics or third parties, and delete on request. Only watch data goes there. Check-ins, parent log, food diary and mission records are never sent unless Alberto approves it separately.
+- **Option A:** the parent's device talks to the Google Health API and keeps `WearableDay` records on the device. No server.
+- **Option B:** a server pipeline stores the data. It must use an EU region, pseudonymous ids (no names, emails or drug names), service-role access only, no analytics or third parties, and delete on request. Only wearable data goes there. Check-ins, parent log, food diary and mission records are never sent unless Alberto approves it separately.
 - **Secrets** (client secret, refresh tokens) live only in `.env.local` or the server environment, are listed by name in `.env.example`, and never reach the repo, issues, backups or client code. Backup export (`exportBackup`) never includes tokens.
-- `src/lib/wearables/` is pure TypeScript with tests: request building, response validation with `zod`, mapping to `WatchDay`, and daily aggregation (totals, averages, ranges). Network calls are isolated behind one small function so they can be mocked.
-- Validate every API response before trusting it. A failed or empty sync shows "No watch data yet", never a guessed value.
-- The watch card (`parent-mode/WatchCard/`) and the report section render only descriptive values labelled "From the watch (Google Health)". The child interface never imports watch data.
-- Disconnecting in parent mode removes the stored tokens and, on request, the stored watch data.
+- `src/lib/wearables/` is pure TypeScript with tests: request building, response validation with `zod`, mapping to `WearableDay`, and daily aggregation (totals, averages, ranges). Network calls are isolated behind one small function so they can be mocked.
+- Validate every API response before trusting it. A failed or empty sync shows "No wearable data yet", never a guessed value.
+- The wearable card (`parent-mode/Wearable*/`) and the report section render only descriptive values labelled "From the wearable (Google Health)". The child interface never imports wearable data.
+- Disconnecting in parent mode removes the stored tokens and, on request, the stored wearable data.
 
 ## 9. Doctor report
 
-- `src/lib/report/buildReport(state, today)` returns a plain object (period, by default since the last consultation, and parents may choose From and To; day strip, counts, food entries on discomfort days, sleep and school summary, active days with confidence labels, and an optional watch section built from `WatchDay` records: totals, averages and ranges, labelled as measured by the watch, gaps shown as "No watch data yet"). It has tests.
+- `src/lib/report/buildReport(state, today)` returns a plain object (period, by default since the last consultation, and parents may choose From and To; day strip, counts, food entries on discomfort days, sleep and school summary, active days with confidence labels, and an optional wearable section built from `WearableDay` records: totals, averages and ranges, labelled as measured by the wearable, gaps shown as "No wearable data yet"). It has tests.
 - The view in `doctor-report/` renders it for A4 portrait and uses print CSS (`@media print`, `@page`) so that `window.print()` produces a clean page and "Save as PDF" works on the device. **No PDF library.**
 - Test printing in desktop Chrome and on a real phone, including the installed PWA on iPhone, because `window.print()` may behave differently there. Log findings in `ERRORS.md`.
 
@@ -198,7 +198,7 @@ parent phone <-- JSON ------------ Health   parent phone <-- pseudonymous data -
 
 ## 12. Dependencies
 
-Approved for the project: `zod` (T1). W1 (watch data) may need an OAuth or server helper; Álvaro proposes it in the W1 issue and Alberto approves it before it is added. Anything else needs approval, as in `AGENTS.md`. No charting library (charts are small SVG components), no PDF library, no animation library, no Tailwind.
+Approved for the project: `zod` (T1). W1 (wearable data) may need an OAuth or server helper; Álvaro proposes it in the W1 issue and Alberto approves it before it is added. Anything else needs approval, as in `AGENTS.md`. No charting library (charts are small SVG components), no PDF library, no animation library, no Tailwind.
 
 ## 13. Content files (`src/content/`)
 
