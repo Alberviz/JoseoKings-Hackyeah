@@ -19,7 +19,7 @@ describe("pipeline verification", () => {
     const last7 = getDayStatuses(days, { from: addDays(today, -6), to: today });
     expect(last7).toHaveLength(7);
     for (const s of last7) {
-      expect(["usual", "slightlyDifferent", "clearlyDifferent", "unknown"]).toContain(s.tone);
+      expect(["recorded", "unknown"]).toContain(s.tone);
       expect(s.label).toBeDefined();
       expect(s.sentence).toBeDefined();
     }

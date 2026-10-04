@@ -16,8 +16,6 @@ export type DayStatus = {
   longestStreak: number;
 };
 
-const SUSTAINED_STREAK_DAYS = 3;
-
 function phrase(metric: MetricEvaluation): string | null {
   if (!metric.outsideRange) return null;
   const direction =
@@ -73,9 +71,7 @@ export function getDayStatus(wearableDays: WearableDay[], date: string): DayStat
   const longestStreak = Math.max(0, ...outside.map((metric) => metric.consecutiveOutsideDays));
   const phrases = outside.map(phrase).filter((text): text is string => text !== null);
 
-  let tone: DayTone = "usual";
-  if (outside.length >= 2 || longestStreak >= SUSTAINED_STREAK_DAYS) tone = "clearlyDifferent";
-  else if (outside.length === 1) tone = "slightlyDifferent";
+  const tone: DayTone = "recorded";
 
   return {
     date,

@@ -4,16 +4,7 @@ import type { AppTheme } from "@/theme/theme";
 
 function toneColor(tone: DayTone) {
   return ({ theme }: { theme: AppTheme }) => {
-    switch (tone) {
-      case "usual":
-        return theme.colors.statusUsual;
-      case "slightlyDifferent":
-        return theme.colors.statusSlight;
-      case "clearlyDifferent":
-        return theme.colors.statusClear;
-      default:
-        return theme.colors.statusUnknown;
-    }
+    return tone === "recorded" ? theme.colors.statusUsual : theme.colors.statusUnknown;
   };
 }
 

@@ -1,11 +1,10 @@
 /** Copy for the parent view of the wearable data and for the child-versus-wearable comparison. */
 
-export type DayTone = "usual" | "slightlyDifferent" | "clearlyDifferent" | "unknown";
+/** Descriptive only: a day either has wearable data or not. No levels, colours or alerts. */
+export type DayTone = "recorded" | "unknown";
 
 export const DAY_TONE_LABELS: Record<DayTone, string> = {
-  usual: "Like usual",
-  slightlyDifferent: "A bit different from usual",
-  clearlyDifferent: "Clearly different from usual",
+  recorded: "Recorded by the wearable",
   unknown: "No wearable data yet",
 };
 

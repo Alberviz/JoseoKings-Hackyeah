@@ -48,18 +48,18 @@ describe("getDayStatus", () => {
     expect(getDayStatus(days, addDays(START, 21)).tone).toBe("unknown");
   });
 
-  it("is usual on a usual day", () => {
+  it("is recorded, with no level, on a usual day", () => {
     const status = getDayStatus(usualDays(), addDays(START, 20));
-    expect(status.tone).toBe("usual");
+    expect(status.tone).toBe("recorded");
     expect(status.outsideCount).toBe(0);
   });
 
   it("explains a different day in one plain sentence", () => {
     const status = getDayStatus(withDifferentTail(1), addDays(START, 21));
-    expect(status.tone).not.toBe("usual");
     expect(status.sentence).toMatch(/slept less than usual/i);
     expect(status.sentence).toMatch(/resting heart rate higher/i);
-    expect(status.tone).toBe("clearlyDifferent");
+    expect(status.tone).toBe("recorded");
+    expect(status.label).toBe("Recorded by the wearable");
   });
 });
 
