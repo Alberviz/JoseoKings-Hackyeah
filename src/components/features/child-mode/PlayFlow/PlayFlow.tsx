@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Companion } from "@/components/features/companion";
 import { ExerciseFigure, MissionConfirmation } from "@/components/features/missions";
@@ -9,6 +9,7 @@ import { ROUTES } from "@/config/app";
 import { PLAY_GAMES, type PlayGame, type PlayLevel, type PlayMode } from "@/content/games";
 import { useAppState } from "@/hooks/useAppState";
 import { useCountdown } from "@/hooks/useCountdown";
+
 import { todayKey } from "@/lib/dates";
 import { getDragonEvolution } from "@/lib/economy";
 import type {
@@ -62,12 +63,15 @@ import {
 export type PlayStep =
   "who" | "feeling" | "pick" | "exercise" | "confirmation" | "moodAfter" | "chest";
 
+export const AUTO_ADVANCE_DELAY_MS = 2000;
+
 export type PlayFlowProps = {
   initialStep?: PlayStep;
   initialCompany?: MissionCompany;
   initialLevel?: PlayLevel;
   initialGame?: PlayGame;
   initialChestOpened?: boolean;
+  autoAdvanceDelayMs?: number;
 };
 
 function playChestOpenSound() {
@@ -225,6 +229,7 @@ type StepCountdownProps = {
   withAdult: boolean;
   onNext: () => void;
   onRestNow: () => void;
+  autoAdvanceDelayMs?: number;
 };
 
 function StepCountdown({
@@ -234,11 +239,47 @@ function StepCountdown({
   withAdult,
   onNext,
   onRestNow,
+  autoAdvanceDelayMs = AUTO_ADVANCE_DELAY_MS,
 }: StepCountdownProps) {
   const countdown = useCountdown({
     seconds: step.durationSeconds,
     running: true,
   });
+
+  const onNextRef = useRef(onNext);
+  useEffect(() => {
+    onNextRef.current = onNext;
+  });
+
+  const onRestNowRef = useRef(onRestNow);
+  useEffect(() => {
+    onRestNowRef.current = onRestNow;
+  });
+
+  const nextCalledRef = useRef(false);
+
+  const handleNext = useCallback(() => {
+    if (nextCalledRef.current) return;
+    nextCalledRef.current = true;
+    onNextRef.current();
+  }, []);
+
+  const handleRest = useCallback(() => {
+    nextCalledRef.current = true;
+    onRestNowRef.current();
+  }, []);
+
+  useEffect(() => {
+    if (!countdown.isDone) return;
+
+    const timer = setTimeout(() => {
+      handleNext();
+    }, autoAdvanceDelayMs);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [countdown.isDone, handleNext, autoAdvanceDelayMs]);
 
   return (
     <ExerciseBox>
@@ -273,14 +314,14 @@ function StepCountdown({
         <Button
           variant="primary"
           fullWidth
-          onClick={onNext}
+          onClick={handleNext}
           disabled={!countdown.isDone}
           aria-disabled={!countdown.isDone}
           data-testid="play-step-next-button"
         >
           {stepIndex < totalSteps - 1 ? "Next step" : "Done"}
         </Button>
-        <RestNowButton type="button" onClick={onRestNow}>
+        <RestNowButton type="button" onClick={handleRest}>
           Rest now
         </RestNowButton>
       </ExerciseActionsRow>
@@ -294,6 +335,7 @@ export function PlayFlow({
   initialLevel = 1,
   initialGame,
   initialChestOpened = false,
+  autoAdvanceDelayMs = AUTO_ADVANCE_DELAY_MS,
 }: PlayFlowProps) {
   const router = useRouter();
   const { state, actions, isReady } = useAppState();
@@ -607,6 +649,7 @@ export function PlayFlow({
               withAdult={company === "family" || company === "other"}
               onNext={handleNextExerciseStep}
               onRestNow={handleRestNow}
+              autoAdvanceDelayMs={autoAdvanceDelayMs}
             />
           </PlayStage>
         ) : null}
