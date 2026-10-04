@@ -51,6 +51,9 @@ import {
   GameActionsRow,
   GameBadgeRow,
   GameCard,
+  NextButtonFill,
+  NextButtonFillTrack,
+  NextButtonWrap,
   PlayContainer,
   PlayHeadingBox,
   PlayStage,
@@ -311,16 +314,23 @@ function StepCountdown({
             Almost there!
           </Text>
         )}
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={handleNext}
-          disabled={!countdown.isDone}
-          aria-disabled={!countdown.isDone}
-          data-testid="play-step-next-button"
-        >
-          {stepIndex < totalSteps - 1 ? "Next step" : "Done"}
-        </Button>
+        <NextButtonWrap>
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={handleNext}
+            disabled={!countdown.isDone}
+            aria-disabled={!countdown.isDone}
+            data-testid="play-step-next-button"
+          >
+            {stepIndex < totalSteps - 1 ? "Next step" : "Done"}
+          </Button>
+          {countdown.isDone && (
+            <NextButtonFillTrack aria-hidden="true" data-testid="play-step-next-fill">
+              <NextButtonFill $durationMs={autoAdvanceDelayMs} />
+            </NextButtonFillTrack>
+          )}
+        </NextButtonWrap>
         <RestNowButton type="button" onClick={handleRest}>
           Rest now
         </RestNowButton>
