@@ -332,6 +332,43 @@ export const ExerciseActionsRow = styled.div`
   width: 100%;
 `;
 
+const nextButtonFill = keyframes`
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+`;
+
+export const NextButtonWrap = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+// Sits over the Next button without catching taps; clips the bar to the button shape.
+export const NextButtonFillTrack = styled.span`
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: ${({ theme }) => theme.radius.leaf};
+
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
+  }
+`;
+
+export const NextButtonFill = styled.span<{ $durationMs: number }>`
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: ${({ theme }) => theme.colors.ink};
+  opacity: 0.28;
+  transform-origin: left center;
+  animation: ${nextButtonFill} ${({ $durationMs }) => $durationMs}ms linear forwards;
+`;
+
 export const RestNowButton = styled.button`
   background: transparent;
   border: none;

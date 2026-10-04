@@ -209,4 +209,19 @@ describe("buildWearableDays", () => {
     };
     expect(buildWearableDays([a, b], { timeZone: "UTC", deviceIds: {} })[0].steps).toBe(150);
   });
+
+  it("counts the time asleep, not the whole session, as the sleep minutes", () => {
+    // 22:00 to 06:00 is 480 minutes in bed; the source says 420 were asleep.
+    const samples: WearableSample[] = [
+      sample("sleepSession", "2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", 420),
+    ];
+    for (let i = 0; i < 300; i++) {
+      const t = new Date(Date.parse("2026-09-01T22:00:00Z") + i * 60_000).toISOString();
+      samples.push(sample("heartRate", t, t, 60));
+    }
+    const found = buildWearableDays(samples, { timeZone: "UTC" }).find(
+      (d) => d.date === "2026-09-02",
+    );
+    expect(found?.sleepMinutes).toBe(420);
+  });
 });

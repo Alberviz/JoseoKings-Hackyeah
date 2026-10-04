@@ -21,6 +21,8 @@ export function computeDailyMetrics(
     end: number;
     source: string;
     isMainSleep?: boolean;
+    /** Minutes the source says the child was asleep (sample value); excludes awake time. */
+    minutesAsleep: number;
   }> = [];
   // The resting heart rate the wearable reports for a local date (startAt holds YYYY-MM-DD).
   const wearableRestingHrByDay = new Map<string, number>();
@@ -58,6 +60,7 @@ export function computeDailyMetrics(
         start: startMs,
         end: endMs,
         source: sample.source,
+        minutesAsleep: sample.value,
         ...(sample.isMainSleep !== undefined ? { isMainSleep: sample.isMainSleep } : {}),
       });
     } else {
@@ -100,7 +103,14 @@ export function computeDailyMetrics(
     let restingHrGapMin: number | null = null;
 
     if (night.mainSleep) {
-      sleepMinutes = Math.round(night.mainSleep.durationMin * 10) / 10;
+      // Time asleep when the source reports it; the length of the session (awake time included) only as a fallback.
+      const main = night.mainSleep;
+      const session = sleepSessions.find((s) => s.start === main.start && s.end === main.end);
+      const asleep =
+        session && Number.isFinite(session.minutesAsleep) && session.minutesAsleep >= 0
+          ? session.minutesAsleep
+          : main.durationMin;
+      sleepMinutes = Math.round(asleep * 10) / 10;
       sleepOnsetAt = new Date(night.mainSleep.start).toISOString();
       sleepOffsetAt = new Date(night.mainSleep.end).toISOString();
 

@@ -124,8 +124,13 @@ export function getActiveNotifications(
   return notifications;
 }
 
+/** System notifications show on the lock screen, so they never carry names, rewards or health wording. */
+export const SYSTEM_NOTIFICATION_TITLE = "MyCrohnie";
+export const SYSTEM_NOTIFICATION_BODY = "Something is waiting in the app.";
+
 /**
  * Triggers a native/browser local notification via the Notification API.
+ * The text is generic on purpose; the detailed text only appears inside the app.
  */
 export function triggerSystemNotification(notification: LocalNotification): boolean {
   if (typeof window === "undefined" || !("Notification" in window)) {
@@ -136,8 +141,8 @@ export function triggerSystemNotification(notification: LocalNotification): bool
   }
 
   try {
-    new Notification(notification.title, {
-      body: notification.body,
+    new Notification(SYSTEM_NOTIFICATION_TITLE, {
+      body: SYSTEM_NOTIFICATION_BODY,
       icon: notification.icon || "/apple-icon.png",
       tag: notification.tag,
     });

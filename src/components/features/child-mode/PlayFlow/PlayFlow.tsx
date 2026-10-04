@@ -51,6 +51,9 @@ import {
   GameActionsRow,
   GameBadgeRow,
   GameCard,
+  NextButtonFill,
+  NextButtonFillTrack,
+  NextButtonWrap,
   PlayContainer,
   PlayHeadingBox,
   PlayStage,
@@ -145,10 +148,19 @@ type TreasureChestProps = {
 
 function TreasureChest({ isOpen, onOpen }: TreasureChestProps) {
   const [isTapped, setIsTapped] = useState(false);
+  const tapTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const timeoutRef = tapTimeoutRef;
+    return () => {
+      if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const handleTap = () => {
     setIsTapped(true);
-    setTimeout(() => setIsTapped(false), 600);
+    if (tapTimeoutRef.current !== null) clearTimeout(tapTimeoutRef.current);
+    tapTimeoutRef.current = window.setTimeout(() => setIsTapped(false), 600);
 
     if (!isOpen) {
       playChestOpenSound();
@@ -311,16 +323,23 @@ function StepCountdown({
             Almost there!
           </Text>
         )}
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={handleNext}
-          disabled={!countdown.isDone}
-          aria-disabled={!countdown.isDone}
-          data-testid="play-step-next-button"
-        >
-          {stepIndex < totalSteps - 1 ? "Next step" : "Done"}
-        </Button>
+        <NextButtonWrap>
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={handleNext}
+            disabled={!countdown.isDone}
+            aria-disabled={!countdown.isDone}
+            data-testid="play-step-next-button"
+          >
+            {stepIndex < totalSteps - 1 ? "Next step" : "Done"}
+          </Button>
+          {countdown.isDone && (
+            <NextButtonFillTrack aria-hidden="true" data-testid="play-step-next-fill">
+              <NextButtonFill $durationMs={autoAdvanceDelayMs} />
+            </NextButtonFillTrack>
+          )}
+        </NextButtonWrap>
         <RestNowButton type="button" onClick={handleRest}>
           Rest now
         </RestNowButton>

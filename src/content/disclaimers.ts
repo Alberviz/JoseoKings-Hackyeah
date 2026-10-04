@@ -12,12 +12,6 @@ export const PATTERNS_DISCLAIMER =
   "Counts and colours only describe what the family entered, and they are not a medical assessment.";
 
 /**
- * Child-friendly note ensuring transparency about parent visibility.
- */
-export const CHILD_VISIBILITY_NOTE =
-  "Your parents can see what you tapped today. Sharing how you feel helps your family support you.";
-
-/**
  * Kind message displayed when a child chooses to stop a mission early.
  */
 export const MISSION_STOP_MESSAGE =
