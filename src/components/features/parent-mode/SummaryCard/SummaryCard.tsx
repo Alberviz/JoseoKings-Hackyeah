@@ -216,9 +216,11 @@ export function SummaryCard({ state, onLock }: SummaryCardProps) {
           <Button variant="secondary" onClick={onLock} fullWidth>
             Lock
           </Button>
-          <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-            Back to child mode
-          </LinkButton>
+          {state.settings?.deviceRole !== "parent" ? (
+            <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
+              Back to child mode
+            </LinkButton>
+          ) : null}
         </Stack>
       </Stack>
     </SummaryContainer>

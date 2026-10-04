@@ -445,6 +445,35 @@ describe("Parent Mode Shell (Task T10)", () => {
       fireEvent.click(screen.getByRole("button", { name: "Lock" }));
       expect(onLock).toHaveBeenCalled();
     });
+
+    it("does not render 'Back to child mode' when deviceRole is 'parent' and renders it otherwise", () => {
+      const demoState = buildDemoState();
+      const onLock = vi.fn();
+
+      const parentState: AppState = {
+        ...demoState,
+        settings: {
+          ...demoState.settings!,
+          deviceRole: "parent",
+        },
+      };
+      const { rerender } = renderWithTheme(<SummaryCard state={parentState} onLock={onLock} />);
+      expect(screen.queryByRole("link", { name: "Back to child mode" })).toBeNull();
+
+      const defaultState: AppState = {
+        ...demoState,
+        settings: {
+          ...demoState.settings!,
+          deviceRole: "both",
+        },
+      };
+      rerender(
+        <ThemeProvider theme={theme}>
+          <SummaryCard state={defaultState} onLock={onLock} />
+        </ThemeProvider>,
+      );
+      expect(screen.getByRole("link", { name: "Back to child mode" })).toBeDefined();
+    });
   });
 
   describe("SettingsScreen backup import error handling", () => {

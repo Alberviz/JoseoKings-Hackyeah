@@ -123,9 +123,11 @@ export function PinGate({
               >
                 Unlock
               </Button>
-              <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-                Back to child mode
-              </LinkButton>
+              {state.settings?.deviceRole !== "parent" ? (
+                <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
+                  Back to child mode
+                </LinkButton>
+              ) : null}
             </Stack>
           </GateForm>
         )}

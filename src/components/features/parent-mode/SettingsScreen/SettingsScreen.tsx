@@ -474,9 +474,11 @@ export function SettingsScreen() {
             <Button variant="secondary" onClick={session.lock} fullWidth>
               Lock
             </Button>
-            <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
-              Back to child mode
-            </LinkButton>
+            {state.settings?.deviceRole !== "parent" ? (
+              <LinkButton href={ROUTES.home} variant="secondary" fullWidth>
+                Back to child mode
+              </LinkButton>
+            ) : null}
           </Stack>
         </Stack>
       </SettingsContainer>
