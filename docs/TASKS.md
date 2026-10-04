@@ -275,6 +275,14 @@ Note: wearables are now bought with coins in the shop (V6 of `docs/V2-CHILD-PLAN
 
 Decided on 2026-10-03 (see `docs/DECISIONS.md`). The V-tasks (V1 to V9: economy lib, theme, timer, home, play flow, shop, parent v2, dragon art, QA) are in `docs/V2-CHILD-PLAN.md` section 5. The L-tasks, owned by Álvaro's AI, are: **L1** link lib (`src/lib/link/`, with tests), **L3** link UI (`src/components/features/link/`, routes `/share` and `/parent/link`), **L5** parent v2 (parent home sections, diet, rewards from home, resume range). The old tasks above are not rewritten.
 
+### B1 · Biometric unlock for parent mode (Alberto's stream, issue #96)
+
+- Let parents unlock with the device's fingerprint or face unlock instead of typing the PIN, using WebAuthn with a platform authenticator (`authenticatorAttachment: "platform"`, `userVerification: "required"`). Biometric data never reaches the app or any server: the device only answers "verified".
+- Logic in `src/lib/pin/` (or `src/lib/biometric/`) with tests; the opt-in switch lives in the parent settings; the unlock button goes in `PinGate`. The PIN stays as the setup step and as the fallback when biometrics are missing, refused or fail.
+- Store only the credential id on the device. No server check: it gates the local unlock, with the same trust level as the PIN in `localStorage`. Hide the option when the browser or device does not support it, and check Android and iPhone (browser and installed PWA) over HTTPS.
+
+**Done when:** a parent with a fingerprint or face unlock enabled can turn it on in settings and unlock without the PIN; with it off or unsupported, nothing changes.
+
 ---
 
 ## Out of scope (roadmap slide only)
