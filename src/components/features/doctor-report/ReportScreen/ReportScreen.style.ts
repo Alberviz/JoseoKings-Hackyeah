@@ -1,14 +1,11 @@
 import styled from "styled-components";
 
-// The report is printed: the banner keeps its text but loses the colour fill and the shadow.
+// The screen banner is not printed: the report has its own title, and the banner alone
+// on the first page looked like a broken print.
 export const BannerWrapper = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.md};
 
   @media print {
-    header {
-      background: none !important;
-      box-shadow: none !important;
-      margin-right: 0 !important;
-    }
+    display: none !important;
   }
 `;
