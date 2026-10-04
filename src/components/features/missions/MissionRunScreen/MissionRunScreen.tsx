@@ -6,6 +6,7 @@ import { Button, Card, Heading, LinkButton, Screen, Stack, Text } from "@/compon
 import { ROUTES } from "@/config/app";
 import { MISSIONS } from "@/content/missions";
 import { useAppState } from "@/hooks/useAppState";
+import { useMotionSample } from "@/hooks/useMotionSample";
 import { todayKey } from "@/lib/dates";
 import {
   chooseCompany,
@@ -17,6 +18,7 @@ import {
   toMissionLog,
   type MissionRun,
 } from "@/lib/missions";
+import { corroborateMission } from "@/lib/missions/corroboration";
 import type { MissionCompany, MissionConfirmation as ConfirmationKind } from "@/types";
 import { CompanySelector } from "../CompanySelector/CompanySelector";
 import { MissionActiveRun } from "../MissionActiveRun/MissionActiveRun";
@@ -42,6 +44,8 @@ export function MissionRunScreen({ missionId }: MissionRunScreenProps) {
   const [run, setRun] = useState<MissionRun | null>(() => (mission ? createRun(mission) : null));
   const [isReadyStep, setIsReadyStep] = useState(false);
   const hasSavedRef = useRef(false);
+  const motion = useMotionSample();
+  const motionVarianceRef = useRef<number | null>(null);
 
   const isRunning = run?.phase === "running";
 
@@ -63,11 +67,23 @@ export function MissionRunScreen({ missionId }: MissionRunScreenProps) {
 
     if (run.phase === "confirmed" || run.phase === "stopped") {
       hasSavedRef.current = true;
-      const log = toMissionLog(run, {
+      const baseLog = toMissionLog(run, {
         id: crypto.randomUUID(),
         date: todayKey(),
         createdAt: new Date().toISOString(),
       });
+      const corroboration =
+        run.phase === "confirmed"
+          ? corroborateMission({
+              startMs: run.startedAtMs ?? Date.now(),
+              endMs: Date.now(),
+              motionVariance: motionVarianceRef.current,
+            })
+          : undefined;
+      const log = {
+        ...baseLog,
+        ...(corroboration ? { corroboration } : {}),
+      };
       actions.addMissionLog(log);
     }
   }, [run, actions]);
@@ -122,6 +138,7 @@ export function MissionRunScreen({ missionId }: MissionRunScreenProps) {
 
   const handleStartMission = () => {
     if (!run) return;
+    motion.start();
     const started = start(run, Date.now());
     setRun(started);
     setIsReadyStep(false);
@@ -133,6 +150,7 @@ export function MissionRunScreen({ missionId }: MissionRunScreenProps) {
 
   const handleStop = () => {
     if (!run) return;
+    motionVarianceRef.current = motion.stop();
     const stopped = stop(run);
     setRun(stopped);
     setIsReadyStep(false);
@@ -140,6 +158,7 @@ export function MissionRunScreen({ missionId }: MissionRunScreenProps) {
 
   const handleConfirm = (how: ConfirmationKind) => {
     if (!run) return;
+    motionVarianceRef.current = motion.stop();
     const confirmed = confirm(run, how, Date.now());
     setRun(confirmed);
   };
