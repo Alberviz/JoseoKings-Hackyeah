@@ -1,7 +1,6 @@
 import { z } from "zod";
-import type { WatchState } from "@/types/watch";
-import { computeDailyMetrics, DEFAULT_TIMEZONE } from "@/lib/wearables/daily";
-import type { DailyMetric, WatchSample } from "@/lib/wearables/types";
+import type { DeviceSelection, WatchDevice, WatchState } from "@/types/watch";
+import type { WatchSample } from "@/lib/wearables/types";
 
 export const WATCH_STORAGE_KEY = "crohncare_watch_daily";
 
@@ -9,22 +8,82 @@ const watchDaySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   steps: z.number().nullable(),
   restingHr: z.number().nullable(),
+  restingHrSource: z.enum(["night-samples", "watch-daily"]).nullable().optional().catch(undefined),
   sleepMinutes: z.number().nullable(),
   nightComplete: z.boolean(),
   dayComplete: z.boolean(),
 });
 
-export const watchStateSchema = z.object({
-  days: z.array(watchDaySchema),
-  lastSyncAt: z.string().nullable(),
-  isDemo: z.boolean(),
-  devices: z.array(z.string()).optional(),
-  selectedDevice: z.string().nullable().optional(),
-  rawSamples: z.array(z.any()).optional(),
+const deviceMetricSchema = z.enum(["steps", "heartRate", "sleep"]);
+
+const watchDeviceSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["watch", "phone", "other"]),
+  label: z.string(),
+  metrics: z.array(deviceMetricSchema),
+  sampleCounts: z.partialRecord(deviceMetricSchema, z.number()).optional().catch(undefined),
 });
 
+const selectedIdSchema = z.string().nullable().catch(null);
+
+const deviceSelectionSchema = z.object({
+  steps: selectedIdSchema.default(null),
+  heartRate: selectedIdSchema.default(null),
+  sleep: selectedIdSchema.default(null),
+});
+
+const watchSampleSchema = z.object({
+  metric: z.enum([
+    "steps",
+    "heartRate",
+    "restingHrDaily",
+    "activeMinutes",
+    "calories",
+    "distance",
+    "spo2",
+    "sleepSession",
+    "sleepSegment",
+  ]),
+  startAt: z.string(),
+  endAt: z.string(),
+  value: z.number(),
+  valueMax: z.number().nullable().optional(),
+  valueMin: z.number().nullable().optional(),
+  stage: z.string().nullable().optional(),
+  source: z.string(),
+});
+
+/**
+ * Anything that does not fit the current shape is dropped instead of failing the whole state:
+ * the old `devices: string[]` and `selectedDevice` are ignored, and raw samples that cannot be
+ * matched to a device list (old format) are dropped so the parent syncs again.
+ */
+export const watchStateSchema = z
+  .object({
+    days: z.array(watchDaySchema),
+    lastSyncAt: z.string().nullable(),
+    isDemo: z.boolean(),
+    devices: z.array(watchDeviceSchema).optional().catch(undefined),
+    deviceSelection: deviceSelectionSchema.optional().catch(undefined),
+    rawSamples: z.array(watchSampleSchema).optional().catch(undefined),
+  })
+  .transform((state): WatchState => {
+    const { devices, deviceSelection, rawSamples, ...rest } = state;
+    const result: WatchState = { ...rest };
+    if (devices !== undefined) result.devices = devices;
+    if (deviceSelection !== undefined) result.deviceSelection = deviceSelection;
+    if (rawSamples !== undefined && devices !== undefined) result.rawSamples = rawSamples;
+    return result;
+  });
+
 export function createEmptyWatchState(): WatchState {
-  return { days: [], lastSyncAt: null, isDemo: false, devices: [], selectedDevice: null };
+  return {
+    days: [],
+    lastSyncAt: null,
+    isDemo: false,
+    devices: [],
+    deviceSelection: { steps: null, heartRate: null, sleep: null },
+  };
 }
 
 export function loadWatchState(): WatchState {
@@ -36,23 +95,6 @@ export function loadWatchState(): WatchState {
   } catch {
     return createEmptyWatchState();
   }
-}
-
-export function filterSamplesByDevice(
-  samples: WatchSample[],
-  selectedDevice?: string | null,
-): WatchSample[] {
-  if (!selectedDevice) return samples;
-  return samples.filter((s) => s.source === selectedDevice);
-}
-
-export function computeDailyMetricsForDevice(
-  samples: WatchSample[],
-  selectedDevice?: string | null,
-  timeZone: string = DEFAULT_TIMEZONE,
-): DailyMetric[] {
-  const filtered = filterSamplesByDevice(samples, selectedDevice);
-  return computeDailyMetrics(filtered, timeZone);
 }
 
 export function saveWatchState(state: WatchState): void {
@@ -76,8 +118,8 @@ export function mergeWatchDays(
   incoming: WatchState["days"],
   options: {
     isDemo: boolean;
-    devices?: string[];
-    selectedDevice?: string | null;
+    devices?: WatchDevice[];
+    deviceSelection?: DeviceSelection;
     rawSamples?: WatchSample[];
   },
 ): WatchState {
@@ -91,9 +133,8 @@ export function mergeWatchDays(
   };
   const devices = options.devices ?? existing.devices;
   if (devices !== undefined) result.devices = devices;
-  const selectedDevice =
-    options.selectedDevice !== undefined ? options.selectedDevice : existing.selectedDevice;
-  if (selectedDevice !== undefined) result.selectedDevice = selectedDevice;
+  const deviceSelection = options.deviceSelection ?? existing.deviceSelection;
+  if (deviceSelection !== undefined) result.deviceSelection = deviceSelection;
   const rawSamples = options.rawSamples ?? existing.rawSamples;
   if (rawSamples !== undefined) result.rawSamples = rawSamples;
   return result;

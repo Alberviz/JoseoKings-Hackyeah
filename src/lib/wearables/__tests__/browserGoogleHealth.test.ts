@@ -1,5 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
+  heartRateWatch,
+  restingDailyObject,
+  restingDailyString,
+  sleepWatch,
+  stepsPhone,
+  stepsWatch,
+} from "./fixtures";
+import {
   fetchBrowserGoogleHealth,
   getDemoWearableData,
   GoogleHealthError,
@@ -20,73 +28,144 @@ describe("browserGoogleHealth", () => {
     ).rejects.toThrow(GoogleHealthError);
   });
 
-  it("fetches steps, heart rate and sleep from the v4 endpoints and normalizes them", async () => {
-    const urls: string[] = [];
-    const mockFetch = vi.fn().mockImplementation((url: string) => {
-      urls.push(url);
-      if (url.includes("/dataTypes/steps/")) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              dataPoints: [
-                {
-                  steps: {
-                    interval: {
-                      startTime: "2023-11-14T22:13:20Z",
-                      endTime: "2023-11-14T22:14:20Z",
-                    },
-                    count: "120",
-                  },
-                },
-              ],
-            }),
-        });
-      }
-      if (url.includes("/dataTypes/heart-rate/")) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              dataPoints: [
-                {
-                  heartRate: {
-                    sampleTime: { physicalTime: "2023-11-14T22:13:25Z" },
-                    beatsPerMinute: "70",
-                  },
-                },
-                {
-                  heartRate: {
-                    sampleTime: { physicalTime: "2023-11-14T22:13:45Z" },
-                    beatsPerMinute: "72",
-                  },
-                },
-              ],
-            }),
-        });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
-    });
-    vi.stubGlobal("fetch", mockFetch);
+  it("asks each endpoint with the documented filter and never sends dataSourceFamily", async () => {
+    const calls: URL[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        calls.push(new URL(url));
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
+      }),
+    );
 
-    const result = await fetchBrowserGoogleHealth({
+    const start = Date.parse("2026-09-01T10:00:00Z");
+    const end = Date.parse("2026-09-03T10:00:00Z");
+    await fetchBrowserGoogleHealth({
       accessToken: "mock-token",
-      startTimeMillis: 1700000000000,
-      endTimeMillis: 1700000060000,
+      startTimeMillis: start,
+      endTimeMillis: end,
       timeZone: "UTC",
     });
 
-    expect(urls.every((u) => u.startsWith("https://health.googleapis.com/v4/users/me/"))).toBe(
+    const byType = Object.fromEntries(
+      calls.map((u) => [u.pathname.split("/dataTypes/")[1].split("/")[0], u]),
+    );
+    expect(Object.keys(byType).sort()).toEqual([
+      "daily-resting-heart-rate",
+      "heart-rate",
+      "sleep",
+      "steps",
+    ]);
+    for (const u of calls) {
+      expect(u.origin + u.pathname.split("/dataTypes/")[0]).toBe(
+        "https://health.googleapis.com/v4/users/me",
+      );
+      expect(u.pathname.endsWith("/dataPoints")).toBe(true);
+      expect(u.searchParams.has("dataSourceFamily")).toBe(false);
+      expect(u.search).not.toContain("dataSourceFamily");
+    }
+    const filter = (type: string) => byType[type].searchParams.get("filter");
+    expect(filter("steps")).toBe(
+      'steps.interval.start_time >= "2026-09-01T10:00:00.000Z" AND steps.interval.start_time < "2026-09-03T10:00:00.000Z"',
+    );
+    expect(filter("heart-rate")).toBe(
+      'heart_rate.sample_time.physical_time >= "2026-09-01T10:00:00.000Z" AND heart_rate.sample_time.physical_time < "2026-09-03T10:00:00.000Z"',
+    );
+    expect(filter("daily-resting-heart-rate")).toBe(
+      'daily_resting_heart_rate.date >= "2026-09-01" AND daily_resting_heart_rate.date < "2026-09-04"',
+    );
+    expect(filter("sleep")).toBe('sleep.interval.civil_end_time >= "2026-08-31"');
+    expect(byType.steps.searchParams.get("pageSize")).toBe("10000");
+    expect(byType["heart-rate"].searchParams.get("pageSize")).toBe("10000");
+    expect(byType.sleep.searchParams.get("pageSize")).toBe("25");
+    // heart rate is a sample type: it is never asked with an interval field
+    expect(calls.every((u) => !u.searchParams.get("filter")?.includes("heart_rate.interval"))).toBe(
       true,
     );
-    expect(mockFetch.mock.calls[0][1].headers.Authorization).toBe("Bearer mock-token");
-    const stepSample = result.samples.find((s) => s.metric === "steps");
-    expect(stepSample?.value).toBe(120);
-    // two heart-rate readings in the same minute are thinned to one
+  });
+
+  it("uses civil dates in the user's time zone for the daily resting heart rate", async () => {
+    const filters: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        if (url.includes("/daily-resting-heart-rate/")) {
+          filters.push(new URL(url).searchParams.get("filter") ?? "");
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
+      }),
+    );
+    await fetchBrowserGoogleHealth({
+      accessToken: "t",
+      startTimeMillis: Date.parse("2026-09-01T23:30:00Z"),
+      endTimeMillis: Date.parse("2026-09-02T23:30:00Z"),
+      timeZone: "Europe/Warsaw",
+    });
+    // 23:30 UTC is already the next local day in Warsaw (UTC+2 in September)
+    expect(filters).toEqual([
+      'daily_resting_heart_rate.date >= "2026-09-02" AND daily_resting_heart_rate.date < "2026-09-04"',
+    ]);
+  });
+
+  it("normalizes string numbers, keeps watch and phone apart and skips naps", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        let dataPoints: unknown[] = [];
+        if (url.includes("/dataTypes/steps/")) {
+          dataPoints = [
+            stepsWatch("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "120"),
+            stepsPhone("2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", "95"),
+          ];
+        } else if (url.includes("/dataTypes/heart-rate/")) {
+          dataPoints = [
+            heartRateWatch("2026-09-01T10:00:05Z", "70"),
+            heartRateWatch("2026-09-01T10:00:45Z", "72"),
+          ];
+        } else if (url.includes("/daily-resting-heart-rate/")) {
+          dataPoints = [
+            restingDailyString("2026-09-01", "61"),
+            restingDailyObject(2026, 9, 2, "62"),
+          ];
+        } else if (url.includes("/dataTypes/sleep/")) {
+          dataPoints = [
+            sleepWatch("2026-08-31T22:00:00Z", "2026-09-01T06:00:00Z", "450", false),
+            sleepWatch("2026-09-01T13:00:00Z", "2026-09-01T14:00:00Z", "50", true),
+          ];
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints }) });
+      }),
+    );
+
+    const result = await fetchBrowserGoogleHealth({
+      accessToken: "mock-token",
+      startTimeMillis: Date.parse("2026-09-01T00:00:00Z"),
+      endTimeMillis: Date.parse("2026-09-02T00:00:00Z"),
+      timeZone: "UTC",
+    });
+
+    const steps = result.samples.filter((s) => s.metric === "steps");
+    expect(steps.map((s) => [s.source, s.value])).toEqual([
+      ["watch-uid-1", 120],
+      ["Google|Pixel 8|PHONE", 95],
+    ]);
     expect(result.samples.filter((s) => s.metric === "heartRate")).toHaveLength(1);
-    expect(result.dailyMetrics.length).toBe(1);
-    expect(result.metricStatus.steps).toEqual({ status: "ok" });
-    expect(result.metricStatus.sleep).toEqual({ status: "ok" });
+    expect(
+      result.samples.filter((s) => s.metric === "restingHrDaily").map((s) => s.startAt),
+    ).toEqual(["2026-09-01", "2026-09-02"]);
+    expect(result.samples.filter((s) => s.metric === "sleepSession")).toHaveLength(1);
+    expect(result.devices.map((d) => [d.label, d.metrics])).toEqual([
+      ["Watch · Fitbit Charge 6", ["steps", "heartRate", "sleep"]],
+      ["Phone · Google Pixel 8", ["steps"]],
+    ]);
+    // the automatic daily figures use the watch only, so steps are not summed across devices
+    expect(result.dailyMetrics.find((d) => d.localDate === "2026-09-01")?.steps).toBe(120);
+    expect(result.metricStatus).toEqual({
+      steps: { status: "ok", count: 2 },
+      heartRate: { status: "ok", count: 1 },
+      restingHrDaily: { status: "ok", count: 2 },
+      sleep: { status: "ok", count: 1 },
+    });
   });
 
   it("splits heart rate into requests of at most 14 days", async () => {
@@ -149,6 +228,7 @@ describe("browserGoogleHealth", () => {
 
     expect(result.metricStatus.steps).toEqual({ status: "invalid-response" });
     expect(result.metricStatus.heartRate).toEqual({ status: "http-error", httpStatus: 500 });
+    expect(result.metricStatus.restingHrDaily).toEqual({ status: "invalid-response" });
     expect(result.metricStatus.sleep).toEqual({ status: "network-error", message: "offline" });
   });
 
@@ -198,79 +278,30 @@ describe("browserGoogleHealth", () => {
     expect(demo[0].restingHr).toBeGreaterThan(60);
   });
 
-  it("retries heart rate with sample_time.physical_time if interval.start_time returns 400", async () => {
-    const filtersUsed: string[] = [];
+  it("puts Google's error reason and message into the metric status", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockImplementation((url: string) => {
-        const u = new URL(url);
-        const filter = u.searchParams.get("filter") ?? "";
         if (url.includes("/heart-rate/")) {
-          filtersUsed.push(filter);
-          if (filter.includes("heart_rate.interval.start_time")) {
-            return Promise.resolve({ ok: false, status: 400 });
-          }
-          if (filter.includes("heart_rate.sample_time.physical_time")) {
-            return Promise.resolve({
-              ok: true,
-              json: () =>
-                Promise.resolve({
-                  dataPoints: [
-                    {
-                      heartRate: {
-                        sampleTime: { physicalTime: "2023-11-14T22:13:25Z" },
-                        beatsPerMinute: "72",
-                      },
-                    },
-                  ],
-                }),
-            });
-          }
-        }
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
-      }),
-    );
-
-    const result = await fetchBrowserGoogleHealth({
-      accessToken: "mock-token",
-      startTimeMillis: 1700000000000,
-      endTimeMillis: 1700000060000,
-    });
-
-    expect(filtersUsed.length).toBe(2);
-    expect(filtersUsed[0]).toContain("heart_rate.interval.start_time");
-    expect(filtersUsed[1]).toContain("heart_rate.sample_time.physical_time");
-    expect(result.metricStatus.heartRate).toEqual({ status: "ok" });
-    expect(result.samples.filter((s) => s.metric === "heartRate")).toHaveLength(1);
-  });
-
-  it("extracts device name into sample.source and discovers devices", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockImplementation((url: string) => {
-        if (url.includes("/dataTypes/steps/")) {
           return Promise.resolve({
-            ok: true,
+            ok: false,
+            status: 400,
             json: () =>
               Promise.resolve({
-                dataPoints: [
-                  {
-                    steps: {
-                      interval: {
-                        startTime: "2023-11-14T22:13:20Z",
-                        endTime: "2023-11-14T22:14:20Z",
-                      },
-                      count: "100",
-                    },
-                    dataSource: {
-                      device: {
-                        displayName: "Pixel Watch 2",
-                        model: "PW2",
-                      },
-                    },
-                  },
-                ],
+                error: {
+                  code: 400,
+                  message: "Invalid filter",
+                  status: "INVALID_ARGUMENT",
+                  details: [{ "@type": "x", reason: "INVALID_FILTER_FIELD" }],
+                },
               }),
+          });
+        }
+        if (url.includes("/dataTypes/sleep/")) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            json: () => Promise.reject(new Error("not json")),
           });
         }
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
@@ -283,27 +314,13 @@ describe("browserGoogleHealth", () => {
       endTimeMillis: 1700000060000,
     });
 
-    const stepSample = result.samples.find((s) => s.metric === "steps");
-    expect(stepSample?.source).toBe("Pixel Watch 2");
-    expect(result.devices).toEqual(["Pixel Watch 2"]);
-  });
-
-  it("does not include invalid dataSourceFamily by default in dataPoints query params", async () => {
-    let capturedUrl = "";
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockImplementation((url: string) => {
-        capturedUrl = url;
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ dataPoints: [] }) });
-      }),
-    );
-
-    await fetchBrowserGoogleHealth({
-      accessToken: "mock-token",
-      startTimeMillis: 1000,
-      endTimeMillis: 2000,
+    expect(result.metricStatus.heartRate).toEqual({
+      status: "http-error",
+      httpStatus: 400,
+      reason: "INVALID_FILTER_FIELD",
+      message: "Invalid filter",
     });
-
-    expect(capturedUrl).not.toContain("dataSourceFamily");
+    expect(result.metricStatus.sleep).toEqual({ status: "http-error", httpStatus: 500 });
+    expect(result.metricStatus.steps).toEqual({ status: "ok", count: 0 });
   });
 });

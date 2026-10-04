@@ -2,7 +2,21 @@
 
 import { Button, Card, Chip, Heading, Stack, Text } from "@/components/ui";
 import { useWatchSync } from "@/hooks/useWatchSync";
-import { ButtonRow, DeviceRow, StatusMessage } from "./WatchConnectCard.style";
+import {
+  DEVICE_METRICS,
+  resolveDeviceSelection,
+  sanitizeDeviceSelection,
+} from "@/lib/wearables/devices";
+import { describeSyncStatus } from "@/lib/wearables/metricStatusText";
+import type { DeviceMetric } from "@/types/watch";
+import { WatchDeviceChoice } from "../WatchDeviceChoice/WatchDeviceChoice";
+import { ButtonRow, StatusMessage } from "./WatchConnectCard.style";
+
+const METRIC_LABELS: Record<DeviceMetric, string> = {
+  steps: "Steps",
+  heartRate: "Heart rate",
+  sleep: "Sleep",
+};
 
 function formatLastSync(iso: string | null): string {
   if (!iso) return "";
@@ -11,7 +25,7 @@ function formatLastSync(iso: string | null): string {
 }
 
 export function WatchConnectCard() {
-  const { watch, status, message, isConfigured, sync, useDemo, clear, selectDevice } =
+  const { watch, status, message, metricStatus, isConfigured, sync, useDemo, clear, selectDevice } =
     useWatchSync();
   const isWorking = status === "working";
   const hasDays = watch.days.length > 0;
@@ -25,6 +39,12 @@ export function WatchConnectCard() {
     statusText = `${watch.days.length} days on this phone${when ? `, updated ${when}` : ""}.`;
   }
 
+  const devices = watch.devices ?? [];
+  const selection = sanitizeDeviceSelection(devices, watch.deviceSelection);
+  const resolved = resolveDeviceSelection(devices, selection);
+  const syncLines = metricStatus ? describeSyncStatus(metricStatus) : [];
+  const labelOf = (id: string | null) => devices.find((d) => d.id === id)?.label ?? null;
+
   return (
     <Card label="Watch">
       <Stack gap="md">
@@ -37,26 +57,41 @@ export function WatchConnectCard() {
           only on this phone.
         </Text>
         <Text size="sm">{statusText}</Text>
-        {watch.devices && watch.devices.length > 1 ? (
-          <Stack gap="xs">
+        {devices.length > 0 && !watch.isDemo ? (
+          <Stack gap="sm">
             <Text size="sm" tone="muted">
-              Device:
+              Data from
             </Text>
-            <DeviceRow>
-              <Chip
-                label="All devices"
-                selected={!watch.selectedDevice}
-                onToggle={() => selectDevice(null)}
-              />
-              {watch.devices.map((device) => (
-                <Chip
-                  key={device}
-                  label={device}
-                  selected={watch.selectedDevice === device}
-                  onToggle={() => selectDevice(device)}
+            {DEVICE_METRICS.map((metric) => {
+              const forMetric = devices.filter((d) => d.metrics.includes(metric));
+              if (forMetric.length === 0) return null;
+              if (forMetric.length === 1) {
+                return (
+                  <Text key={metric} size="sm">
+                    {`${METRIC_LABELS[metric]}: ${forMetric[0].label}`}
+                  </Text>
+                );
+              }
+              return (
+                <WatchDeviceChoice
+                  key={metric}
+                  metricLabel={METRIC_LABELS[metric]}
+                  devices={forMetric}
+                  selectedId={selection[metric]}
+                  autoLabel={labelOf(resolved[metric])}
+                  onSelect={(id) => selectDevice(metric, id)}
                 />
-              ))}
-            </DeviceRow>
+              );
+            })}
+          </Stack>
+        ) : null}
+        {syncLines.length > 0 ? (
+          <Stack gap="xs">
+            {syncLines.map((line) => (
+              <Text key={line.key} size="sm" tone="muted">
+                {line.text}
+              </Text>
+            ))}
           </Stack>
         ) : null}
         {message ? (

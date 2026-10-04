@@ -17,8 +17,18 @@ export function computeDailyMetrics(
   const stepsByDay = new Map<string, number>();
   const hrSamplesByDay = new Map<string, Array<{ bpm: number; timestamp: number }>>();
   const sleepSessions: Array<{ start: number; end: number; source: string }> = [];
+  // The resting heart rate the watch reports for a local date (startAt holds YYYY-MM-DD).
+  const watchRestingHrByDay = new Map<string, number>();
 
   for (const sample of samples) {
+    if (sample.metric === "restingHrDaily") {
+      const date = sample.startAt.slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(sample.value)) {
+        days.add(date);
+        if (!watchRestingHrByDay.has(date)) watchRestingHrByDay.set(date, sample.value);
+      }
+      continue;
+    }
     const startMs = new Date(sample.startAt).getTime();
     const endMs = new Date(sample.endAt).getTime();
     const local = localDateTime(startMs, timeZone);
@@ -79,6 +89,7 @@ export function computeDailyMetrics(
     let sleepOnsetAt: string | null = null;
     let sleepOffsetAt: string | null = null;
     let restingHr: number | null = null;
+    let restingHrSource: DailyMetric["restingHrSource"] = null;
 
     if (night.mainSleep) {
       sleepMinutes = Math.round(night.mainSleep.durationMin * 10) / 10;
@@ -88,6 +99,15 @@ export function computeDailyMetrics(
       const rhrResult = nocturnalRestingHr(nightHr, night.mainSleep);
       if (rhrResult.kind === "value" && rhrResult.nRhr !== null) {
         restingHr = Math.round(rhrResult.nRhr * 10) / 10;
+        restingHrSource = "night-samples";
+      }
+    }
+    // Our own night figure comes first; the watch's own daily figure only fills a gap.
+    if (restingHr === null) {
+      const fromWatch = watchRestingHrByDay.get(day);
+      if (fromWatch !== undefined) {
+        restingHr = fromWatch;
+        restingHrSource = "watch-daily";
       }
     }
 
@@ -96,6 +116,7 @@ export function computeDailyMetrics(
       steps: steps !== null ? Math.round(steps) : null,
       hrWakingHoursCovered: hrWakingHours > 0 ? hrWakingHours : null,
       restingHr,
+      restingHrSource,
       sleepMinutes,
       sleepOnsetAt,
       sleepOffsetAt,

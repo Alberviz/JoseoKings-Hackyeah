@@ -1,6 +1,8 @@
 export type WearableMetric =
   | "steps"
   | "heartRate"
+  /** The resting heart rate the watch itself reports for a day (startAt and endAt are the local date). */
+  | "restingHrDaily"
   | "activeMinutes"
   | "calories"
   | "distance"
@@ -28,6 +30,8 @@ export type DailyMetric = {
   steps: number | null;
   hrWakingHoursCovered: number | null;
   restingHr: number | null;
+  /** "night-samples": our night computation. "watch-daily": the value the watch reported. */
+  restingHrSource: "night-samples" | "watch-daily" | null;
   sleepMinutes: number | null;
   sleepOnsetAt: string | null;
   sleepOffsetAt: string | null;

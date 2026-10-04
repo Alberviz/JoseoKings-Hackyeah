@@ -28,3 +28,4 @@ export * from "./parentStatus";
 export * from "./googleHealthV4";
 export * from "./buildWatchDays";
 export * from "./demoWatchDays";
+export * from "./devices";

@@ -24,6 +24,7 @@ describe("buildWatchDays", () => {
         date: "2026-09-01",
         steps: 150,
         restingHr: null,
+        restingHrSource: null,
         sleepMinutes: null,
         nightComplete: false,
         dayComplete: false,
@@ -32,6 +33,7 @@ describe("buildWatchDays", () => {
         date: "2026-09-02",
         steps: 30,
         restingHr: null,
+        restingHrSource: null,
         sleepMinutes: null,
         nightComplete: false,
         dayComplete: false,
@@ -72,28 +74,103 @@ describe("buildWatchDays", () => {
     expect(day?.restingHr).not.toBeNull();
   });
 
-  it("filters samples by selectedDevice when specified", () => {
-    const s1: WatchSample = {
-      metric: "steps",
-      startAt: "2026-09-01T10:00:00Z",
-      endAt: "2026-09-01T10:01:00Z",
-      value: 100,
-      source: "Pixel Watch 2",
+  it("never sums steps across devices: each metric uses only its chosen device", () => {
+    const phone = {
+      ...sample("steps", "2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", 100),
+      source: "phone",
     };
-    const s2: WatchSample = {
-      metric: "steps",
-      startAt: "2026-09-01T11:00:00Z",
-      endAt: "2026-09-01T11:01:00Z",
-      value: 50,
-      source: "Galaxy Watch6",
+    const watch = {
+      ...sample("steps", "2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", 90),
+      source: "watch",
     };
-    const all = buildWatchDays([s1, s2], { timeZone: "UTC" });
-    expect(all[0].steps).toBe(150);
+    const watch2 = {
+      ...sample("steps", "2026-09-01T11:00:00Z", "2026-09-01T11:01:00Z", 50),
+      source: "watch",
+    };
+    const all = [phone, watch, watch2];
 
-    const filtered = buildWatchDays([s1, s2], {
-      timeZone: "UTC",
-      selectedDevice: "Pixel Watch 2",
+    expect(buildWatchDays(all, { timeZone: "UTC", deviceIds: { steps: "watch" } })[0].steps).toBe(
+      140,
+    );
+    expect(buildWatchDays(all, { timeZone: "UTC", deviceIds: { steps: "phone" } })[0].steps).toBe(
+      100,
+    );
+  });
+
+  it("filters heart rate, daily resting heart rate and sleep by their own device", () => {
+    const samples: WatchSample[] = [
+      {
+        ...sample("sleepSession", "2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", 480),
+        source: "ring",
+      },
+      {
+        ...sample("sleepSession", "2026-09-01T23:00:00Z", "2026-09-02T05:00:00Z", 360),
+        source: "watch",
+      },
+    ];
+    for (let i = 0; i < 300; i++) {
+      const t = new Date(Date.parse("2026-09-01T22:00:00Z") + i * 60_000).toISOString();
+      samples.push({ ...sample("heartRate", t, t, 60), source: "watch" });
+    }
+    const pick = (sleep: string) =>
+      buildWatchDays(samples, {
+        timeZone: "UTC",
+        deviceIds: { heartRate: "watch", sleep },
+      }).find((d) => d.date === "2026-09-02");
+    expect(pick("ring")?.sleepMinutes).toBe(480);
+    expect(pick("watch")?.sleepMinutes).toBe(360);
+  });
+
+  it("uses the watch's own daily resting heart rate when night samples are not enough", () => {
+    const daily = (date: string, value: number, source: string): WatchSample => ({
+      metric: "restingHrDaily",
+      startAt: date,
+      endAt: date,
+      value,
+      source,
     });
-    expect(filtered[0].steps).toBe(100);
+    const days = buildWatchDays([daily("2026-09-02", 64, "watch")], {
+      timeZone: "America/Los_Angeles",
+    });
+    expect(days).toHaveLength(1);
+    expect(days[0]).toMatchObject({
+      date: "2026-09-02",
+      restingHr: 64,
+      restingHrSource: "watch-daily",
+      steps: null,
+      nightComplete: false,
+    });
+  });
+
+  it("keeps our own night resting heart rate when both exist", () => {
+    const samples: WatchSample[] = [
+      sample("sleepSession", "2026-09-01T22:00:00Z", "2026-09-02T06:00:00Z", 480),
+      {
+        metric: "restingHrDaily",
+        startAt: "2026-09-02",
+        endAt: "2026-09-02",
+        value: 99,
+        source: "test",
+      },
+    ];
+    for (let i = 0; i < 300; i++) {
+      const t = new Date(Date.parse("2026-09-01T22:00:00Z") + i * 60_000).toISOString();
+      samples.push(sample("heartRate", t, t, 60));
+    }
+    const day = buildWatchDays(samples, { timeZone: "UTC" }).find((d) => d.date === "2026-09-02");
+    expect(day?.restingHr).toBeLessThan(70);
+    expect(day?.restingHrSource).toBe("night-samples");
+  });
+
+  it("leaves a metric unfiltered when no device id is given", () => {
+    const a = {
+      ...sample("steps", "2026-09-01T10:00:00Z", "2026-09-01T10:01:00Z", 100),
+      source: "a",
+    };
+    const b = {
+      ...sample("steps", "2026-09-01T11:00:00Z", "2026-09-01T11:01:00Z", 50),
+      source: "b",
+    };
+    expect(buildWatchDays([a, b], { timeZone: "UTC", deviceIds: {} })[0].steps).toBe(150);
   });
 });
