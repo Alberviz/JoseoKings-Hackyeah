@@ -55,7 +55,6 @@ import {
   StageBadge,
   StageBadgeIcon,
   StageBadgeText,
-  StageEnvironmentCard,
   StageNextText,
   StageTitleText,
   SvgCircle,
@@ -160,43 +159,38 @@ export function HomeScreen() {
         </TopRightCluster>
       </TopBar>
 
-      {/* 2. Middle: Large Centered Companion Mascot with Evolution Stage Environment */}
+      {/* 2. Middle: Large Centered Companion Mascot with Evolution Stage Badge */}
       <DragonStage aria-label="Mascot Stage">
-        <StageEnvironmentCard
-          $bgImage={evolution.background}
-          aria-label={`Habitat: ${evolution.title}`}
+        <StageBadge
+          aria-label={`Evolution: ${evolution.title}`}
+          data-testid="evolution-stage-badge"
         >
-          <StageBadge
-            aria-label={`Evolution: ${evolution.title}`}
-            data-testid="evolution-stage-badge"
-          >
-            <StageBadgeIcon aria-hidden="true">
-              {evolution.stage === 1 ? "🌱" : evolution.stage === 2 ? "⚡" : "👑"}
-            </StageBadgeIcon>
-            <StageBadgeText>
-              <StageTitleText>{evolution.title}</StageTitleText>
-              {evolution.nextThreshold ? (
-                <StageNextText>{evolution.fireNeededForNext} 🔥 to evolve</StageNextText>
-              ) : (
-                <StageNextText>Max level!</StageNextText>
-              )}
-            </StageBadgeText>
-          </StageBadge>
+          <StageBadgeIcon aria-hidden="true">
+            {evolution.stage === 1 ? "🌱" : evolution.stage === 2 ? "⚡" : "👑"}
+          </StageBadgeIcon>
+          <StageBadgeText>
+            <StageTitleText>{evolution.title}</StageTitleText>
+            {evolution.nextThreshold ? (
+              <StageNextText>{evolution.fireNeededForNext} 🔥 to evolve</StageNextText>
+            ) : (
+              <StageNextText>Max level!</StageNextText>
+            )}
+          </StageBadgeText>
+        </StageBadge>
 
-          <DragonWrapper>
-            <Companion
-              pose={companionPose}
-              equippedItemIds={equippedItemIds}
-              name={companionName}
-              size="lg"
-              stage={evolution.stage}
-              onTap={() => {
-                setCompanionPose("cheer");
-                setTimeout(() => setCompanionPose("idle"), 1200);
-              }}
-            />
-          </DragonWrapper>
-        </StageEnvironmentCard>
+        <DragonWrapper>
+          <Companion
+            pose={companionPose}
+            equippedItemIds={equippedItemIds}
+            name={companionName}
+            size="lg"
+            stage={evolution.stage}
+            onTap={() => {
+              setCompanionPose("cheer");
+              setTimeout(() => setCompanionPose("idle"), 1200);
+            }}
+          />
+        </DragonWrapper>
       </DragonStage>
 
       {/* 3. Bottom: Check-in (if not done), Play button, and Game Navigation Row */}

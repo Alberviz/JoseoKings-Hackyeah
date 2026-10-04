@@ -312,11 +312,11 @@ describe("Companion component", () => {
 
     expect(getDragonArtwork(2, ["glasses"])).toBe("/dragon_stage2_glasses.png");
     expect(getDragonArtwork(2, ["t-shirt"])).toBe("/dragon_stage2_shirt.png");
-    expect(getDragonArtwork(2, ["hat"])).toBe("/dragon_stage2_all.png");
+    expect(getDragonArtwork(2, ["hat"])).toBe("/dragon_v2_stage2_hat.png");
 
     expect(getDragonArtwork(3, ["sunglasses"])).toBe("/dragon_stage3_glasses.png");
     expect(getDragonArtwork(3, ["sport-shirt"])).toBe("/dragon_stage3_shirt.png");
-    expect(getDragonArtwork(3, ["cap"])).toBe("/dragon_stage3_all.png");
+    expect(getDragonArtwork(3, ["cap"])).toBe("/dragon_v2_stage3_hat.png");
 
     const { rerender } = renderWithTheme(
       <Companion pose="idle" stage={2} equippedItemIds={["glasses", "t-shirt"]} />,
@@ -326,7 +326,7 @@ describe("Companion component", () => {
 
     rerender(<Companion pose="idle" stage={3} equippedItemIds={["hat"]} />);
     expect(screen.getByTestId("companion-artwork").getAttribute("href")).toBe(
-      "/dragon_stage3_all.png",
+      "/dragon_v2_stage3_hat.png",
     );
   });
 });

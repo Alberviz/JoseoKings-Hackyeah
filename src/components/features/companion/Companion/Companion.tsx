@@ -66,7 +66,7 @@ export function getDragonArtwork(
   } else if (hasFace && hasBody) {
     combo = "glasses_shirt";
   } else if (hasHead) {
-    combo = "all";
+    combo = "hat";
   } else if (hasBody) {
     combo = "shirt";
   } else if (hasFace) {
@@ -86,6 +86,9 @@ export function getDragonArtwork(
   }
   if (combo === "glasses") {
     return `/dragon_stage${safeStage}_glasses.png`;
+  }
+  if (combo === "hat") {
+    return `/dragon_v2_stage${safeStage}_hat.png`;
   }
 
   return `/dragon_v2_stage${safeStage}_${combo}.png`;
