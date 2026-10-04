@@ -3,12 +3,14 @@ import type { DragonStageId } from "@/types";
 
 /* --- Keyframe Animations --- */
 
+// Percentages in translate refer to the cloud's own width, so a cloud always starts fully
+// off the left edge and ends fully off the right edge, whatever the viewport size.
 const floatCloud = keyframes`
   0% {
-    transform: translate3d(-140%, 0, 0);
+    transform: translate3d(-130%, 0, 0);
   }
   100% {
-    transform: translate3d(240%, 0, 0);
+    transform: translate3d(calc(100vw + 30%), 0, 0);
   }
 `;
 
@@ -25,7 +27,7 @@ const pulseSparkle = keyframes`
 
 const riseEmber = keyframes`
   0% {
-    transform: translate3d(0, 40px, 0) scale(0.6);
+    transform: translate3d(0, 4dvh, 0) scale(0.6);
     opacity: 0;
   }
   30% {
@@ -35,7 +37,7 @@ const riseEmber = keyframes`
     opacity: 0.6;
   }
   100% {
-    transform: translate3d(20px, -260px, 0) scale(1.1);
+    transform: translate3d(3vw, -32dvh, 0) scale(1.1);
     opacity: 0;
   }
 `;
@@ -46,7 +48,7 @@ const auroraWave = keyframes`
     opacity: 0.35;
   }
   50% {
-    transform: translate3d(4%, -10px, 0) scaleY(1.15);
+    transform: translate3d(4%, -2dvh, 0) scaleY(1.15);
     opacity: 0.6;
   }
 `;
@@ -56,8 +58,9 @@ const auroraWave = keyframes`
 export const BackgroundContainer = styled.div<{ $stage: DragonStageId }>`
   position: fixed;
   inset: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
@@ -99,6 +102,8 @@ export const BackgroundContainer = styled.div<{ $stage: DragonStageId }>`
 
 /* --- Stage 3: Ethereal Aurora Borealis Layer --- */
 
+// The gradient reaches full transparency before the edges of the box (closest-side), so the
+// blur never reveals a hard edge.
 export const AuroraLayer = styled.div`
   position: absolute;
   top: 0;
@@ -106,10 +111,10 @@ export const AuroraLayer = styled.div`
   width: 140%;
   height: 48%;
   background: radial-gradient(
-    ellipse at 50% 30%,
-    rgba(198, 181, 232, 0.45) 0%,
-    rgba(54, 197, 212, 0.25) 45%,
-    transparent 80%
+    ellipse closest-side at 50% 42%,
+    ${({ theme }) => `color-mix(in srgb, ${theme.colors.lavender} 45%, transparent)`} 0%,
+    ${({ theme }) => `color-mix(in srgb, ${theme.colors.dragonBody} 25%, transparent)`} 55%,
+    transparent 100%
   );
   filter: blur(28px);
   animation: ${auroraWave} 14s ease-in-out infinite;
@@ -128,21 +133,23 @@ export const CloudGroup = styled.div<{
   $durationSec: number;
   $delaySec: number;
   $opacity: number;
+  $restLeft: number;
 }>`
   position: absolute;
   top: ${({ $top }) => `${$top}%`};
   left: 0;
-  width: 180px;
-  height: 90px;
+  width: ${({ $scale }) => `calc(clamp(120px, 42vw, 300px) * ${$scale})`};
+  aspect-ratio: 188 / 108;
   opacity: ${({ $opacity }) => $opacity};
-  transform-origin: center center;
   animation: ${floatCloud} ${({ $durationSec }) => `${$durationSec}s`} linear infinite;
   animation-delay: ${({ $delaySec }) => `${$delaySec}s`};
   will-change: transform;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    transform: translate3d(0, 0, 0);
+    left: ${({ $restLeft }) => `${$restLeft}%`};
+    transform: none;
+    will-change: auto;
   }
 `;
 
@@ -155,19 +162,36 @@ export const CloudSvg = styled.svg`
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;
+`;
+
+const cloudFill = (
+  stage: DragonStageId,
+  colors: { surface: string; paper: string; lavender: string },
+) => {
+  switch (stage) {
+    case 3:
+      return `color-mix(in srgb, ${colors.lavender} 38%, transparent)`;
+    case 2:
+      return `color-mix(in srgb, ${colors.paper} 85%, transparent)`;
+    case 1:
+    default:
+      return `color-mix(in srgb, ${colors.surface} 80%, transparent)`;
+  }
+};
+
+// The soft rim: the same outline drawn a bit wider and fainter under the cloud body. It gives
+// the silhouette a feathered edge without any filter, so nothing is clipped by a box.
+export const CloudHalo = styled.path<{ $stage: DragonStageId }>`
+  fill: ${({ $stage, theme }) => cloudFill($stage, theme.colors)};
+  stroke: ${({ $stage, theme }) => cloudFill($stage, theme.colors)};
+  stroke-width: 10;
+  stroke-linejoin: round;
+  opacity: 0.3;
 `;
 
 export const SvgCloudPath = styled.path<{ $stage: DragonStageId }>`
-  fill: ${({ $stage }) =>
-    $stage === 3
-      ? "rgba(198, 181, 232, 0.35)"
-      : $stage === 2
-        ? "rgba(255, 245, 230, 0.82)"
-        : "rgba(255, 255, 255, 0.78)"};
-  filter: ${({ $stage, theme }) =>
-    $stage === 3
-      ? `drop-shadow(0 4px 12px ${theme.colors.ink})`
-      : "drop-shadow(0 2px 8px rgba(18, 119, 130, 0.08))"};
+  fill: ${({ $stage, theme }) => cloudFill($stage, theme.colors)};
 `;
 
 /* --- Ambient Particles: Sparkles for Stage 1 & 2 --- */
@@ -175,14 +199,14 @@ export const SvgCloudPath = styled.path<{ $stage: DragonStageId }>`
 export const SparkleGroup = styled.div<{
   $top: number;
   $left: number;
-  $size: number;
+  $scale: number;
   $delaySec: number;
 }>`
   position: absolute;
   top: ${({ $top }) => `${$top}%`};
   left: ${({ $left }) => `${$left}%`};
-  width: ${({ $size }) => `${$size}px`};
-  height: ${({ $size }) => `${$size}px`};
+  width: ${({ $scale }) => `calc(clamp(10px, 3.6vw, 24px) * ${$scale})`};
+  aspect-ratio: 1;
   animation: ${pulseSparkle} 4s ease-in-out infinite;
   animation-delay: ${({ $delaySec }) => `${$delaySec}s`};
 
@@ -201,6 +225,7 @@ export const SparkleSvg = styled.svg`
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;
 `;
 
 export const SvgSparklePath = styled.path<{ $stage: DragonStageId }>`
@@ -212,15 +237,15 @@ export const SvgSparklePath = styled.path<{ $stage: DragonStageId }>`
 export const EmberGroup = styled.div<{
   $bottom: number;
   $left: number;
-  $size: number;
+  $scale: number;
   $durationSec: number;
   $delaySec: number;
 }>`
   position: absolute;
   bottom: ${({ $bottom }) => `${$bottom}%`};
   left: ${({ $left }) => `${$left}%`};
-  width: ${({ $size }) => `${$size}px`};
-  height: ${({ $size }) => `${$size}px`};
+  width: ${({ $scale }) => `calc(clamp(5px, 1.8vw, 12px) * ${$scale})`};
+  aspect-ratio: 1;
   animation: ${riseEmber} ${({ $durationSec }) => `${$durationSec}s`} ease-out infinite;
   animation-delay: ${({ $delaySec }) => `${$delaySec}s`};
 
@@ -230,18 +255,11 @@ export const EmberGroup = styled.div<{
   }
 `;
 
+// A round dot with a glow made with box-shadow: it is not clipped by an SVG box.
 export const EmberItem = styled.div`
   width: 100%;
   height: 100%;
-`;
-
-export const EmberSvg = styled.svg`
-  width: 100%;
-  height: 100%;
-  display: block;
-`;
-
-export const SvgEmberCircle = styled.circle`
-  fill: ${({ theme }) => theme.colors.accent};
-  filter: drop-shadow(0 0 6px ${({ theme }) => theme.colors.highlight});
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.accent};
+  box-shadow: 0 0 8px ${({ theme }) => theme.colors.highlight};
 `;
