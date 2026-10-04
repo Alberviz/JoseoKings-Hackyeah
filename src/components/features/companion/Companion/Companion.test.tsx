@@ -251,6 +251,20 @@ describe("Companion component", () => {
     const hornPath = container.querySelector("[data-testid='dragon-horn-stage-2'] path");
     expect(hornPath?.getAttribute("fill")).toBe("rgb(250, 200, 50)");
   });
+
+  it("renders official Kraków dragon artwork image according to evolution stage", () => {
+    const { rerender } = renderWithTheme(<Companion pose="idle" stage={1} />);
+    let artwork = screen.getByTestId("companion-artwork");
+    expect(artwork.getAttribute("href")).toBe("/dragon.png");
+
+    rerender(<Companion pose="idle" stage={2} />);
+    artwork = screen.getByTestId("companion-artwork");
+    expect(artwork.getAttribute("href")).toBe("/dragon_stage2_teen.png");
+
+    rerender(<Companion pose="idle" stage={3} />);
+    artwork = screen.getByTestId("companion-artwork");
+    expect(artwork.getAttribute("href")).toBe("/dragon_stage3_heroic.png");
+  });
 });
 
 describe("CompanionGallery component", () => {

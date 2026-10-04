@@ -184,6 +184,7 @@ export function HomeScreen() {
             equippedItemIds={equippedItemIds}
             name={companionName}
             size="lg"
+            stage={evolution.stage}
             onTap={() => {
               setCompanionPose("cheer");
               setTimeout(() => setCompanionPose("idle"), 1200);

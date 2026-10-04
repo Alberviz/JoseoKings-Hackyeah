@@ -427,6 +427,18 @@ export const SvgCircle = styled.circle``;
 export const SvgEllipse = styled.ellipse``;
 export const SvgRect = styled.rect``;
 export const SvgPolygon = styled.polygon``;
+export const SvgImage = styled.image<{ $isTeal?: boolean }>`
+  ${({ $isTeal }) =>
+    $isTeal &&
+    css`
+      filter: hue-rotate(40deg) saturate(1.1);
+    `}
+`;
+
+export const HiddenSemanticG = styled.g`
+  opacity: 0.001;
+  pointer-events: none;
+`;
 
 // --- 9. Flame Breath Puff (When feeding in /food) ---
 const flameBreathPuff = keyframes`
