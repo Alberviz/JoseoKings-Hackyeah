@@ -3,6 +3,8 @@ import {
   CHECKIN_SKIP_COINS,
   CHEST_COINS,
   DEFAULT_SPECIAL_REWARDS,
+  DRAGON_EVOLUTION_STAGES,
+  DRAGON_EVOLUTION_THRESHOLDS,
   FIRE_MAX,
   FOOD_FIRE,
   INITIAL_COINS,
@@ -16,6 +18,8 @@ import type {
   AppState,
   CheckIn,
   DateKey,
+  DragonEvolutionInfo,
+  DragonStageId,
   EconomyState,
   MissionLog,
   ShopItem,
@@ -55,6 +59,7 @@ export function generateClaimId(): string {
 export function createDefaultEconomy(): EconomyState {
   return {
     fire: 0,
+    highestFire: 0,
     coinsSpent: 0,
     inventory: { food: 0 },
     ownedItemIds: [],
@@ -126,11 +131,14 @@ export function giveFood(economy: EconomyState): GiveFoodResult {
   if (economy.inventory.food <= 0) {
     return { ok: false, reason: "no-food" };
   }
+  const nextFire = Math.min(FIRE_MAX, economy.fire + FOOD_FIRE);
+  const highestFire = Math.max(economy.highestFire ?? economy.fire, nextFire);
   return {
     ok: true,
     economy: {
       ...economy,
-      fire: Math.min(FIRE_MAX, economy.fire + FOOD_FIRE),
+      fire: nextFire,
+      highestFire,
       inventory: { ...economy.inventory, food: economy.inventory.food - 1 },
     },
   };
@@ -173,11 +181,13 @@ export function claimReward(
   if (economy.fire < reward.fireCost) {
     return { ok: false, reason: "not-enough-fire" };
   }
+  const highestFire = Math.max(economy.highestFire ?? economy.fire, economy.fire);
   return {
     ok: true,
     economy: {
       ...economy,
       fire: economy.fire - reward.fireCost,
+      highestFire,
       rewardClaims: [
         ...economy.rewardClaims,
         {
@@ -233,4 +243,32 @@ export function setSpecialRewards(
     cleaned.push({ id: reward.id, name, fireCost: reward.fireCost });
   }
   return { ok: true, economy: { ...economy, specialRewards: cleaned } };
+}
+
+/**
+ * Calculates current dragon evolution details based on the child's highest fire reached.
+ * Even if the child claims a special reward and spends fire, the dragon NEVER de-evolves.
+ */
+export function getDragonEvolution(
+  economy: Pick<EconomyState, "fire"> & { highestFire?: number },
+): DragonEvolutionInfo {
+  const currentFire = Math.max(0, economy.fire ?? 0);
+  const highestFire = Math.max(currentFire, economy.highestFire ?? 0);
+
+  let stage: DragonStageId = 1;
+  if (highestFire >= DRAGON_EVOLUTION_THRESHOLDS.stage3) {
+    stage = 3;
+  } else if (highestFire >= DRAGON_EVOLUTION_THRESHOLDS.stage2) {
+    stage = 2;
+  }
+
+  const stageConfig = DRAGON_EVOLUTION_STAGES[stage];
+  const fireNeededForNext =
+    stageConfig.nextThreshold !== null ? Math.max(0, stageConfig.nextThreshold - highestFire) : 0;
+
+  return {
+    ...stageConfig,
+    fireNeededForNext,
+    highestFire,
+  };
 }

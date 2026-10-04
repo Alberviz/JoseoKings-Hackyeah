@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, ROUTES } from "@/config/app";
 import { FIRE_MAX } from "@/config/economy";
-import { coinBalance } from "@/lib/economy";
+import { coinBalance, getDragonEvolution } from "@/lib/economy";
 import { todayKey } from "@/lib/dates";
 import { useAppState } from "@/hooks/useAppState";
 import { Button, Text } from "@/components/ui";
 import { Companion } from "@/components/features/companion";
+import { DynamicBackground } from "./DynamicBackground";
 import {
   ActionButtonWrapper,
   ActionBtnContent,
@@ -51,6 +52,11 @@ import {
   PlayTriangleSvg,
   ShopSvg,
   SmallParentLink,
+  StageBadge,
+  StageBadgeIcon,
+  StageBadgeText,
+  StageNextText,
+  StageTitleText,
   SvgCircle,
   SvgPath,
   SvgPolygon,
@@ -98,12 +104,17 @@ export function HomeScreen() {
   const coins = coinBalance(state);
   const firePercent = Math.min(100, Math.max(0, Math.round((fire / FIRE_MAX) * 100)));
 
+  const evolution = getDragonEvolution(state.economy ?? { fire: 0 });
+
   const today = todayKey();
   const todayCheckIn = state.checkIns.find((item) => item.date === today);
   const isCheckInDone = Boolean(todayCheckIn);
 
   return (
     <HomeScreenRoot aria-label="Child Home Screen">
+      {/* Full Screen Dynamic Sky Background with Drifting Clouds */}
+      <DynamicBackground stage={evolution.stage} />
+
       {/* 1. Top bar: Fire bar, Coins pill, and discreet Parent mode link */}
       <TopBar>
         <FireBar aria-label={`Fire ${fire} of ${FIRE_MAX}`}>
@@ -148,14 +159,32 @@ export function HomeScreen() {
         </TopRightCluster>
       </TopBar>
 
-      {/* 2. Middle: Large Centered Companion Mascot */}
+      {/* 2. Middle: Large Centered Companion Mascot with Evolution Stage Badge */}
       <DragonStage aria-label="Mascot Stage">
+        <StageBadge
+          aria-label={`Evolution: ${evolution.title}`}
+          data-testid="evolution-stage-badge"
+        >
+          <StageBadgeIcon aria-hidden="true">
+            {evolution.stage === 1 ? "🌱" : evolution.stage === 2 ? "⚡" : "👑"}
+          </StageBadgeIcon>
+          <StageBadgeText>
+            <StageTitleText>{evolution.title}</StageTitleText>
+            {evolution.nextThreshold ? (
+              <StageNextText>{evolution.fireNeededForNext} 🔥 to evolve</StageNextText>
+            ) : (
+              <StageNextText>Max level!</StageNextText>
+            )}
+          </StageBadgeText>
+        </StageBadge>
+
         <DragonWrapper>
           <Companion
             pose={companionPose}
             equippedItemIds={equippedItemIds}
             name={companionName}
             size="lg"
+            stage={evolution.stage}
             onTap={() => {
               setCompanionPose("cheer");
               setTimeout(() => setCompanionPose("idle"), 1200);
@@ -277,11 +306,16 @@ export function HomeScreen() {
         </ActionsNav>
       </BottomArea>
 
-      {isChildOnly && (
+      {deviceRole === "child" || deviceRole === "both" ? (
+        <SmallParentLink href={ROUTES.share} aria-label="Show parents">
+          Show parents
+        </SmallParentLink>
+      ) : null}
+      {isChildOnly ? (
         <SmallParentLink href={ROUTES.parent} aria-label="Parent mode">
           Parent mode
         </SmallParentLink>
-      )}
+      ) : null}
     </HomeScreenRoot>
   );
 }

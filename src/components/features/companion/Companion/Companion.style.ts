@@ -371,7 +371,8 @@ export const StyledCompanionSvg = styled.svg<{
   display: block;
   flex-shrink: 0;
   width: ${({ $size }) => sizeMap[$size]};
-  height: ${({ $size }) => sizeMap[$size]};
+  height: auto;
+  aspect-ratio: 1 / 1;
   max-width: 100%;
   overflow: visible;
   user-select: none;
@@ -426,10 +427,17 @@ export const SvgCircle = styled.circle``;
 export const SvgEllipse = styled.ellipse``;
 export const SvgRect = styled.rect``;
 export const SvgPolygon = styled.polygon``;
-export const SvgImage = styled.image``;
+export const SvgImage = styled.image<{ $isTeal?: boolean }>`
+  ${({ $isTeal }) =>
+    $isTeal &&
+    css`
+      filter: hue-rotate(40deg) saturate(1.1);
+    `}
+`;
 
 export const HiddenSemanticG = styled.g`
-  display: none;
+  opacity: 0.001;
+  pointer-events: none;
 `;
 
 // --- 9. Flame Breath Puff (When feeding in /food) ---

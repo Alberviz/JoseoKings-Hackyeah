@@ -27,6 +27,8 @@ export const TopBar = styled.header`
   min-height: 48px;
   gap: ${({ theme }) => theme.spacing.xs};
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 `;
 
 export const FireBar = styled.div`
@@ -216,6 +218,48 @@ export const DragonStage = styled.section`
   max-width: 440px;
   flex: 1;
   margin: ${({ theme }) => theme.spacing.xs} 0;
+  z-index: 1;
+`;
+
+export const StageBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid ${({ theme }) => theme.colors.ink};
+  border-radius: ${({ theme }) => theme.radius.pill};
+  box-shadow: 0 4px 12px rgba(18, 119, 130, 0.12);
+  user-select: none;
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+  z-index: 2;
+`;
+
+export const StageBadgeIcon = styled.span`
+  font-size: 1.15rem;
+  line-height: 1;
+`;
+
+export const StageBadgeText = styled.div`
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+`;
+
+export const StageTitleText = styled.span`
+  font-family: ${({ theme }) => theme.fontFamily.heading};
+  font-size: ${({ theme }) => theme.fontSize.sm};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
+  color: ${({ theme }) => theme.colors.ink};
+  letter-spacing: -0.01em;
+`;
+
+export const StageNextText = styled.span`
+  font-family: ${({ theme }) => theme.fontFamily.body};
+  font-size: 0.72rem;
+  font-weight: ${({ theme }) => theme.fontWeight.medium};
+  color: ${({ theme }) => theme.colors.textMuted};
 `;
 
 export const DragonWrapper = styled.div`
@@ -223,6 +267,9 @@ export const DragonWrapper = styled.div`
   align-items: center;
   justify-content: center;
   width: 100%;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 14px 28px rgba(18, 119, 130, 0.22));
 `;
 
 export const BottomArea = styled.section`
@@ -235,6 +282,8 @@ export const BottomArea = styled.section`
   margin-top: auto;
   margin-bottom: 4px;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 `;
 
 export const CheckInBanner = styled(Link)`

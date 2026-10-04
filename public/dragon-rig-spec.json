@@ -1,5 +1,5 @@
 {
-  "characterName": "Krakow Dragon (CrohnCare Mascot)",
+  "characterName": "Krakow Dragon (MyCrohnie Mascot)",
   "version": "2.0-vector-rig",
   "coordinateSystem": {
     "viewBox": "0 0 1024 1024",
@@ -440,8 +440,7 @@
         "mouth-state-open-smile",
         "mouth-state-talking",
         "mouth-state-surprised",
-        "mouth-state-cheer",
-        "mouth-state-sad"
+        "mouth-state-cheer"
       ]
     }
   ]

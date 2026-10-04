@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import { ThemeProvider } from "styled-components";
 import { renderWithTheme } from "@/test/renderWithTheme";
+import { theme as defaultTheme } from "@/theme/theme";
 import { ITEM_IDS } from "@/config/content-ids";
 import { Companion } from "./Companion";
 import { COMPANION_POSES, type CompanionPose } from "./poses";
@@ -193,6 +195,75 @@ describe("Companion component", () => {
     const { container } = renderWithTheme(<Companion pose="eat" animated={true} />);
     expect(screen.getByTestId("companion-flame-puff")).toBeDefined();
     expect(container.querySelector("#dragon-smile-eat")).not.toBeNull();
+  });
+
+  it("defaults stage prop to 1 and renders Stage 1 baby dragon horn", () => {
+    const { container } = renderWithTheme(<Companion pose="idle" />);
+    const svg = screen.getByRole("img");
+    expect(svg.getAttribute("data-stage")).toBe("1");
+    expect(container.querySelector("[data-testid='dragon-horn-stage-1']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='dragon-horn-stage-2']")).toBeNull();
+    expect(container.querySelector("[data-testid='dragon-horn-stage-3']")).toBeNull();
+  });
+
+  it("renders Stage 2 young dragon with golden accent horn", () => {
+    const { container } = renderWithTheme(<Companion pose="idle" stage={2} />);
+    const svg = screen.getByRole("img");
+    expect(svg.getAttribute("data-stage")).toBe("2");
+    expect(container.querySelector("[data-testid='dragon-horn-stage-1']")).toBeNull();
+    expect(container.querySelector("[data-testid='dragon-horn-stage-2']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='dragon-horn-stage-3']")).toBeNull();
+  });
+
+  it("renders Stage 3 hero dragon with prominent hero crest and radiant horns", () => {
+    const { container } = renderWithTheme(<Companion pose="idle" stage={3} />);
+    const svg = screen.getByRole("img");
+    expect(svg.getAttribute("data-stage")).toBe("3");
+    expect(container.querySelector("[data-testid='dragon-horn-stage-1']")).toBeNull();
+    expect(container.querySelector("[data-testid='dragon-horn-stage-2']")).toBeNull();
+    expect(container.querySelector("[data-testid='dragon-horn-stage-3']")).not.toBeNull();
+  });
+
+  it("uses theme token colors without hardcoded hex literals in dragon elements", () => {
+    const customColors = {
+      ...defaultTheme.colors,
+      dragonBody: "rgb(12, 34, 56)",
+      dragonWing: "rgb(78, 90, 12)",
+      dragonBelly: "rgb(200, 210, 220)",
+      dragonHorn: "rgb(250, 200, 50)",
+    };
+    const customTheme = { ...defaultTheme, colors: customColors } as unknown as typeof defaultTheme;
+
+    const { container } = render(
+      <ThemeProvider theme={customTheme}>
+        <Companion pose="idle" stage={2} />
+      </ThemeProvider>,
+    );
+    const bodyPath = container.querySelector("[data-testid='companion-body'] path");
+    expect(bodyPath?.getAttribute("fill")).toBe("rgb(12, 34, 56)");
+
+    const wingPath = container.querySelector("[data-testid='companion-wing-left'] path");
+    expect(wingPath?.getAttribute("fill")).toBe("rgb(78, 90, 12)");
+
+    const bellyPath = container.querySelector("[data-testid='companion-belly'] path");
+    expect(bellyPath?.getAttribute("fill")).toBe("rgb(200, 210, 220)");
+
+    const hornPath = container.querySelector("[data-testid='dragon-horn-stage-2'] path");
+    expect(hornPath?.getAttribute("fill")).toBe("rgb(250, 200, 50)");
+  });
+
+  it("renders official Kraków dragon artwork image according to evolution stage", () => {
+    const { rerender } = renderWithTheme(<Companion pose="idle" stage={1} />);
+    let artwork = screen.getByTestId("companion-artwork");
+    expect(artwork.getAttribute("href")).toBe("/dragon.png");
+
+    rerender(<Companion pose="idle" stage={2} />);
+    artwork = screen.getByTestId("companion-artwork");
+    expect(artwork.getAttribute("href")).toBe("/dragon_stage2_teen.png");
+
+    rerender(<Companion pose="idle" stage={3} />);
+    artwork = screen.getByTestId("companion-artwork");
+    expect(artwork.getAttribute("href")).toBe("/dragon_stage3_heroic.png");
   });
 });
 

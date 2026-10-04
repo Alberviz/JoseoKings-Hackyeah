@@ -10,15 +10,18 @@ The channel is backed by **GitHub Issues (Personal Inboxes)** via the `gh` CLI. 
 
 Each teammate and their AI has a designated inbox issue:
 
-| Name / Identity | AI Identity         | Inbox Issue                                                      | Purpose                                  |
-| :-------------- | :------------------ | :--------------------------------------------------------------- | :--------------------------------------- |
-| `alberto`       | `lead-ai`, `claude` | [#70](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/70) | Product owner & Lead AI decisions        |
-| `alvaro`        | `alvaro-ai`         | [#71](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/71) | Check-in, parent mode & lead transitions |
-| `juan`          | `juan-ai`           | [#72](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/72) | Data layer, patterns, doctor report      |
-| `baitiare`      | `baitiare-ai`       | [#73](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/73) | Companion, dragon, child UI & shop       |
-| `farouk`        | `farouk-ai`         | [#74](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/74) | Clinical content, sources, issue board   |
-| `claudia`       | `claudia-ai`        | [#75](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/75) | Pitch, slides, demo script & docs        |
-| `all`           | `broadcast`         | [#76](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/76) | Broadcast announcements for everyone     |
+| Name / Identity   | AI Identity                    | Inbox Issue                                                      | Purpose                                                    |
+| :---------------- | :----------------------------- | :--------------------------------------------------------------- | :--------------------------------------------------------- |
+| `alberto-cerebro` | `claude`, `lead-ai`, `alberto` | [#70](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/70) | Lead AI (brain): decisions, reviews, merges                |
+| `alberto-obrero`  | `obrero`                       | [#99](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/99) | Alberto's second Claude: visual design + parent area (#96) |
+| `alvaro`          | `alvaro-ai`                    | [#71](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/71) | Check-in, parent mode & lead transitions                   |
+| `juan`            | `juan-ai`                      | [#72](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/72) | Data layer, patterns, doctor report                        |
+| `baitiare`        | `baitiare-ai`                  | [#73](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/73) | Companion, dragon, child UI & shop                         |
+| `farouk`          | `farouk-ai`                    | [#74](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/74) | Clinical content, sources, issue board                     |
+| `claudia`         | `claudia-ai`                   | [#75](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/75) | Pitch, slides, demo script & docs                          |
+| `all`             | `broadcast`                    | [#76](https://github.com/Alberviz/JoseoKings-Hackyeah/issues/76) | Broadcast announcements for everyone                       |
+
+Questions for the lead go to `claude` (alias of `alberto-cerebro`).
 
 ---
 
@@ -29,6 +32,9 @@ Run from the root of the repository. Use the name of the person you work for (`C
 ```sh
 # 1. At the start of every session (or after completing a task): what is waiting for me?
 scripts/comms.sh open juan
+
+# 1b. Right after: keep the inbox watch running in the background ALL session (mandatory)
+scripts/comms.sh watch juan
 
 # 2. Ask, report or notify: sends to the recipient's inbox issue
 scripts/comms.sh send --from juan --to alvaro --type question --task T11 \
@@ -53,10 +59,10 @@ Every AI and human must follow the **telegraphic protocol** to conserve model co
 
 1. **1 to 2 lines maximum per message** (strictly under 50 words / ~40 tokens).
 2. **Zero fluff:** No greetings ("Hi from Claude"), no sign-offs, no quoting full PR descriptions or clinical papers, no repeating general rules.
-3. **No continuous background polling (`watch`):** Continuous loops consume context and burn tokens. Check the channel **only on events**:
-   - At session start (`scripts/comms.sh open <name>`).
-   - When blocked waiting for a decision.
-   - When opening a PR or finishing a task.
+3. **Always-on inbox watch (mandatory):** at the start of every session, right after `scripts/comms.sh open <name>`, start `scripts/comms.sh watch <name>` as a background monitor and keep it running for the whole session. It is silent while idle and prints one `NEW MESSAGE [#<issue>] <HH:MM> [<author>]: <body>` line per new inbox comment (and `BROADCAST ...` for #76), so it costs nothing until something arrives.
+   - Claude Code: use the Monitor tool. Gemini CLI, Antigravity, Cursor: a background terminal or the tool's equivalent.
+   - If your tool cannot run background processes, run `scripts/comms.sh open <name>` before and after every task step.
+   - When a message addressed to you arrives, answer it (or act on it within your task) before continuing. Claude may send you corrections at any time.
 4. **Emoji reactions for humans:** Acknowledge messages in GitHub directly with reactions (👀, 👍) without writing a new comment.
 
 ---
